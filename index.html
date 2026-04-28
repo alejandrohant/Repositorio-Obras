@@ -1854,19 +1854,28 @@ async function guardarPerfil(e){
   }
   sPrf(arr);
 
+  try {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
   const { error } = await supabaseClient
-    .from('empresas')
+    .from('perfiles')
     .insert([{
-      nombre: o.nombre,
-      rfc: o.rfc,
-      tipo: o.tipo,
-      registro_patronal: o.rp || null,
-      subdelegacion: o.subdelegacion || null,
-      cp: o.cp || null,
-      estado: o.estado || null,
+      user_id: user.id,
+      rfc: o.rfc || null,
+      nombre: o.nombre || null,
+      tipo: o.tipo || null,
+      data: o
     }]);
 
   console.log('SUPABASE PERFIL ERROR:', error);
+
+  if(error){
+    alert('Perfil guardado localmente, pero falló Supabase');
+  }
+} catch(err){
+  console.error(err);
+  alert('Perfil guardado localmente, pero falló conexión con Supabase');
+}
 
   cerrarPrf();
   irPerfiles();
