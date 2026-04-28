@@ -962,7 +962,7 @@ var IP=[{id:'p_1',nombre:'Mangroovy',rfc:'WTB220809B57',patron:'Walking To The B
 var IC=[{id:'c_1',nombre:'Isla Riviera Maya',rfc:'AEH2304126V3',contratista:'Avant Equipamiento Hotelero',rp:'L0186133109',ubicacion:'Carretera Puerto Juarez Punta Sam Ext 2.7 Int 3',contrato:'OPUTD-RIM/158-25',inicia:'2025-07-22',termina:'2025-12-06',fase:'Suministro, Fabricacion e Instalacion de Carpinteria fija en Areas comunes',faseDOF:'Carpinterias',importeMXN:7272636.19,valorTotal:7272636.19,costoDOF:0.21,costoExp:0.1,moDOF:1527253.5999,moExp:727263.619,factorIMSS:0.354,cuotasDOF:540647.7743646,cuotasExp:257451.321126,isn:'Unico',factorMOSATQ:0.305,moSATQ:2218154.03795,factorISN:0.04,isnEst:88726.161518,siroc:'C1114207'}];
 function init(){if(!localStorage.getItem('perfiles'))localStorage.setItem('perfiles',JSON.stringify(IPERFILES));if(!localStorage.getItem('op'))localStorage.setItem('op',JSON.stringify(IP));if(!localStorage.getItem('oc'))localStorage.setItem('oc',JSON.stringify(IC));// Always update fases if IFASES has more records than stored
 var storedFases=JSON.parse(localStorage.getItem('fases')||'[]');
-if(storedFases.length < IFASES.length) localStorage.setItem('fases',JSON.stringify(IFASES));if(!localStorage.getItem('control'))localStorage.setItem('control',JSON.stringify({}));}
+if(!localStorage.getItem('fases')) localStorage.setItem('fases',JSON.stringify([]));if(!localStorage.getItem('control'))localStorage.setItem('control',JSON.stringify({}));}
 function gP(){return JSON.parse(localStorage.getItem('op')||'[]');}
 function gC(){return JSON.parse(localStorage.getItem('oc')||'[]');}
 function sP(a){localStorage.setItem('op',JSON.stringify(a));}
