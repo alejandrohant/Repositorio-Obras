@@ -307,6 +307,14 @@ select.fg-sel:focus{border-color:#a78bfa}
 </head>
 <body>
 <nav>
+<div id="authBox" style="padding:16px 24px;background:#111827;border-bottom:1px solid #2d2d44;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+  <input id="authEmail" type="email" placeholder="Correo" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
+  <input id="authPassword" type="password" placeholder="Contraseña" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
+  <button class="nbtn" onclick="signUp()">Crear cuenta</button>
+  <button class="nbtn" onclick="signIn()">Entrar</button>
+  <button class="bcan" onclick="signOut()">Salir</button>
+  <span id="authStatus" style="color:#94a3b8;font-size:13px"></span>
+</div>
   <h1><button class="nbtn" style="background:#2d2d44;color:#a78bfa;margin-right:8px" onclick="irPerfiles()">Perfiles</button>Repositorio de Obras</h1>
   <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
 </nav>
@@ -961,6 +969,81 @@ function sP(a){localStorage.setItem('op',JSON.stringify(a));}
 function sC(a){localStorage.setItem('oc',JSON.stringify(a));}
 function gid(x){return x+'_'+Date.now();}
 function show(id){document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte').forEach(function(p){p.classList.remove('active');});document.getElementById(id).classList.add('active');}
+let currentUser = null;
+
+async function initAuth(){
+  const { data } = await supabaseClient.auth.getUser();
+  currentUser = data.user || null;
+  renderAuthStatus();
+}
+
+function renderAuthStatus(){
+  var el = document.getElementById('authStatus');
+  if(!el) return;
+
+  if(currentUser){
+    el.textContent = 'Sesión: ' + currentUser.email;
+  } else {
+    el.textContent = 'Sin sesión';
+  }
+}
+
+async function signUp(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+
+  if(!email || !password){
+    alert('Pon correo y contraseña.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  if(error){
+    alert(error.message);
+    console.error(error);
+    return;
+  }
+
+  currentUser = data.user || null;
+  renderAuthStatus();
+  alert('Cuenta creada. Si Supabase pide confirmación, revisa tu correo.');
+}
+
+async function signIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value.trim();
+
+  if(!email || !password){
+    alert('Pon correo y contraseña.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if(error){
+    alert(error.message);
+    console.error(error);
+    return;
+  }
+
+  currentUser = data.user || null;
+  renderAuthStatus();
+  alert('Sesión iniciada.');
+}
+
+async function signOut(){
+  await supabaseClient.auth.signOut();
+  currentUser = null;
+  renderAuthStatus();
+  alert('Sesión cerrada.');
+}
 function goHome(){counts();show('pg-home');}
 function counts(){var p=gP(),c=gC();document.getElementById('cnt-p').textContent=p.length+' obra'+(p.length!==1?'s':'');document.getElementById('cnt-c').textContent=c.length+' obra'+(c.length!==1?'s':'');}
 var ta='';
@@ -3496,7 +3579,7 @@ function generarReporte(obraObj, tipo) {
 // ============ FIN REPORTE ============
 
 // ============ FIN FASES ============
-init();counts();
+init();counts();initAuth();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
