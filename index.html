@@ -3579,7 +3579,8 @@ function generarReporte(obraObj, tipo) {
 // ============ FIN REPORTE ============
 
 // ============ FIN FASES ============
-init();counts();initAuth();
+init();counts();
+setTimeout(initAuth, 500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
