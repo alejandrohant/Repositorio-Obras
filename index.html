@@ -2528,7 +2528,7 @@ function toggleSubcontrato(){
   document.getElementById('fa-sub-wrap').style.display=chk?'block':'none';
 }
 function cerrarFase(){document.getElementById('modal-fase').classList.remove('open');}
-function guardarFase(){
+async function guardarFase(){
   var objeto=document.getElementById('fa-objeto').value.trim();
   var rfc=document.getElementById('fa-rfc').value;
   var obra=document.getElementById('fa-obra').value;
@@ -2611,8 +2611,35 @@ function guardarFase(){
   if(eFaseId){var i=arr.findIndex(function(x){return x.id===eFaseId;});if(i>=0)arr[i]=f;else arr.push(f);}
   else arr.push(f);
   sFases(arr);
-  cerrarFase();
-  if(obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
+
+try {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { error } = await supabaseClient
+    .from('fases')
+    .insert([{
+      user_id: user.id,
+      nombre: f.objeto || null,
+      rfc_contratista: f.rfc || null,
+      contratista: f.contratista || null,
+      tipo: f.perfil || null,
+      data: f
+    }]);
+
+  if(error){
+    console.error('SUPABASE FASE ERROR:', error);
+    alert('Fase guardada localmente, pero falló Supabase');
+  } else {
+    console.log('Fase guardada en Supabase');
+  }
+
+} catch(err){
+  console.error('SUPABASE FASE EXCEPTION:', err);
+  alert('Fase guardada localmente, pero falló conexión con Supabase');
+}
+
+cerrarFase();
+if(obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
 }
 function pedirDelFase(id){
   var f=gFases().find(function(x){return x.id===id;});
