@@ -1403,23 +1403,31 @@ ubicacion: document.getElementById('p-ubic').value.trim(),
   }
 
   // 🔴 GUARDADO ROBUSTO EN SUPABASE
-  try {
-    const { error } = await supabaseClient.from('obras').insert([{
-      nombre: o.nombre,
-      tipo: eTipo === 'p' ? 'propietaria' : 'contratista',
-      ubicacion: o.ubicacion,
-      fecha_inicio: o.inicia,
-      fecha_fin: o.termina
-    }]);
+try {
+  const { data: { user } } = await supabaseClient.auth.getUser();
 
-    if(error){
-      console.error(error);
-      alert('Guardado local OK, pero falló Supabase');
-    }
-  } catch(err){
-    console.error(err);
-    alert('Guardado local OK, sin conexión a Supabase');
+  const { error } = await supabaseClient.from('obras').insert([{
+    user_id: user.id,
+    nombre: o.nombre,
+    tipo: eTipo === 'p' ? 'propietaria' : 'contratista',
+    rfc: o.rfc || null,
+    ubicacion: o.ubicacion || null,
+    fecha_inicio: o.inicia || null,
+    fecha_fin: o.termina || null,
+    data: o // 🔴 AQUÍ VA TODO
+  }]);
+
+  if(error){
+    console.error(error);
+    alert('Guardado local OK, pero falló Supabase');
+  } else {
+    console.log('Guardado en Supabase');
   }
+
+} catch(err){
+  console.error(err);
+  alert('Guardado local OK, sin conexión a Supabase');
+}
 
   cerrar();
   if(ta) irLista(ta);
