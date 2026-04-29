@@ -1339,6 +1339,13 @@ if(document.getElementById('p-fisn')){
 }
 
 document.getElementById('p-ubic').value = o.ubicacion || '';
+if(document.getElementById('p-subdelegacion')) document.getElementById('p-subdelegacion').value = o.subdelegacion || '';
+if(document.getElementById('p-arp')) document.getElementById('p-arp').value = o.arp || 0;
+if(document.getElementById('p-tarjeta-patronal')) document.getElementById('p-tarjeta-patronal').value = o.tarjetaPatronal || 0;
+if(document.getElementById('p-croquis-obra')) document.getElementById('p-croquis-obra').value = o.croquisObra || 0;
+if(document.getElementById('p-croquis-rp')) document.getElementById('p-croquis-rp').value = o.croquisRP || 0;
+if(document.getElementById('p-compdom-obra')) document.getElementById('p-compdom-obra').value = o.compDomObra || 0;
+if(document.getElementById('p-compdom-rp')) document.getElementById('p-compdom-rp').value = o.compDomRP || 0;
 
 var modofReal = parseFloat(o.moDOF) || ((parseFloat(o.m2) || 0) * (parseFloat(o.costoM2) || 0));
 var cuotasReal = parseFloat(o.cuotas) || (modofReal * ((parseFloat(o.fcuotas) || 35.40) / 100));
@@ -1398,6 +1405,13 @@ calcISNPropietaria();
     document.getElementById('c-fisn').value=o.factorISN||'';
     document.getElementById('c-iest').value=o.isnEst||'';
     document.getElementById('c-ubic').value=o.ubicacion||'';
+    if(document.getElementById('c-subdelegacion')) document.getElementById('c-subdelegacion').value = o.subdelegacion || '';
+if(document.getElementById('c-arp')) document.getElementById('c-arp').value = o.arp || 0;
+if(document.getElementById('c-tarjeta-patronal')) document.getElementById('c-tarjeta-patronal').value = o.tarjetaPatronal || 0;
+if(document.getElementById('c-croquis-obra')) document.getElementById('c-croquis-obra').value = o.croquisObra || 0;
+if(document.getElementById('c-croquis-rp')) document.getElementById('c-croquis-rp').value = o.croquisRP || 0;
+if(document.getElementById('c-compdom-obra')) document.getElementById('c-compdom-obra').value = o.compDomObra || 0;
+if(document.getElementById('c-compdom-rp')) document.getElementById('c-compdom-rp').value = o.compDomRP || 0;
   }
 
   document.getElementById('modal').classList.add('open');
@@ -1509,7 +1523,14 @@ compDomRP: document.getElementById('p-compdom-rp') ? parseInt(document.getElemen
       moSATQ: numSafe(document.getElementById('c-mos').value),
       factorISN: numSafe(document.getElementById('c-fisn').value),
       isnEst: numSafe(document.getElementById('c-iest').value),
-      ubicacion: document.getElementById('c-ubic').value.trim()
+      ubicacion: document.getElementById('c-ubic').value.trim(),
+subdelegacion: document.getElementById('c-subdelegacion') ? document.getElementById('c-subdelegacion').value.trim() : '',
+arp: document.getElementById('c-arp') ? parseInt(document.getElementById('c-arp').value) || 0 : 0,
+tarjetaPatronal: document.getElementById('c-tarjeta-patronal') ? parseInt(document.getElementById('c-tarjeta-patronal').value) || 0 : 0,
+croquisObra: document.getElementById('c-croquis-obra') ? parseInt(document.getElementById('c-croquis-obra').value) || 0 : 0,
+croquisRP: document.getElementById('c-croquis-rp') ? parseInt(document.getElementById('c-croquis-rp').value) || 0 : 0,
+compDomObra: document.getElementById('c-compdom-obra') ? parseInt(document.getElementById('c-compdom-obra').value) || 0 : 0,
+compDomRP: document.getElementById('c-compdom-rp') ? parseInt(document.getElementById('c-compdom-rp').value) || 0 : 0
     };
 
     if(!o.nombre || !o.rfc || !o.contratista){
