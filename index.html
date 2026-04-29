@@ -2055,10 +2055,17 @@ function autollenarDocsRP(){
 
   if(!anterior) return;
 
-  if(document.getElementById('fa-arp')) document.getElementById('fa-arp').value = anterior.arp || 0;
-  if(document.getElementById('fa-tarjeta-patronal')) document.getElementById('fa-tarjeta-patronal').value = anterior.tarjetaPatronal || 0;
-  if(document.getElementById('fa-croquis-rp')) document.getElementById('fa-croquis-rp').value = anterior.croquisRP || 0;
-  if(document.getElementById('fa-compdom-rp')) document.getElementById('fa-compdom-rp').value = anterior.compDomRP || 0;
+  if(document.getElementById('fa-arp') && !document.getElementById('fa-arp').value)
+    document.getElementById('fa-arp').value = anterior.arp || 0;
+
+  if(document.getElementById('fa-tarjeta-patronal') && !document.getElementById('fa-tarjeta-patronal').value)
+    document.getElementById('fa-tarjeta-patronal').value = anterior.tarjetaPatronal || 0;
+
+  if(document.getElementById('fa-croquis-rp') && !document.getElementById('fa-croquis-rp').value)
+    document.getElementById('fa-croquis-rp').value = anterior.croquisRP || 0;
+
+  if(document.getElementById('fa-compdom-rp') && !document.getElementById('fa-compdom-rp').value)
+    document.getElementById('fa-compdom-rp').value = anterior.compDomRP || 0;
 }
 function abrirEditarPerfil(id){
   var p=gPrf().find(function(x){return x.id===id;});if(!p)return;
