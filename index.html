@@ -2579,7 +2579,8 @@ function abrirEditarFase(id){
   document.getElementById('fa-rfc').value=f.rfc||'';
   document.getElementById('fa-contratista').value=f.contratista||'';
   document.getElementById('fa-perfil').value=f.perfil||'';
-  if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value=f.rp||'';
+  var rpInput = document.getElementById('fa-rp');
+if(rpInput) rpInput.value = f.rp || '';
   document.getElementById('fa-objeto').value=f.objeto||'';
   document.getElementById('fa-tipo-cto').value=f.tipoCto||'';
   document.getElementById('fa-aplica-siroc').value=f.aplicaSiroc||1;
