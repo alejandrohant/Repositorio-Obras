@@ -576,6 +576,54 @@ select.fg-sel:focus{border-color:#a78bfa}
           <div class="fg">
   <label>RP</label>
   <input id="fa-rp">
+  <div class="fg">
+  <label>Subdelegación</label>
+  <input id="fa-subdelegacion" readonly style="background:#161622;color:#64748b">
+</div>
+
+<div class="fg">
+  <label>Formato de Alta Patronal (ARP)</label>
+  <select id="fa-arp" class="fg-sel">
+    <option value="0">--</option>
+    <option value="1">Presentado</option>
+    <option value="2">No presentado</option>
+    <option value="4">No aplica</option>
+    <option value="3">Erróneo</option>
+  </select>
+</div>
+
+<div class="fg">
+  <label>Tarjeta Patronal</label>
+  <select id="fa-tarjeta-patronal" class="fg-sel">
+    <option value="0">--</option>
+    <option value="1">Presentado</option>
+    <option value="2">No presentado</option>
+    <option value="4">No aplica</option>
+    <option value="3">Erróneo</option>
+  </select>
+</div>
+
+<div class="fg">
+  <label>Croquis domicilio RP</label>
+  <select id="fa-croquis-rp" class="fg-sel">
+    <option value="0">--</option>
+    <option value="1">Presentado</option>
+    <option value="2">No presentado</option>
+    <option value="4">No aplica</option>
+    <option value="3">Erróneo</option>
+  </select>
+</div>
+
+<div class="fg">
+  <label>Comprobante domicilio RP</label>
+  <select id="fa-compdom-rp" class="fg-sel">
+    <option value="0">--</option>
+    <option value="1">Presentado</option>
+    <option value="2">No presentado</option>
+    <option value="4">No aplica</option>
+    <option value="3">Erróneo</option>
+  </select>
+</div>
 </div>
           <div class="fg"><label id="fa-lbl-contratista">Contratista</label><input id="fa-contratista" readonly style="background:#161622;color:#64748b"></div>
           <div class="fg"><label>Perfil</label><input id="fa-perfil" readonly style="background:#161622;color:#64748b"></div>
@@ -2583,7 +2631,12 @@ function abrirEditarFase(id){
   document.getElementById('fa-contratista').value=f.contratista||'';
   document.getElementById('fa-perfil').value=f.perfil||'';
   var rpInput = document.getElementById('fa-rp');
-if(rpInput) rpInput.value = f.rp || '';
+  if(rpInput) rpInput.value = f.rp || '';
+  if(document.getElementById('fa-subdelegacion')) document.getElementById('fa-subdelegacion').value = f.subdelegacion || '';
+  if(document.getElementById('fa-arp')) document.getElementById('fa-arp').value = f.arp || 0;
+  if(document.getElementById('fa-tarjeta-patronal')) document.getElementById('fa-tarjeta-patronal').value = f.tarjetaPatronal || 0;
+  if(document.getElementById('fa-croquis-rp')) document.getElementById('fa-croquis-rp').value = f.croquisRP || 0;
+  if(document.getElementById('fa-compdom-rp')) document.getElementById('fa-compdom-rp').value = f.compDomRP || 0;
   document.getElementById('fa-objeto').value=f.objeto||'';
   document.getElementById('fa-tipo-cto').value=f.tipoCto||'';
   document.getElementById('fa-aplica-siroc').value=f.aplicaSiroc||1;
@@ -2735,6 +2788,14 @@ function onFaseObraChange(){
   });
   if(curRfc)selRfc.value=curRfc;
   onFaseRFCChange();
+  var nombreObra = document.getElementById('fa-obra').value || '';
+var todas = gP().concat(gC());
+var obra = todas.find(function(x){ return x.nombre === nombreObra; });
+
+if(obra){
+  var sub = document.getElementById('fa-subdelegacion');
+  if(sub) sub.value = obra.subdelegacion || '';
+}
 }
 function onFaseRFCChange(){
   var rfc = (document.getElementById('fa-rfc').value || '').trim().toUpperCase();
@@ -2779,6 +2840,11 @@ async function guardarFase(){
     contratista:document.getElementById('fa-contratista').value,
     perfil:document.getElementById('fa-perfil').value,
     rp:document.getElementById('fa-rp').value,
+    subdelegacion: document.getElementById('fa-subdelegacion') ? document.getElementById('fa-subdelegacion').value : '',
+    arp: document.getElementById('fa-arp') ? parseInt(document.getElementById('fa-arp').value) || 0 : 0,
+    tarjetaPatronal: document.getElementById('fa-tarjeta-patronal') ? parseInt(document.getElementById('fa-tarjeta-patronal').value) || 0 : 0,
+    croquisRP: document.getElementById('fa-croquis-rp') ? parseInt(document.getElementById('fa-croquis-rp').value) || 0 : 0,
+    compDomRP: document.getElementById('fa-compdom-rp') ? parseInt(document.getElementById('fa-compdom-rp').value) || 0 : 0,
     objeto:objeto,
     tipoCto:document.getElementById('fa-tipo-cto').value,
     aplicaSiroc:parseInt(document.getElementById('fa-aplica-siroc').value)||1,
