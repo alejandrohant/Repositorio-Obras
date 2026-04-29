@@ -1708,27 +1708,6 @@ function toggleISNPropietaria(){
 }
 
 function toggleISNSectionFase(){
-  var sec = document.getElementById('fa-isn-section');
-  var obraSel = document.getElementById('fa-obra');
-  if(!sec || !obraSel) return;
-
-  var nombreObra = obraSel.value || '';
-  var todas = gP().concat(gC());
-  var obra = todas.find(function(x){ return x.nombre === nombreObra; });
-
-  if(!obra){
-    sec.style.display = 'none';
-    return;
-  }
-
-  var pagadoPor = (obra.isnPagadoPor || '').toLowerCase();
-
-  if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
-    sec.style.display = '';
-  } else {
-    sec.style.display = 'none';
-  }
-}
 function calcISNPropietaria(){
   var pagadoPor = document.getElementById('p-isn-pagado-por')?.value || '';
   if(pagadoPor !== 'propietaria') return;
