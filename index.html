@@ -1327,7 +1327,10 @@ function abrirEditar(id){
     document.getElementById('p-tip').value=o.tipo||'';
     document.getElementById('p-tdof').value=o.tipoDOF||'';
     document.getElementById('p-m2').value = o.m2 || '';
-document.getElementById('p-costom2').value = o.costoM2 || '';
+    document.getElementById('p-costom2').value = o.costoM2 || '';
+    if(document.getElementById('p-valobra')){
+  document.getElementById('p-valobra').value = o.valorObra || '';
+}
 
 if(document.getElementById('p-fcuotas')){
   document.getElementById('p-fcuotas').value = o.fcuotas || 35.40;
@@ -1457,6 +1460,7 @@ async function guardar(e){
       m2: numSafe(document.getElementById('p-m2').value),
       costoM2: numSafe(document.getElementById('p-costom2').value),
       moDOF: datasetOrValue('p-modof'),
+      valorObra: numSafe(document.getElementById('p-valobra') ? document.getElementById('p-valobra').value : 0),
       fcuotas: numSafe(document.getElementById('p-fcuotas').value),
       cuotas: datasetOrValue('p-cu'),
       isn: document.getElementById('p-isn').value.trim(),
