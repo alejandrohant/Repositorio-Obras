@@ -1497,9 +1497,15 @@ ubicacion: document.getElementById('p-ubic').value.trim(),
     sC(arrC);
   }
 
-  // 🔴 GUARDADO ROBUSTO EN SUPABASE
+// 🔴 SINCRONIZAR OBRA EN SUPABASE
 try {
   const { data: { user } } = await supabaseClient.auth.getUser();
+
+  await supabaseClient
+    .from('obras')
+    .delete()
+    .eq('user_id', user.id)
+    .contains('data', { id: o.id });
 
   const { error } = await supabaseClient.from('obras').insert([{
     user_id: user.id,
@@ -1509,19 +1515,19 @@ try {
     ubicacion: o.ubicacion || null,
     fecha_inicio: o.inicia || null,
     fecha_fin: o.termina || null,
-    data: o // 🔴 AQUÍ VA TODO
+    data: o
   }]);
 
   if(error){
-    console.error(error);
-    alert('Guardado local OK, pero falló Supabase');
+    console.error('SUPABASE OBRA ERROR:', error);
+    alert('Obra guardada localmente, pero falló Supabase');
   } else {
-    console.log('Guardado en Supabase');
+    console.log('Obra sincronizada en Supabase');
   }
 
 } catch(err){
   console.error(err);
-  alert('Guardado local OK, sin conexión a Supabase');
+  alert('Obra guardada localmente, pero falló conexión con Supabase');
 }
 
   cerrar();
@@ -1994,6 +2000,12 @@ async function guardarPerfil(e){
   try {
   const { data: { user } } = await supabaseClient.auth.getUser();
 
+  await supabaseClient
+    .from('perfiles')
+    .delete()
+    .eq('user_id', user.id)
+    .contains('data', { id: o.id });
+
   const { error } = await supabaseClient
     .from('perfiles')
     .insert([{
@@ -2004,11 +2016,13 @@ async function guardarPerfil(e){
       data: o
     }]);
 
-  console.log('SUPABASE PERFIL ERROR:', error);
-
   if(error){
+    console.error('SUPABASE PERFIL ERROR:', error);
     alert('Perfil guardado localmente, pero falló Supabase');
+  } else {
+    console.log('Perfil sincronizado en Supabase');
   }
+
 } catch(err){
   console.error(err);
   alert('Perfil guardado localmente, pero falló conexión con Supabase');
@@ -2771,6 +2785,12 @@ async function guardarFase(){
 try {
   const { data: { user } } = await supabaseClient.auth.getUser();
 
+  await supabaseClient
+    .from('fases')
+    .delete()
+    .eq('user_id', user.id)
+    .contains('data', { id: f.id });
+
   const { error } = await supabaseClient
     .from('fases')
     .insert([{
@@ -2786,11 +2806,11 @@ try {
     console.error('SUPABASE FASE ERROR:', error);
     alert('Fase guardada localmente, pero falló Supabase');
   } else {
-    console.log('Fase guardada en Supabase');
+    console.log('Fase sincronizada en Supabase');
   }
 
 } catch(err){
-  console.error('SUPABASE FASE EXCEPTION:', err);
+  console.error(err);
   alert('Fase guardada localmente, pero falló conexión con Supabase');
 }
 
