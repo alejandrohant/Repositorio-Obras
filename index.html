@@ -812,8 +812,6 @@ select.fg-sel:focus{border-color:#a78bfa}
   <div id="prf-repse-warn" class="fase-tag fase-tag-venc" style="display:none;margin-top:6px">REPSE vencido</div>
 </div>
     <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg"><label>Formato Alta IMSS</label><select id="prf-imss" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg"><label>Tarjeta patronal IMSS</label><select id="prf-tp" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="wrap-prf-acta">
   <label>ACTA CONSTITUTIVA</label>
@@ -1831,7 +1829,7 @@ function renderPerfiles(lista){
       +'<div class="odet">'
       +'<div class="ofil"><span class="olab">RFC:</span><span class="mono" style="font-size:12px">'+p.rfc+'</span></div>'
       +'<div class="ofil"><span class="olab">REPSE:</span><span>'+(p.folioREPSE||'--')+(p.vigenciaREPSE?' · vence '+fdate(p.vigenciaREPSE):'')+'</span></div>'
-      +'<div class="ofil"><span class="olab">SAT:</span>'+estLabel(p.acuseSAT)+'&nbsp;&nbsp;<span class="olab">IMSS:</span>'+estLabel(p.altaIMSS)+'</div>'
+      +'<div class="ofil"><span class="olab">SAT:</span>'+estLabel(p.acuseSAT)+'</div>'
       +'</div></div>';
   });}
   var el=document.getElementById('prf-list');
@@ -1855,8 +1853,6 @@ function irFichaPerfil(id){
   if(btnCtrl){btnCtrl.style.display='inline-block';btnCtrl.onclick=function(){irControl(p);};}
   var docs=[
     {lbl:'Acuse constancia SAT',v:p.acuseSAT},
-    {lbl:'Formato Alta IMSS',v:p.altaIMSS},
-    {lbl:'Tarjeta patronal IMSS',v:p.tarjetaIMSS},
     {lbl:'Acuse REPSE',v:p.acuseREPSE},
     {lbl:'Acta constitutiva',v:p.actaConst},
     {lbl:'Poder notarial del RL',v:p.poderRL},
@@ -1937,8 +1933,6 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-frepse').value=p.fechaREPSE||'';
   document.getElementById('prf-vrepse').value=p.vigenciaREPSE||'';calcVigenciaREPSE();
   document.getElementById('prf-sat').value=p.acuseSAT||0;
-  document.getElementById('prf-imss').value=p.altaIMSS||0;
-  document.getElementById('prf-tp').value=p.tarjetaIMSS||0;
   document.getElementById('prf-arep').value=p.acuseREPSE||0;
   document.getElementById('prf-acta').value=p.actaConst||0;
   document.getElementById('prf-poder').value=p.poderRL||0;
@@ -1968,8 +1962,6 @@ async function guardarPerfil(e){
     vigenciaREPSE: document.getElementById('prf-vrepse').value,
     acuseSAT: parseInt(document.getElementById('prf-sat').value) || 0,
     idPersonaFisica: parseInt(document.getElementById('prf-idfisica').value)||0,
-    altaIMSS: parseInt(document.getElementById('prf-imss').value) || 0,
-    tarjetaIMSS: parseInt(document.getElementById('prf-tp').value) || 0,
     acuseREPSE: parseInt(document.getElementById('prf-arep').value) || 0,
     actaConst: parseInt(document.getElementById('prf-acta').value) || 0,
     poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
