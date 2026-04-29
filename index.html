@@ -1721,31 +1721,37 @@ function calcVigenciaREPSE(){
     warn.style.display = d < hoy ? 'inline-block' : 'none';
   }
 }
-function hacerDel(){if(!dId){cerrarC();return;}var p=gP(),c=gC();if(p.some(function(x){return x.id===dId;}))sP(p.filter(function(x){return x.id!==dId;}));else sC(c.filter(function(x){return x.id!==dId;}));cerrarC();if(document.getElementById('pg-ficha').classList.contains('active'))irLista(ta);else if(ta)irLista(ta);else{counts();goHome();}}
-var IPERFILES=[
-  {id:'prf_1',rfc:'WTB220809B57',nombre:'Walking To The Beach',tipo:'propietaria',rp:'Z4010667104',subdelegacion:'Cancún',folioREPSE:'NA',fechaREPSE:'2026-01-01',vigenciaREPSE:'2028-12-31',acuseSAT:1,domicilio:'',altaIMSS:2,tarjetaIMSS:1,acuseREPSE:1,actaConst:1,poderRL:1,idRL:1,constSATRL:1,correo:'',telefono:'',croquis:2,compDom:2,construye:1,archivos:{}},
-  {id:'prf_2',rfc:'IPR110228ME2',nombre:'Innovación de Prefabricados',tipo:'contratista',rp:'L0158039102',subdelegacion:'Cancún',folioREPSE:'Sin folio',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:1,domicilio:'',altaIMSS:0,tarjetaIMSS:1,acuseREPSE:4,actaConst:1,poderRL:1,idRL:1,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_3',rfc:'CIV110414455',nombre:'Consorcio Inmobiliario VNA',tipo:'contratista',rp:'L0185413106',subdelegacion:'Cancún',folioREPSE:'Sin folio 2',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:1,domicilio:'',altaIMSS:2,tarjetaIMSS:1,acuseREPSE:4,actaConst:1,poderRL:4,idRL:2,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_4',rfc:'VLP161215FJ0',nombre:'Viguetas y Losas de la Peninsula',tipo:'contratista',rp:'Viguetas',subdelegacion:'Cancún',folioREPSE:'Sin folio 3',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:4,domicilio:'',altaIMSS:0,tarjetaIMSS:4,acuseREPSE:4,actaConst:4,poderRL:4,idRL:4,constSATRL:4,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_5',rfc:'EEL1512075P1',nombre:'Esco Eléctrico SA de CV',tipo:'contratista',rp:'L0188379106',subdelegacion:'Cancún',folioREPSE:'AR105622/2023',fechaREPSE:'2023-02-07',vigenciaREPSE:'2026-02-06',acuseSAT:1,domicilio:'',altaIMSS:0,tarjetaIMSS:2,acuseREPSE:1,actaConst:1,poderRL:4,idRL:1,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_6',rfc:'FGC2108074M7',nombre:'Fahe Grupo Comercial Inmobiliario',tipo:'contratista',rp:'Z6111770109',subdelegacion:'Cancún',folioREPSE:'Sin folio 5',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:1,domicilio:'',altaIMSS:0,tarjetaIMSS:1,acuseREPSE:1,actaConst:1,poderRL:4,idRL:2,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_7',rfc:'YABW68011281A',nombre:'Wilian de Jesús Yah Blanco',tipo:'contratista',rp:'L0157142105',subdelegacion:'Cancún',folioREPSE:'Sinfolio 7',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:1,domicilio:'',altaIMSS:2,tarjetaIMSS:1,acuseREPSE:2,actaConst:4,poderRL:4,idRL:1,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_8',rfc:'PEMW670805HQ3',nombre:'Wilber Pérez Martinez',tipo:'contratista',rp:'WPM',subdelegacion:'Cancún',folioREPSE:'Sinfolio 8',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:2,domicilio:'',altaIMSS:2,tarjetaIMSS:2,acuseREPSE:2,actaConst:2,poderRL:2,idRL:2,constSATRL:2,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_9',rfc:'SUCC870331SXA',nombre:'Civia Loreidi Sunza Che',tipo:'contratista',rp:'CLSC',subdelegacion:'Cancún',folioREPSE:'Sinfolio 9',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:2,domicilio:'',altaIMSS:2,tarjetaIMSS:2,acuseREPSE:2,actaConst:2,poderRL:2,idRL:2,constSATRL:2,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_10',rfc:'AEH2304126V3',nombre:'Avant Equipamiento Hotelero',tipo:'contratista',rp:'L0186133109',subdelegacion:'Cancún',folioREPSE:'AR/139339/2024',fechaREPSE:'',vigenciaREPSE:'',acuseSAT:2,domicilio:'',altaIMSS:2,tarjetaIMSS:2,acuseREPSE:2,actaConst:2,poderRL:2,idRL:2,constSATRL:2,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}},
-  {id:'prf_11',rfc:'ACO161123445',nombre:'ADECSA Constructora',tipo:'subcontratista',rp:'Z6112716101',subdelegacion:'Cancún',folioREPSE:'ARR24093/2024',fechaREPSE:'2024-09-04',vigenciaREPSE:'2027-09-04',acuseSAT:1,domicilio:'Calle 42, ext 368 B, Planta Baja Apartado A, Col. Benito Juárez Nte, Merida, Yuc, C.P. 97119',altaIMSS:2,tarjetaIMSS:1,acuseREPSE:1,actaConst:1,poderRL:1,idRL:1,constSATRL:1,correo:'',telefono:'',croquis:0,compDom:0,construye:0,archivos:{}}
-];
-function gPrf(){return JSON.parse(localStorage.getItem('perfiles')||'[]');}
-function sPrf(a){localStorage.setItem('perfiles',JSON.stringify(a));}
-function estLabel(v){if(v===1)return '<span class="est-ok">&#10003; Presentado</span>';if(v===2)return '<span class="est-no">No presentado</span>';if(v===3)return '<span class="est-err">Erróneo</span>';if(v===4)return '<span class="est-na">N/A</span>';return '<span class="est-na">--</span>';}
-function tipoBadge(t){if(t==='propietaria')return '<span class="prf-badge badge-p">Propietaria</span>';if(t==='contratista')return '<span class="prf-badge badge-c">Contratista</span>';return '<span class="prf-badge badge-s">Subcontratista</span>';}
-function irPerfiles(){
-  var lista=gPrf();
-  document.getElementById('prf-sub').textContent=lista.length+' perfil'+(lista.length!==1?'es':'')+' registrado'+(lista.length!==1?'s':'');
-  document.getElementById('prf-busq').value='';
-  document.getElementById('prf-tipo-fil').value='';
-  renderPerfiles(lista);
-  show('pg-perfiles');
+async function hacerDel(){
+  if(!dId){cerrarC();return;}
+
+  var p=gP(), c=gC();
+  var esP = p.some(function(x){return x.id===dId;});
+  var o = esP ? p.find(function(x){return x.id===dId;}) : c.find(function(x){return x.id===dId;});
+
+  if(esP) sP(p.filter(function(x){return x.id!==dId;}));
+  else sC(c.filter(function(x){return x.id!==dId;}));
+
+  try{
+    const { data:{ user } } = await supabaseClient.auth.getUser();
+
+    await supabaseClient
+      .from('obras')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('nombre', o.nombre)
+      .eq('tipo', esP ? 'propietaria' : 'contratista');
+
+    console.log('Obra eliminada en Supabase');
+  }catch(err){
+    console.error('Error eliminando obra en Supabase:', err);
+    alert('Se eliminó localmente, pero falló eliminar en Supabase');
+  }
+
+  cerrarC();
+
+  if(document.getElementById('pg-ficha').classList.contains('active')) irLista(ta);
+  else if(ta) irLista(ta);
+  else {counts();goHome();}
 }
 function filtrarPerfiles(){
   var q=document.getElementById('prf-busq').value.toLowerCase();
@@ -1975,10 +1981,29 @@ function pedirDelPrf(id){
   dId=id;
   var p=gPrf().find(function(x){return x.id===id;});
   document.getElementById('cmsg').textContent='Se eliminará "'+(p?p.nombre:'este perfil')+'" permanentemente.';
-  document.getElementById('bcdel').onclick=function(){
-    var arr=gPrf().filter(function(x){return x.id!==id;});
-    sPrf(arr);cerrarC();irPerfiles();
-  };
+  document.getElementById('bcdel').onclick=async function(){
+  var perfil = gPrf().find(function(x){return x.id===id;});
+  var arr=gPrf().filter(function(x){return x.id!==id;});
+  sPrf(arr);
+
+  try{
+    const { data:{ user } } = await supabaseClient.auth.getUser();
+
+    await supabaseClient
+      .from('perfiles')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('rfc', perfil.rfc);
+
+    console.log('Perfil eliminado en Supabase');
+  }catch(err){
+    console.error('Error eliminando perfil en Supabase:', err);
+    alert('Se eliminó localmente, pero falló eliminar en Supabase');
+  }
+
+  cerrarC();
+  irPerfiles();
+};
   document.getElementById('cov').classList.add('open');
 }
 // ============ FASES ============
@@ -2735,13 +2760,34 @@ if(obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
 function pedirDelFase(id){
   var f=gFases().find(function(x){return x.id===id;});
   dId=id;
-  document.getElementById('cmsg').textContent='Se eliminará "'+( f?f.objeto:'esta fase')+'" permanentemente.';
-  document.getElementById('bcdel').onclick=function(){
+
+  document.getElementById('cmsg').textContent='Se eliminará "'+(f?f.objeto:'esta fase')+'" permanentemente.';
+
+  document.getElementById('bcdel').onclick=async function(){
     sFases(gFases().filter(function(x){return x.id!==id;}));
+
+    try{
+      const { data:{ user } } = await supabaseClient.auth.getUser();
+
+      await supabaseClient
+        .from('fases')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('nombre', f.objeto)
+        .eq('rfc_contratista', f.rfc);
+
+      console.log('Fase eliminada en Supabase');
+    }catch(err){
+      console.error('Error eliminando fase en Supabase:', err);
+      alert('Se eliminó localmente, pero falló eliminar en Supabase');
+    }
+
     cerrarC();
+
     if(document.getElementById('pg-fase-ficha').classList.contains('active')&&obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
     else if(obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
   };
+
   document.getElementById('cov').classList.add('open');
 }
 // Subfases: fases cuyo sirocPrincipal === siroc de la fase padre
