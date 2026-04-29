@@ -1768,6 +1768,13 @@ function irPerfiles(){
   show('pg-perfiles');
 }
 
+function gPrf(){
+  return JSON.parse(localStorage.getItem('perfiles') || '[]');
+}
+
+function sPrf(a){
+  localStorage.setItem('perfiles', JSON.stringify(a));
+}
 function filtrarPerfiles(){
   var q=document.getElementById('prf-busq').value.toLowerCase();
   var t=document.getElementById('prf-tipo-fil').value;
