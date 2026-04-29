@@ -1785,6 +1785,33 @@ function filtrarPerfiles(){
   });
   renderPerfiles(lista);
 }
+function tipoBadge(t){
+  t = (t || '').toLowerCase();
+
+  if(t === 'propietaria'){
+    return '<span class="prf-badge badge-p">PROPIETARIA</span>';
+  }
+
+  if(t === 'contratista'){
+    return '<span class="prf-badge badge-c">CONTRATISTA</span>';
+  }
+
+  if(t === 'subcontratista'){
+    return '<span class="prf-badge badge-s">SUBCONTRATISTA</span>';
+  }
+
+  return '<span class="prf-badge">SIN TIPO</span>';
+}
+function estLabel(v){
+  v = parseInt(v) || 0;
+
+  if(v === 1) return '<span class="est-ok">✓ Presentado</span>';
+  if(v === 2) return '<span class="est-no">No presentado</span>';
+  if(v === 3) return '<span class="est-err">Erróneo</span>';
+  if(v === 4) return '<span class="est-na">No aplica</span>';
+
+  return '<span class="est-na">--</span>';
+}
 function renderPerfiles(lista){
   var h='';
   if(!lista.length){h='<div class="empty"><p>Sin perfiles.</p></div>';}
