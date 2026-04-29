@@ -575,7 +575,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 </div>
           <div class="fg"><label id="fa-lbl-contratista">Contratista</label><input id="fa-contratista" readonly style="background:#161622;color:#64748b"></div>
           <div class="fg"><label>Perfil</label><input id="fa-perfil" readonly style="background:#161622;color:#64748b"></div>
-          <div class="fg"><label id="fa-lbl-rp">RP Contratista</label><input id="fa-rp" readonly style="background:#161622;color:#64748b"></div>
+          document.getElementById('fa-rp').value = document.getElementById('fa-rp').value || '';
           <div class="fg full"><label>Objeto / Fase *</label><input id="fa-objeto"></div>
           <div class="fg"><label>Tipo Contrato</label>
             <select class="fg-sel" id="fa-tipo-cto">
