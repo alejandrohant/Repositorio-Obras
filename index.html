@@ -307,16 +307,20 @@ select.fg-sel:focus{border-color:#a78bfa}
 </head>
 <body>
 <nav>
-<div id="authBox" style="padding:16px 24px;background:#111827;border-bottom:1px solid #2d2d44;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-  <input id="authEmail" type="email" placeholder="Correo" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
-  <input id="authPassword" type="password" placeholder="Contraseña" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
-  <button class="nbtn" onclick="signUp()">Crear cuenta</button>
-  <button class="nbtn" onclick="signIn()">Entrar</button>
-  <button class="bcan" onclick="signOut()" style="display:none">Salir</button>
-  <span id="authStatus" style="color:#94a3b8;font-size:13px"></span>
-</div>
-  <h1><button class="nbtn" style="background:#2d2d44;color:#a78bfa;margin-right:8px" onclick="irPerfiles()">Perfiles</button>Repositorio de Obras</h1>
-  <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="nbtn" style="background:#2d2d44;color:#a78bfa" onclick="irPerfiles()">Perfiles</button>
+    <h1>Repositorio de Obras</h1>
+  </div>
+
+  <div id="authBox" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <input id="authEmail" type="email" placeholder="Correo" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
+    <input id="authPassword" type="password" placeholder="Contraseña" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0">
+    <button class="nbtn" onclick="signUp()">Crear cuenta</button>
+    <button class="nbtn" onclick="signIn()">Entrar</button>
+    <span id="authStatus" style="color:#94a3b8;font-size:13px"></span>
+    <button class="bcan" onclick="signOut()" style="display:none">Salir</button>
+    <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
+  </div>
 </nav>
 <div class="page active" id="pg-home">
   <div style="padding-top:16px">
