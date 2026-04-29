@@ -796,8 +796,6 @@ select.fg-sel:focus{border-color:#a78bfa}
         <option value="subcontratista">Subcontratista</option>
       </select>
     </div>
-    <div class="fg"><label>RP</label><input id="prf-rp"></div>
-    <div class="fg"><label>Subdelegación</label><input id="prf-subdel" value="Cancún"></div>
     <div class="fg"><label>Correo</label><input type="email" id="prf-correo"></div>
     <div class="fg"><label>Teléfono</label><input id="prf-tel"></div>
     <div class="fg"><label>Folio REPSE</label><input id="prf-folio"></div>
@@ -828,8 +826,6 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="fg" id="wrap-prf-idrl"><label>ID Representante Legal</label><select id="prf-idrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="wrap-prf-csatrl"><label>Constancia SAT del RL</label><select id="prf-csatrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="wrap-prf-idfisica" style="display:none"><label>IDENTIFICACIÓN PERSONA FÍSICA</label><select id="prf-idfisica" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg"><label>Croquis de ubicación</label><select id="prf-croquis" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg"><label>Comprobante de domicilio</label><select id="prf-compdom" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="prf-construye-wrap" style="display:none"><label>Construye (solo propietaria)</label><select id="prf-construye" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Sí</option><option value="2">No</option><option value="4">No aplica</option></select></div>
     <div class="fg full"><label>Domicilio Fiscal</label><input id="prf-dom"></div>
     <div class="fg"><label>C.P.</label><input id="prf-cp" oninput="buscarCP()">
@@ -1820,7 +1816,6 @@ function renderPerfiles(lista){
       +'<div class="onom">'+p.nombre+' '+tipoBadge(p.tipo)+'</div>'
       +'<div class="odet">'
       +'<div class="ofil"><span class="olab">RFC:</span><span class="mono" style="font-size:12px">'+p.rfc+'</span></div>'
-      +'<div class="ofil"><span class="olab">RP:</span><span>'+p.rp+'</span></div>'
       +'<div class="ofil"><span class="olab">REPSE:</span><span>'+(p.folioREPSE||'--')+(p.vigenciaREPSE?' · vence '+fdate(p.vigenciaREPSE):'')+'</span></div>'
       +'<div class="ofil"><span class="olab">SAT:</span>'+estLabel(p.acuseSAT)+'&nbsp;&nbsp;<span class="olab">IMSS:</span>'+estLabel(p.altaIMSS)+'</div>'
       +'</div></div>';
@@ -1853,16 +1848,12 @@ function irFichaPerfil(id){
     {lbl:'Poder notarial del RL',v:p.poderRL},
     {lbl:'ID Representante Legal',v:p.idRL},
     {lbl:'Constancia SAT del RL',v:p.constSATRL},
-    {lbl:'Croquis de ubicación',v:p.croquis},
-    {lbl:'Comprobante de domicilio',v:p.compDom}
   ];
   if(p.tipo==='propietaria') docs.push({lbl:'Construye',v:p.construye});
   var docsH='';
   docs.forEach(function(d){docsH+='<div class="campo"><label>'+d.lbl+'</label>'+estLabel(d.v)+'</div>';});
   var h='<div class="sec"><h3>Identificación</h3>'
     +'<div class="campo"><label>RFC</label><span class="mono">'+p.rfc+'</span></div>'
-    +'<div class="campo"><label>RP</label><span class="mono">'+(p.rp||'--')+'</span></div>'
-    +'<div class="campo"><label>Subdelegación</label><span>'+(p.subdelegacion||'--')+'</span></div>'
     +(p.correo?'<div class="campo"><label>Correo</label><span>'+p.correo+'</span></div>':'')
     +(p.telefono?'<div class="campo"><label>Teléfono</label><span>'+p.telefono+'</span></div>':'')
     +'</div>'
