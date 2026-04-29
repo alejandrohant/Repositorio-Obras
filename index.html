@@ -2600,6 +2600,10 @@ function abrirNuevaFase(){
 
   document.getElementById('fa-fcuotas-imss').value = '';
   toggleISNSectionFase();
+  ['fa-valor-obra-wrap','fa-mo-pag-prop-wrap','fa-cuotas-pag-prop-wrap'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.style.display = 'none';
+});
   document.getElementById('modal-fase').classList.add('open');
 }
 function abrirEditarFase(id){
