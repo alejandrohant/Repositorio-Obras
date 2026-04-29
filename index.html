@@ -575,7 +575,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 </div>
           <div class="fg">
   <label>RP</label>
-  <input id="fa-rp">
+  <input id="fa-rp" oninput="autollenarDocsRP()">
   <div class="fg">
   <label>Subdelegación</label>
   <input id="fa-subdelegacion" readonly style="background:#161622;color:#64748b">
@@ -2039,6 +2039,26 @@ function togglePersonaFisicaPorRFC(){
     if(wrapCsatrl) wrapCsatrl.style.display = 'flex';
     if(wrapIdFisica) wrapIdFisica.style.display = 'none';
   }
+}
+function autollenarDocsRP(){
+  var rp = (document.getElementById('fa-rp')?.value || '').trim().toUpperCase();
+  var obra = document.getElementById('fa-obra')?.value || '';
+
+  if(!rp || !obra) return;
+
+  var fases = gFases();
+
+  var anterior = fases.find(function(f){
+    return (f.obra || '') === obra &&
+           (f.rp || '').trim().toUpperCase() === rp;
+  });
+
+  if(!anterior) return;
+
+  if(document.getElementById('fa-arp')) document.getElementById('fa-arp').value = anterior.arp || 0;
+  if(document.getElementById('fa-tarjeta-patronal')) document.getElementById('fa-tarjeta-patronal').value = anterior.tarjetaPatronal || 0;
+  if(document.getElementById('fa-croquis-rp')) document.getElementById('fa-croquis-rp').value = anterior.croquisRP || 0;
+  if(document.getElementById('fa-compdom-rp')) document.getElementById('fa-compdom-rp').value = anterior.compDomRP || 0;
 }
 function abrirEditarPerfil(id){
   var p=gPrf().find(function(x){return x.id===id;});if(!p)return;
