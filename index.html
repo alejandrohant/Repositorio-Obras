@@ -575,7 +575,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 </div>
           <div class="fg"><label id="fa-lbl-contratista">Contratista</label><input id="fa-contratista" readonly style="background:#161622;color:#64748b"></div>
           <div class="fg"><label>Perfil</label><input id="fa-perfil" readonly style="background:#161622;color:#64748b"></div>
-          document.getElementById('fa-rp').value = document.getElementById('fa-rp').value || '';
+          if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = document.getElementById('fa-rp').value || '';
           <div class="fg full"><label>Objeto / Fase *</label><input id="fa-objeto"></div>
           <div class="fg"><label>Tipo Contrato</label>
             <select class="fg-sel" id="fa-tipo-cto">
@@ -2744,11 +2744,11 @@ function onFaseRFCChange(){
   if(p){
     document.getElementById('fa-contratista').value = p.nombre || '';
     document.getElementById('fa-perfil').value = p.tipo || '';
-    document.getElementById('fa-rp').value = p.rp || '';
+    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = p.rp || '';
   } else {
     document.getElementById('fa-contratista').value = '';
     document.getElementById('fa-perfil').value = '';
-    document.getElementById('fa-rp').value = '';
+    if(document.getElementById('fa-rp')) if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
   }
 }
 function toggleConvenios(){
