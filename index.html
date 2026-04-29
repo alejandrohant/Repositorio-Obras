@@ -307,7 +307,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 </head>
 <body>
 <nav>
-  <div style="display:flex;align-items:center;gap:12px">
+  <div id="navMainLeft" style="display:flex;align-items:center;gap:12px">
     <button class="nbtn" style="background:#2d2d44;color:#a78bfa" onclick="irPerfiles()">Perfiles</button>
     <h1>Repositorio de Obras</h1>
     <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
@@ -1041,22 +1041,28 @@ function renderAuthStatus(){
   var email = document.getElementById('authEmail');
   var pass = document.getElementById('authPassword');
   var btns = document.querySelectorAll('#authBox button');
+  var mainLeft = document.getElementById('navMainLeft');
+  var appPages = document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte');
 
   if(!status) return;
 
   if(currentUser){
+    if(mainLeft) mainLeft.style.display = 'flex';
+    appPages.forEach(p => p.style.display = '');
+
     if(email) email.style.display = 'none';
     if(pass) pass.style.display = 'none';
-
-    if(btns[0]) btns[0].style.display = 'none'; // Crear cuenta
-    if(btns[1]) btns[1].style.display = 'none'; // Entrar
-    if(btns[2]) btns[2].style.display = 'inline-block'; // Salir
+    if(btns[0]) btns[0].style.display = 'none';
+    if(btns[1]) btns[1].style.display = 'none';
+    if(btns[2]) btns[2].style.display = 'inline-block';
 
     status.textContent = 'Sesión: ' + currentUser.email;
   } else {
+    if(mainLeft) mainLeft.style.display = 'none';
+    appPages.forEach(p => p.style.display = 'none');
+
     if(email) email.style.display = '';
     if(pass) pass.style.display = '';
-
     if(btns[0]) btns[0].style.display = 'inline-block';
     if(btns[1]) btns[1].style.display = 'inline-block';
     if(btns[2]) btns[2].style.display = 'none';
@@ -1064,7 +1070,6 @@ function renderAuthStatus(){
     status.textContent = 'Sin sesión';
   }
 }
-
 async function signUp(){
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value.trim();
