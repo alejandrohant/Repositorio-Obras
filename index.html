@@ -976,9 +976,18 @@ async function initAuth(){
   currentUser = data.user || null;
   renderAuthStatus();
 
-  if(currentUser){
-    await cargarDatosSupabase();
+  if(!currentUser){
+    localStorage.removeItem('op');
+    localStorage.removeItem('oc');
+    localStorage.removeItem('perfiles');
+    localStorage.removeItem('fases');
+    counts();
+    goHome();
+    alert('Inicia sesión para cargar tus datos.');
+    return;
   }
+
+  await cargarDatosSupabase();
 }
 
 async function cargarDatosSupabase(){
@@ -1092,7 +1101,16 @@ async function signIn(){
 async function signOut(){
   await supabaseClient.auth.signOut();
   currentUser = null;
+
+  localStorage.removeItem('op');
+  localStorage.removeItem('oc');
+  localStorage.removeItem('perfiles');
+  localStorage.removeItem('fases');
+
   renderAuthStatus();
+  counts();
+  goHome();
+
   alert('Sesión cerrada.');
 }
 function goHome(){counts();show('pg-home');}
