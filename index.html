@@ -1085,6 +1085,7 @@ async function signIn(){
 
   currentUser = data.user || null;
   renderAuthStatus();
+  await cargarDatosSupabase();
   alert('Sesión iniciada.');
 }
 
