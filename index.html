@@ -1753,6 +1753,21 @@ async function hacerDel(){
   else if(ta) irLista(ta);
   else {counts();goHome();}
 }
+function irPerfiles(){
+  var lista = gPrf();
+  document.getElementById('prf-sub').textContent =
+    lista.length + ' perfil' + (lista.length !== 1 ? 'es' : '') + ' registrado' + (lista.length !== 1 ? 's' : '');
+
+  var busq = document.getElementById('prf-busq');
+  var tipo = document.getElementById('prf-tipo-fil');
+
+  if(busq) busq.value = '';
+  if(tipo) tipo.value = '';
+
+  renderPerfiles(lista);
+  show('pg-perfiles');
+}
+
 function filtrarPerfiles(){
   var q=document.getElementById('prf-busq').value.toLowerCase();
   var t=document.getElementById('prf-tipo-fil').value;
