@@ -1917,8 +1917,6 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-idfisica').value=p.idPersonaFisica||0;togglePersonaFisicaPorRFC();
   document.getElementById('prf-nom').value=p.nombre||'';
   document.getElementById('prf-tipo').value=p.tipo||'';
-  document.getElementById('prf-rp').value=p.rp||'';
-  document.getElementById('prf-subdel').value=p.subdelegacion||'';
   document.getElementById('prf-correo').value=p.correo||'';
   document.getElementById('prf-tel').value=p.telefono||'';
   document.getElementById('prf-folio').value=p.folioREPSE||'';
@@ -1932,8 +1930,6 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-poder').value=p.poderRL||0;
   document.getElementById('prf-idrl').value=p.idRL||0;
   document.getElementById('prf-csatrl').value=p.constSATRL||0;
-  document.getElementById('prf-croquis').value=p.croquis||0;
-  document.getElementById('prf-compdom').value=p.compDom||0;
   document.getElementById('prf-dom').value=p.domicilio||'';
   document.getElementById('prf-cp').value=p.cp||'';
   document.getElementById('prf-estado').value=p.estado||'';
@@ -1951,8 +1947,6 @@ async function guardarPerfil(e){
     rfc: document.getElementById('prf-rfc').value.trim().toUpperCase(),
     nombre: document.getElementById('prf-nom').value.trim(),
     tipo: tipo,
-    rp: document.getElementById('prf-rp').value.trim(),
-    subdelegacion: document.getElementById('prf-subdel').value.trim(),
     correo: document.getElementById('prf-correo').value.trim(),
     telefono: document.getElementById('prf-tel').value.trim(),
     folioREPSE: document.getElementById('prf-folio').value.trim(),
@@ -1967,8 +1961,6 @@ async function guardarPerfil(e){
     poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
     idRL: parseInt(document.getElementById('prf-idrl').value) || 0,
     constSATRL: parseInt(document.getElementById('prf-csatrl').value) || 0,
-    croquis: parseInt(document.getElementById('prf-croquis').value) || 0,
-    compDom: parseInt(document.getElementById('prf-compdom').value) || 0,
     construye: tipo === 'propietaria' ? (parseInt(document.getElementById('prf-construye').value) || 0) : 0,
     domicilio: document.getElementById('prf-dom').value.trim(),
     cp: document.getElementById('prf-cp').value.trim(),
