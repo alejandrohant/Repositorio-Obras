@@ -904,6 +904,7 @@ select.fg-sel:focus{border-color:#a78bfa}
         <div class="fg fp"><label>RFC *</label><input id="p-rfc" oninput="autollenarPerfilObra('p')"></div>
         <div class="fg fp"><label>Nombre Propietaria *</label><input id="p-pat"></div>
         <div class="fg fp"><label>RP</label><input id="p-rp"></div>
+        <div class="fg fp"><label>Factor de Cuotas (%)</label><input type="number" step="0.01" id="p-fcuotas" value="35.40" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>No. Licencia</label><input id="p-lic"></div>
         <div class="fg fp"><label>SIROC</label><input id="p-sir"></div>
         <div class="fg fp"><label>Fecha Inicio</label><input type="date" id="p-ini"></div>
@@ -918,7 +919,6 @@ select.fg-sel:focus{border-color:#a78bfa}
         <div class="fg fp"><label>Factor MO DOF presupuesto (%)</label><input id="p-factor-mo-presupuesto" type="number" step="0.01" oninput="calcPresupuesto()"></div>
         <div class="fg fp"><label>MO estimada presupuesto ($)</label><input id="p-mo-presupuesto" readonly></div>
         <div class="fg fp"><label>Cuotas estimadas presupuesto ($)</label><input id="p-cuotas-presupuesto" readonly></div>
-        <div class="fg fp"><label>Factor de Cuotas (%)</label><input type="number" step="0.01" id="p-fcuotas" value="35.40" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>Forma de pago de ISN</label><select id="p-isn" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none"><option value="unico">Único</option><option value="mensual">Mensual</option><option value="parcialidades">Parcialidades</option></select></div>
 <div class="fg fp"><label>Factor ISN (%)</label><input type="number" step="0.01" id="p-fisn" value="4.00" oninput="calcMODOF(); calcISNPropietaria()"></div>
 <div class="fg fp"><label>ISN ESTIMADO ($)</label><input id="p-iest" readonly></div>
