@@ -913,7 +913,15 @@ select.fg-sel:focus{border-color:#a78bfa}
         <div class="fg fp"><label>M2</label><input type="number" step="0.01" id="p-m2" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>Costo M2 DOF ($)</label><input type="number" step="0.01" id="p-costom2" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>MO DOF ($)</label><input id="p-modof" readonly></div>
-        <div class="fg fp"><label>Valor de la obra (presupuesto)</label><input id="p-valobra" type="number" step="0.01"></div>
+        <div class="fg fp"><label>Valor de la obra (presupuesto)</label><input id="p-valobra" oninput="calcPresupuesto()" type="number" step="0.01"><div class="fg fp">
+  <label>Factor MO DOF presupuesto (%)</label>
+  <input id="p-factor-mo-presupuesto" type="number" step="0.01" oninput="calcPresupuestoObra()">
+</div>
+
+<div class="fg fp">
+  <label>Cuotas estimadas presupuesto ($)</label>
+  <input id="p-cuotas-presupuesto" readonly>
+</div></div>
         <div class="fg fp"><label>Factor de Cuotas (%)</label><input type="number" step="0.01" id="p-fcuotas" value="35.40" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>Cuotas ($)</label><input id="p-cu" readonly></div>
         <div class="fg fp"><label>Forma de pago de ISN</label><select id="p-isn" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none"><option value="unico">Único</option><option value="mensual">Mensual</option><option value="parcialidades">Parcialidades</option></select></div>
@@ -2229,6 +2237,23 @@ function docTag(v){
   if(v===3)return '<span class="fase-tag fase-tag-err">Erroneo</span>';
   if(v===4)return '<span class="fase-tag fase-tag-na">N/A</span>';
   return '<span class="fase-tag fase-tag-na">--</span>';
+}
+function calcPresupuestoObra(){
+  var valor = parseFloat(document.getElementById('p-valobra')?.value) || 0;
+  var factor = parseFloat(document.getElementById('p-factor-mo-presupuesto')?.value) || 0;
+
+  if(factor > 1) factor = factor / 100;
+
+  var cuotas = valor * factor;
+  var el = document.getElementById('p-cuotas-presupuesto');
+
+  if(el){
+    el.dataset.valor = cuotas;
+    el.value = cuotas.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 }
 function faseVigTag(f){
   if(!f.termina)return '';
