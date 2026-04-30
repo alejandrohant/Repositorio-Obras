@@ -1371,6 +1371,9 @@ function abrirEstPresupuesto(o){
     modia=totalDias>0?mo/totalDias:0;
   }
 
+  document.querySelector('#est-m2').previousElementSibling.textContent = 'Valor de la obra (presupuesto)';
+  document.querySelector('#est-cm2').previousElementSibling.textContent = 'Factor MO DOF presupuesto (%)';
+  document.querySelector('#est-mo').previousElementSibling.textContent = 'MO estimada presupuesto ($)';
   document.getElementById('est-m2').textContent=mxn(o.valorObra);
   document.getElementById('est-cm2').textContent=(o.factorMOPresupuesto||0)+'%';
   document.getElementById('est-mo').textContent=mxn(mo);
