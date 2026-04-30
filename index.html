@@ -1261,55 +1261,29 @@ document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=doc
 var h='';
 
 if(t==='p'){
-  h=
-    '<div class="sec"><h3>Identificacion</h3>'
-      +'<div class="campo"><label>RFC</label><span class="mono">'+o.rfc+'</span></div>'
-      +'<div class="campo"><label>Propietaria</label><span>'+o.patron+'</span></div>'
-      +'<div class="campo"><label>RP</label><span class="mono">'+(o.rp||'--')+'</span></div>'
-      +'<div class="campo"><label>Licencia</label><span class="mono">'+(o.licencia||'--')+'</span></div>'
-      +'<div class="campo"><label>SIROC</label><span class="mono">'+(o.siroc||'--')+'</span></div>'
-    +'</div>'
+bestBtn.style.display='inline-block';
+bestBtn.textContent='Estimados';
+bestBtn.onclick=function(){
+  document.getElementById('modal-estimados').classList.add('open');
 
-    +'<div class="sec"><h3>Obra</h3>'
-      +'<div class="campo"><label>Tipo</label><span>'+(o.tipo||'--')+'</span></div>'
-      +'<div class="campo"><label>Tipo DOF</label><span>'+(o.tipoDOF||'--')+'</span></div>'
-      +'<div class="campo"><label>M2</label><span>'+fnum(o.m2)+' m2</span></div>'
-      +'<div class="campo"><label>Costo M2 DOF</label><span class="num">'+mxn(o.costoM2)+'</span></div>'
-      +'<div class="campo"><label>Inicio</label><span>'+fdate(o.inicia)+'</span></div>'
-      +'<div class="campo"><label>Termino</label><span>'+fdate(o.termina)+'</span></div>'
-    +'</div>'
+  document.getElementById('btn-est-m2').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirEst(o);
+  };
 
-    +'<div class="sec full"><h3>Ubicacion</h3>'
-      +'<div class="campo"><span>'+(o.ubicacion||'--')+'</span></div>'
-    +'</div>'
+  document.getElementById('btn-est-presupuesto').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirEstPresupuesto(o);
+  };
 
-    +'<div class="sec"><h3>Estimados</h3>'
-      +'<div class="campo"><label>MO estimada DOF</label><span class="num">'+mxn(o.moDOF)+'</span></div>'
-      +'<div class="campo"><label>Cuotas estimadas DOF</label><span class="num">'+mxn(o.cuotas)+'</span></div>'
-      +'<div class="campo"><label>MO estimada presupuesto</label><span class="num">'+mxn(o.moPresupuesto)+'</span></div>'
-      +'<div class="campo"><label>Cuotas estimadas presupuesto</label><span class="num">'+mxn(o.cuotasPresupuesto)+'</span></div>'
-      +'<div class="campo"><label>ISN</label><span>'+(o.isn||'--')+'</span></div>'
-      +'<div class="campo"><label>Factor ISN</label><span>'+((o.factorISN||0).toFixed ? o.factorISN.toFixed(2) : (parseFloat(o.factorISN)||0).toFixed(2))+'%'+'</span></div>'
-      +'<div class="campo"><label>ISN Estimado</label><span class="num">'+mxn(o.isnEst)+'</span></div>'
-    +'</div>'
+  document.getElementById('btn-est-isn').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirISN(o);
+  };
+};
 
-    +'<div class="sec"><h3>Cumplimiento ISN</h3>'
-      +(
-        o.isnPagadoPor==='propietaria'
-        ? ''
-          +'<div class="campo"><label>ISN Pagado</label><span class="num">'+mxn(o.isnPagado)+'</span></div>'
-          +'<div class="campo"><label>ISN Pendiente</label><span class="num">'+mxn(o.isnPendiente)+'</span></div>'
-          +'<div class="campo"><label>Aviso de Inicio de Obra</label><span>'+(o.avisoInicioObra==='presentado'?'✔️':'❌')+'</span></div>'
-          +'<div class="campo"><label>Declaración de ISN</label><span>'+(o.acuseDeclaracionISN==='presentado'?'✔️':'❌')+'</span></div>'
-          +'<div class="campo"><label>Comprobante de Pago de ISN</label><span>'+(o.comprobantePagoISN==='presentado'?'✔️':'❌')+'</span></div>'
-          +'<div class="campo"><label>Constancia de NO Adeudo de ISN</label><span>'+(o.constanciaNoAdeudoISN==='presentado'?'✔️':'❌')+'</span></div>'
-        : (
-            o.isnPagadoPor==='contratistas'
-            ? '<div class="campo"><span>ISN pagado por contratistas</span></div>'
-            : '<div class="campo"><span>--</span></div>'
-          )
-      )
-    +'</div>';
+document.getElementById('bcon').style.display='none';
+document.getElementById('bcisn').style.display='none';
 
 }else{
   h=
