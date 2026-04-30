@@ -2251,6 +2251,7 @@ function docTag(v){
 function calcPresupuesto(){
   var valorInput = document.getElementById('p-valobra');
   var factorInput = document.getElementById('p-factor-mo-presupuesto');
+  var factorCuotasInput = document.getElementById('p-fcuotas');
   var moInput = document.getElementById('p-mo-presupuesto');
   var cuotasInput = document.getElementById('p-cuotas-presupuesto');
 
@@ -2258,19 +2259,32 @@ function calcPresupuesto(){
 
   var valor = parseFloat(String(valorInput.value || '').replace(/,/g,'')) || 0;
   var factor = parseFloat(String(factorInput.value || '').replace(/,/g,'')) || 0;
+  var factorCuotas = parseFloat(String(factorCuotasInput?.value || '').replace(/,/g,'')) || 0;
 
   if(factor > 1) factor = factor / 100;
+  if(factorCuotas > 1) factorCuotas = factorCuotas / 100;
 
+  // MO estimada
   var moPresupuesto = valor * factor;
 
-  [moInput, cuotasInput].forEach(function(campo){
-    if(!campo) return;
-    campo.dataset.valor = moPresupuesto;
-    campo.value = moPresupuesto.toLocaleString('en-US', {
+  if(moInput){
+    moInput.dataset.valor = moPresupuesto;
+    moInput.value = moPresupuesto.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
-  });
+  }
+
+  // Cuotas estimadas (MO × factor cuotas)
+  var cuotasPresupuesto = moPresupuesto * factorCuotas;
+
+  if(cuotasInput){
+    cuotasInput.dataset.valor = cuotasPresupuesto;
+    cuotasInput.value = cuotasPresupuesto.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 }
 function faseVigTag(f){
   if(!f.termina)return '';
