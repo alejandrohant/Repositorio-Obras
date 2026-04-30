@@ -1235,18 +1235,22 @@ function irLista(t){ta=t;var lista=t==='p'?gP():gC();document.getElementById('lt
 function irFicha(id){var t=ta;var lista=t==='p'?gP():gC();var o=lista.find(function(x){return x.id===id;});if(!o)return;document.getElementById('fnom').textContent=o.nombre;document.getElementById('ftipo').textContent=t==='p'?'Propietaria':'Contratista';document.getElementById('fbk').onclick=function(){irLista(t);};document.getElementById('bfe').onclick=function(){abrirEditar(id);};document.getElementById('bfases').onclick=function(){irFases(o,t);};
   document.getElementById('bctrl-obra').onclick=function(){irControlObra(o);};
   document.getElementById('breporte-obra').onclick=function(){generarReporte(o,t);};
-document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=document.getElementById('best');if(t==='p'){bestBtn.style.display='inline-block';bestBtn.
-onclick=function(){abrirEst(o);};
-document.getElementById('bcisn').style.display='inline-block';
-var btnISN = document.getElementById('bcisn');
-if(btnISN) btnISN.onclick = function(){ abrirISN(o); };
-document.getElementById('bcon').style.display='none';
-document.getElementById('bcisn').style.display='none';
+document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=document.getElementById('best');if(t==='p'){
+  bestBtn.style.display='inline-block';
+  bestBtn.onclick=function(){abrirEst(o);};
+
+  document.getElementById('bcon').style.display='inline-block';
+  document.getElementById('bcon').onclick=function(){abrirEst(o);};
+
+  document.getElementById('bcisn').style.display='inline-block';
+  document.getElementById('bcisn').onclick=function(){abrirISN(o);};
+
 }else{
   bestBtn.style.display='none';
-  document.getElementById('bcisn').style.display='none';
+
   document.getElementById('bcon').style.display='inline-block';
   document.getElementById('bcon').onclick=function(){abrirCon(o);};
+
   document.getElementById('bcisn').style.display='inline-block';
   document.getElementById('bcisn').onclick=function(){abrirCISN(o);};
 }
