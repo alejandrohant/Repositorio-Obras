@@ -1282,8 +1282,26 @@ bestBtn.onclick=function(){
   };
 };
 
-document.getElementById('bcon').style.display='none';
-document.getElementById('bcisn').style.display='none';
+bestBtn.style.display='inline-block';
+bestBtn.textContent='Estimados';
+bestBtn.onclick=function(){
+  document.getElementById('modal-estimados').classList.add('open');
+
+  document.getElementById('btn-est-m2').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirEst(o);
+  };
+
+  document.getElementById('btn-est-presupuesto').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirEstPresupuesto(o);
+  };
+
+  document.getElementById('btn-est-isn').onclick=function(){
+    document.getElementById('modal-estimados').classList.remove('open');
+    abrirISN(o);
+  };
+};
 
 }else{
   h=
