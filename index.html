@@ -350,15 +350,7 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="facts">
       <button class="bfe" id="bfe">Editar</button>
 
-<button class="best" id="best">Estimado cuotas m2</button>
-
-<button class="bcon" id="bcon" style="background:#1e2a3a;color:#60a5fa;border:2px solid #60a5fa;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">
-  Estimado cuotas presupuesto
-</button>
-
-<button class="bcisn" id="bcisn" style="background:#1e2a3a;color:#60a5fa;border:2px solid #60a5fa;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">
-  Estimado ISN
-</button>
+<button class="best" id="best">Estimados</button>
 
 <button class="fase-bfases" id="bfases">Fases</button>
 
@@ -1032,6 +1024,18 @@ select.fg-sel:focus{border-color:#a78bfa}
         <button type="submit" class="bsav">Guardar</button>
       </div>
     </form>
+  </div>
+</div>
+<div class="cov" id="modal-estimados">
+  <div class="cbox">
+    <h3 style="color:#a78bfa">Estimados</h3>
+
+    <div style="display:grid;gap:10px;margin-top:16px">
+      <button class="nbtn" id="btn-est-m2">Estimado cuotas m2</button>
+      <button class="nbtn" id="btn-est-presupuesto">Estimado cuotas presupuesto</button>
+      <button class="nbtn" id="btn-est-isn">Estimado ISN</button>
+      <button class="bccan" onclick="document.getElementById('modal-estimados').classList.remove('open')">Cancelar</button>
+    </div>
   </div>
 </div>
 <div class="cov" id="cov">
