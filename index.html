@@ -1238,7 +1238,8 @@ function irFicha(id){var t=ta;var lista=t==='p'?gP():gC();var o=lista.find(funct
 document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=document.getElementById('best');if(t==='p'){bestBtn.style.display='inline-block';bestBtn.
 onclick=function(){abrirEst(o);};
 document.getElementById('bcisn').style.display='inline-block';
-document.getElementById('bisn').onclick=function(){abrirISN(o);};
+var btnISN = document.getElementById('bcisn');
+if(btnISN) btnISN.onclick = function(){ abrirISN(o); };
 document.getElementById('bcon').style.display='none';
 document.getElementById('bcisn').style.display='none';
 }else{
