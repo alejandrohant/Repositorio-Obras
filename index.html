@@ -1240,8 +1240,7 @@ document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=doc
   bestBtn.onclick=function(){abrirEst(o);};
 
   document.getElementById('bcon').style.display='inline-block';
-  document.getElementById('bcon').onclick=function(){abrirEst(o);};
-
+  document.getElementById('bcon').onclick=function(){abrirEstPresupuesto(o);};
   document.getElementById('bcisn').style.display='inline-block';
   document.getElementById('bcisn').onclick=function(){abrirISN(o);};
 
@@ -1352,6 +1351,82 @@ document.getElementById('fsecs').innerHTML=h;
 show('pg-ficha');
 }
 function abrirEst(o){var F_IMSS=0.240040,F_RCV=0.062745,F_INF=0.050000;document.getElementById('est-nom').textContent=o.nombre+' \u2014 Estimado de Cuotas';document.getElementById('est-sub').textContent='Estimativa de Cuotas IMSS-RCV-Infonavit';document.getElementById('est-rfc').textContent=o.rfc||'--';document.getElementById('est-pat').textContent=o.patron||'--';document.getElementById('est-tip').textContent=o.tipo||o.tipoDOF||'--';document.getElementById('est-vig').textContent=fdate(o.inicia)+' \u2014 '+fdate(o.termina);var mo=o.moDOF||0;var totalDias=0,modia=0;if(o.inicia&&o.termina){var d1=new Date(o.inicia+'T12:00:00'),d2=new Date(o.termina+'T12:00:00');totalDias=Math.round((d2-d1)/(1000*60*60*24))+1;modia=totalDias>0?mo/totalDias:0;}document.getElementById('est-m2').textContent=fnum(o.m2)+' m\u00b2';document.getElementById('est-cm2').textContent=mxn(o.costoM2)+' /m\u00b2';document.getElementById('est-mo').textContent=mxn(mo);document.getElementById('est-dias').textContent=fnum(totalDias)+' dias';document.getElementById('est-modia').textContent=mxn(modia)+' /dia';var rows=[];if(o.inicia&&o.termina){var d1=new Date(o.inicia+'T12:00:00'),d2=new Date(o.termina+'T12:00:00');var yr1=d1.getFullYear(),yr2=d2.getFullYear();for(var y=yr1;y<=yr2;y++){var ini=y===yr1?d1:new Date(y+'-01-01T12:00:00');var fin=y===yr2?d2:new Date(y+'-12-31T12:00:00');var dias=Math.round((fin-ini)/(1000*60*60*24))+1;var moY=modia*dias;rows.push({y:y,dias:dias,mo:moY,imss:moY*F_IMSS,rcv:moY*F_RCV,inf:moY*F_INF,tot:moY*(F_IMSS+F_RCV+F_INF)});}}var th='',tD=0,tM=0,tI=0,tR=0,tN=0,tT=0;rows.forEach(function(r){tD+=r.dias;tM+=r.mo;tI+=r.imss;tR+=r.rcv;tN+=r.inf;tT+=r.tot;th+='<tr><td>'+r.y+'</td><td>'+r.dias+'</td><td>'+mxn(r.mo)+'</td><td>'+mxn(r.imss)+'</td><td>'+mxn(r.rcv)+'</td><td>'+mxn(r.inf)+'</td><td>'+mxn(r.tot)+'</td></tr>';});th+='<tr class="tot"><td>Total</td><td>'+tD+'</td><td>'+mxn(tM)+'</td><td>'+mxn(tI)+'</td><td>'+mxn(tR)+'</td><td>'+mxn(tN)+'</td><td>'+mxn(tT)+'</td></tr>';document.getElementById('est-tbody').innerHTML=th;document.getElementById('est-tcuotas').textContent=mxn(tT);document.getElementById('est-isn').textContent=o.isn||'--';document.getElementById('est-fisn').textContent=(o.factorISN||0).toFixed(2)+'%';document.getElementById('est-iest').textContent=mxn(o.isnEst);document.getElementById('est-gran').textContent=mxn(tT+(o.isnEst||0));document.getElementById('est-bk').onclick=function(){show('pg-ficha');};show('pg-est');}
+function abrirEstPresupuesto(o){
+  var F_IMSS=0.240040,F_RCV=0.062745,F_INF=0.050000;
+
+  document.getElementById('est-nom').textContent=o.nombre+' — Estimado de Cuotas Presupuesto';
+  document.getElementById('est-sub').textContent='Estimativa con base en presupuesto';
+  document.getElementById('est-rfc').textContent=o.rfc||'--';
+  document.getElementById('est-pat').textContent=o.patron||'--';
+  document.getElementById('est-tip').textContent=o.tipo||o.tipoDOF||'--';
+  document.getElementById('est-vig').textContent=fdate(o.inicia)+' — '+fdate(o.termina);
+
+  var mo=o.moPresupuesto||0;
+  var totalDias=0,modia=0;
+
+  if(o.inicia&&o.termina){
+    var d1=new Date(o.inicia+'T12:00:00');
+    var d2=new Date(o.termina+'T12:00:00');
+    totalDias=Math.round((d2-d1)/(1000*60*60*24))+1;
+    modia=totalDias>0?mo/totalDias:0;
+  }
+
+  document.getElementById('est-m2').textContent=mxn(o.valorObra);
+  document.getElementById('est-cm2').textContent=(o.factorMOPresupuesto||0)+'%';
+  document.getElementById('est-mo').textContent=mxn(mo);
+  document.getElementById('est-dias').textContent=fnum(totalDias)+' días';
+  document.getElementById('est-modia').textContent=mxn(modia)+' /día';
+
+  var rows=[];
+  if(o.inicia&&o.termina){
+    var d1=new Date(o.inicia+'T12:00:00');
+    var d2=new Date(o.termina+'T12:00:00');
+    var yr1=d1.getFullYear(),yr2=d2.getFullYear();
+
+    for(var y=yr1;y<=yr2;y++){
+      var ini=y===yr1?d1:new Date(y+'-01-01T12:00:00');
+      var fin=y===yr2?d2:new Date(y+'-12-31T12:00:00');
+      var dias=Math.round((fin-ini)/(1000*60*60*24))+1;
+      var moY=modia*dias;
+
+      rows.push({
+        y:y,
+        dias:dias,
+        mo:moY,
+        imss:moY*F_IMSS,
+        rcv:moY*F_RCV,
+        inf:moY*F_INF,
+        tot:moY*(F_IMSS+F_RCV+F_INF)
+      });
+    }
+  }
+
+  var th='',tD=0,tM=0,tI=0,tR=0,tN=0,tT=0;
+
+  rows.forEach(function(r){
+    tD+=r.dias;
+    tM+=r.mo;
+    tI+=r.imss;
+    tR+=r.rcv;
+    tN+=r.inf;
+    tT+=r.tot;
+
+    th+='<tr><td>'+r.y+'</td><td>'+r.dias+'</td><td>'+mxn(r.mo)+'</td><td>'+mxn(r.imss)+'</td><td>'+mxn(r.rcv)+'</td><td>'+mxn(r.inf)+'</td><td>'+mxn(r.tot)+'</td></tr>';
+  });
+
+  th+='<tr class="tot"><td>Total</td><td>'+tD+'</td><td>'+mxn(tM)+'</td><td>'+mxn(tI)+'</td><td>'+mxn(tR)+'</td><td>'+mxn(tN)+'</td><td>'+mxn(tT)+'</td></tr>';
+
+  document.getElementById('est-tbody').innerHTML=th;
+  document.getElementById('est-tcuotas').textContent=mxn(tT);
+
+  document.getElementById('est-isn').textContent=o.isn||'--';
+  document.getElementById('est-fisn').textContent=(o.factorISN||0).toFixed(2)+'%';
+  document.getElementById('est-iest').textContent=mxn(o.isnEst);
+  document.getElementById('est-gran').textContent=mxn(tT+(o.isnEst||0));
+
+  document.getElementById('est-bk').onclick=function(){show('pg-ficha');};
+  show('pg-est');
+}
 function abrirISN(o){document.getElementById('isn-nom').textContent=o.nombre+' \u2014 Estimado ISN';document.getElementById('isn-pat').textContent=o.patron||'--';document.getElementById('isn-rfc').textContent=o.rfc||'--';document.getElementById('isn-tip').textContent=o.tipo||o.tipoDOF||'--';document.getElementById('isn-ubic').textContent=o.ubicacion||'--';document.getElementById('isn-vig').textContent=fdate(o.inicia)+' \u2014 '+fdate(o.termina);document.getElementById('isn-m2').textContent=fnum(o.m2)+' m\u00b2';document.getElementById('isn-cm2').textContent=mxn(o.costoM2)+' /m\u00b2';document.getElementById('isn-mo').textContent=mxn(o.moDOF);document.getElementById('isn-factor').textContent=(o.factorISN||0).toFixed(2)+'%';document.getElementById('isn-est').textContent=mxn(o.isnEst);document.getElementById('isn-total').textContent=mxn(o.isnEst);document.getElementById('isn-multa1').value='';document.getElementById('isn-multa2').value='';document.getElementById('isn-bk').onclick=function(){show('pg-ficha');};show('pg-isn');}
 function abrirCISN(o){var mo=(o.valorTotal||0)*(o.factorMOSATQ||0);var isn=mo*(o.factorISN||0);document.getElementById('cisn-nom').textContent=o.nombre+' \u2014 Estimado ISN';document.getElementById('cisn-rfc').textContent=o.rfc||'--';document.getElementById('cisn-con').textContent=o.contratista||'--';document.getElementById('cisn-ctr').textContent=o.contrato||'--';document.getElementById('cisn-fas').textContent=o.fase||'--';document.getElementById('cisn-ubic').textContent=o.ubicacion||'--';document.getElementById('cisn-vig').textContent=fdate(o.inicia)+' \u2014 '+fdate(o.termina);document.getElementById('cisn-val2').textContent=mxn(o.valorTotal);document.getElementById('cisn-fms').textContent=pct(o.factorMOSATQ);document.getElementById('cisn-mo').textContent=mxn(mo);document.getElementById('cisn-fisn').textContent=(o.factorISN||0).toFixed(2)+'%';document.getElementById('cisn-est').textContent=mxn(isn);document.getElementById('cisn-total').textContent=mxn(isn);document.getElementById('cisn-multa1').value='';document.getElementById('cisn-multa2').value='';document.getElementById('cisn-bk').onclick=function(){show('pg-ficha');};show('pg-cisn');}
 var conObj=null,conMetodo='exp';
