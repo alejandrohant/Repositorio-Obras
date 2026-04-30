@@ -1267,7 +1267,9 @@ if(t==='p'){
 
     +'<div class="sec"><h3>Estimados</h3>'
       +'<div class="campo"><label>MO DOF</label><span class="num">'+mxn(o.moDOF)+'</span></div>'
-      +'<div class="campo"><label>Cuotas</label><span class="num">'+mxn(o.cuotas)+'</span></div>'
+      +'<div class="campo"><label>Cuotas DOF</label><span class="num">'+mxn(o.cuotas)+'</span></div>'
+      +'<div class="campo"><label>MO estimada presupuesto</label><span class="num">'+mxn(o.moPresupuesto)+'</span></div>'
+      +'<div class="campo"><label>Cuotas estimadas presupuesto</label><span class="num">'+mxn(o.cuotasPresupuesto)+'</span></div>'
       +'<div class="campo"><label>ISN</label><span>'+(o.isn||'--')+'</span></div>'
       +'<div class="campo"><label>Factor ISN</label><span>'+((o.factorISN||0).toFixed ? o.factorISN.toFixed(2) : (parseFloat(o.factorISN)||0).toFixed(2))+'%'+'</span></div>'
       +'<div class="campo"><label>ISN Estimado</label><span class="num">'+mxn(o.isnEst)+'</span></div>'
