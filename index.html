@@ -1243,7 +1243,7 @@ document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=doc
   bestBtn.style.display='inline-block';
   bestBtn.onclick=function(){abrirEst(o);};
 
-  document.getElementById('bcon').style.display='inline-block';
+  var el = document.getElementById('bcon'); if(el) el.style.display='inline-block';
   document.getElementById('bcon').onclick=function(){abrirEstPresupuesto(o);};
   document.getElementById('bcisn').style.display='inline-block';
   document.getElementById('bcisn').onclick=function(){abrirISN(o);};
@@ -1251,7 +1251,7 @@ document.getElementById('bfd').onclick=function(){pedirDel(id);};var bestBtn=doc
 }else{
   bestBtn.style.display='none';
 
-  document.getElementById('bcon').style.display='inline-block';
+  var el = document.getElementById('bcon'); if(el) el.style.display='inline-block';
   document.getElementById('bcon').onclick=function(){abrirCon(o);};
 
   document.getElementById('bcisn').style.display='inline-block';
