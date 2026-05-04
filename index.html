@@ -3557,15 +3557,46 @@ function renderControlTabs(perfil) {
   addCtrlTab('sua', 'Pagos SUA / RP', tabsEl, panelsEl, false);
   renderPanelSUA(perfil);
 
-  // Tab 3+: una por cada fase del contratista
-  var fases = gFases().filter(function(f){ return f.rfc === perfil.rfc; });
-  fases.forEach(function(f, i) {
+  // Si el perfil es propietaria y construye, agregar control propio de la propietaria
+  var esPropietaria = (perfil.tipo || '').toLowerCase() === 'propietaria';
+  var construye = String(perfil.construye || '') === '1';
+
+  if(esPropietaria && construye){
+    var fasePropietaria = {
+      id: 'prop_' + (perfil.id || perfil.rfc),
+      origen: 'Propietaria',
+      rfcOrigen: perfil.rfc || '',
+      obra: perfil.nombre || '',
+      sirocPrincipal: perfil.siroc || '',
+      rfc: perfil.rfc || '',
+      contratista: perfil.nombre || '',
+      perfil: 'Propietaria',
+      rp: perfil.rp || '',
+      objeto: perfil.nombre || 'Obra propietaria',
+      tipoCto: 'Obra propia',
+      aplicaSiroc: 1,
+      siroc: perfil.siroc || '',
+      ubicacion: perfil.ubicacion || perfil.domicilio || '',
+      inicia: perfil.inicia || '',
+      termina: perfil.termina || '',
+      cumplimiento: perfil.cumplimiento || ''
+    };
+
+    addCtrlTab('fase_propietaria', 'Propietaria', tabsEl, panelsEl, false);
+    renderPanelFase(perfil, fasePropietaria, 'fase_propietaria');
+  }
+
+  // Tabs de fases reales del contratista
+  var fases = gFases().filter(function(f){
+    return (f.rfc || '').toUpperCase() === (perfil.rfc || '').toUpperCase();
+  });
+
+  fases.forEach(function(f) {
     var tabId = 'fase_' + f.id;
-    addCtrlTab(tabId, f.siroc || f.objeto.substring(0,20), tabsEl, panelsEl, false);
+    addCtrlTab(tabId, f.siroc || (f.objeto || '').substring(0,20), tabsEl, panelsEl, false);
     renderPanelFase(perfil, f, tabId);
   });
 }
-
 function calcISNFase(){
   var elImporte = document.getElementById('fa-importe');
   var elFmoIsn = document.getElementById('fa-fmo-isn');
