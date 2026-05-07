@@ -845,7 +845,7 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="fg"><label>RFC *</label><input id="prf-rfc" oninput="togglePersonaFisicaPorRFC()"></div>
     <div class="fg"><label>Nombre *</label><input id="prf-nom"></div>
     <div class="fg"><label>Tipo *</label>
-      <select id="prf-tipo" onchange="document.getElementById('prf-construye-wrap').style.display=this.value==='propietaria'?'flex':'none'" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
+      <select id="prf-tipo" onchange="" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
         <option value="">Selecciona...</option>
         <option value="propietaria">Propietaria</option>
         <option value="contratista">Contratista</option>
@@ -2203,18 +2203,25 @@ function autollenarDocsRP(){
     document.getElementById('fa-compdom-rp').value = anterior.compDomRP || 0;
 }
 function abrirEditarPerfil(id){
-  var p=gPrf().find(function(x){return x.id===id;});if(!p)return;
+  var p=gPrf().find(function(x){return x.id===id;});
+  if(!p)return;
+
   eIdPrf=id;
+
   document.getElementById('prf-mtit').textContent='Editar Perfil';
   document.getElementById('prf-rfc').value=p.rfc||'';
-  document.getElementById('prf-idfisica').value=p.idPersonaFisica||0;togglePersonaFisicaPorRFC();
+  document.getElementById('prf-idfisica').value=p.idPersonaFisica||0;
+  togglePersonaFisicaPorRFC();
+
   document.getElementById('prf-nom').value=p.nombre||'';
   document.getElementById('prf-tipo').value=p.tipo||'';
   document.getElementById('prf-correo').value=p.correo||'';
   document.getElementById('prf-tel').value=p.telefono||'';
   document.getElementById('prf-folio').value=p.folioREPSE||'';
   document.getElementById('prf-frepse').value=p.fechaREPSE||'';
-  document.getElementById('prf-vrepse').value=p.vigenciaREPSE||'';calcVigenciaREPSE();
+  document.getElementById('prf-vrepse').value=p.vigenciaREPSE||'';
+  calcVigenciaREPSE();
+
   document.getElementById('prf-sat').value=p.acuseSAT||0;
   document.getElementById('prf-arep').value=p.acuseREPSE||0;
   document.getElementById('prf-acta').value=p.actaConst||0;
@@ -2224,9 +2231,7 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-dom').value=p.domicilio||'';
   document.getElementById('prf-cp').value=p.cp||'';
   document.getElementById('prf-estado').value=p.estado||'';
-  var esProp=p.tipo==='propietaria';
-  document.getElementById('prf-construye-wrap').style.display=esProp?'flex':'none';
-  if(esProp)document.getElementById('prf-construye').value=p.construye||0;
+
   document.getElementById('modal-prf').classList.add('open');
 }
 async function guardarPerfil(e){
