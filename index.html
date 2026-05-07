@@ -542,6 +542,7 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="fhdr-t"><h2 id="fase-fnom"></h2><div class="ftipo" id="fase-ftipo"></div></div>
     <div class="facts">
       <button class="bfe" id="fase-bedit">Editar</button>
+      <button class="fase-bfases" id="fase-bctrl" style="background:#1e2a3a;border-color:#60a5fa;color:#60a5fa">Control</button>
       <button class="fase-bfases" id="fase-bsub" style="display:none">Subfases</button>
       <button class="bfd" id="fase-bdel">Eliminar</button>
     </div>
@@ -2500,6 +2501,9 @@ function irFichaFase(id){
   };
   document.getElementById('fase-bedit').onclick=function(){abrirEditarFase(id);};
   document.getElementById('fase-bdel').onclick=function(){pedirDelFase(id);};
+  document.getElementById('fase-bctrl').onclick=function(){
+  irControlContratistaDesdeFase(f);
+};
   // Subfases button — show only if this fase has a siroc that other fases use as sirocPrincipal
   var todasFases=gFases();
   var subfasesDeEsta=todasFases.filter(function(x){return x.id!==f.id && x.sirocPrincipal===f.siroc && f.siroc;});
@@ -3338,7 +3342,69 @@ function irControlObra(obraObj) {
 
   show('pg-ctrl');
 }
+function irControlContratistaDesdeFase(faseObj){
+  var obraNombre = faseObj.obra || '';
+  var rfc = faseObj.rfc || '';
 
+  var obraFases = gFases().filter(function(f){
+    return (f.obra || '') === obraNombre &&
+           (f.rfc || '').toUpperCase() === rfc.toUpperCase();
+  });
+
+  var perfiles = gPrf();
+  var prf = perfiles.find(function(p){
+    return (p.rfc || '').toUpperCase() === rfc.toUpperCase();
+  });
+
+  if(!prf){
+    prf = {
+      rfc: faseObj.rfc || '',
+      nombre: faseObj.contratista || 'Contratista',
+      tipo: faseObj.perfil || 'Contratista'
+    };
+  }
+
+  document.getElementById('ctrl-nom').textContent =
+    (faseObj.contratista || 'Contratista') + ' — Control';
+
+  document.getElementById('ctrl-sub').textContent =
+    obraNombre + ' · ' + obraFases.length + ' fase' + (obraFases.length !== 1 ? 's' : '');
+
+  document.getElementById('ctrl-bk').onclick = function(){
+    irFichaFase(faseObj.id);
+  };
+
+  var tabsEl = document.getElementById('ctrl-tabs');
+  var panelsEl = document.getElementById('ctrl-panels');
+  tabsEl.innerHTML = '';
+  panelsEl.innerHTML = '';
+
+  var tabId = 'ctrl_contratista_' + rfc.replace(/[^a-zA-Z0-9]/g,'_');
+
+  var btn = document.createElement('button');
+  btn.className = 'ctrl-tab sel';
+  btn.textContent = prf.nombre || faseObj.contratista || 'Contratista';
+  tabsEl.appendChild(btn);
+
+  var panel = document.createElement('div');
+  panel.className = 'ctrl-panel active';
+  panel.id = 'cpanel-' + tabId;
+  panelsEl.appendChild(panel);
+
+  var rfcHtml = buildRFCHtml(prf, obraFases);
+  var suaHtml = buildSUAHtml(prf, obraFases);
+
+  var fasesHtml = '';
+  obraFases.forEach(function(f){
+    fasesHtml += '<hr style="border-color:#2d2d44;margin:16px 0">';
+    fasesHtml += buildFaseHtml(prf, f);
+  });
+
+  panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
+
+  show('pg-ctrl');
+}
+  
 // Build RFC html without relying on fixed panel id
 function buildRFCHtml(perfil, fasesBase) {
   var key = 'rfc_' + perfil.rfc;
