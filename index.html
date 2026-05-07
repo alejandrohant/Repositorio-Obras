@@ -3471,10 +3471,10 @@ function buildReporteContratista(prf, fasesCtrl){
 
   var h = '';
 
-  h += '<div class="ctrl-blk">';
+  h += '<div class="ctrl-blk" style="margin-top:22px">';
   h += '<div class="ctrl-hd">REPORTE DEL CONTRATISTA</div>';
+  h += '<div class="ctrl-body" style="padding:18px">';
 
-  h += '<div style="padding:18px">';
 
   h += '<div class="rpt-mini-grid">';
 
@@ -3511,7 +3511,8 @@ function buildReporteContratista(prf, fasesCtrl){
 
   h += '</tbody></table>';
 
-  h += '</div></div>';
+  h += '</div>';
+  h += '</div>';
 
   return h;
 }
