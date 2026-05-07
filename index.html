@@ -3489,7 +3489,22 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '</div>';
 
   h += '<div class="rpt-mini-card">';
-  h += '<div class="rpt-mini-lbl">% CUOTAS</div>';
+  h += '<div class="rpt-mini-lbl">CUOTAS ESTIMADAS</div>';
+  h += '<div class="rpt-mini-val">' + rptMxn(totalCuotEst) + '</div>';
+  h += '</div>';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">CUOTAS PAGADAS</div>';
+  h += '<div class="rpt-mini-val">' + rptMxn(totalCuotPag) + '</div>';
+  h += '</div>';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">CONTINGENCIA</div>';
+  h += '<div class="rpt-mini-val">' + rptMxn(totalCuotEst - totalCuotPag) + '</div>';
+  h += '</div>';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">% CUMPLIMIENTO</div>';
   h += '<div class="rpt-mini-val">' + pctTag(pctFinal) + '</div>';
   h += '</div>';
 
