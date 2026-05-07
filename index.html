@@ -4111,9 +4111,23 @@ function recargarControl() {
 
 // ============ REPORTE ============
 function pctTag(pct) {
-  if(pct===null||isNaN(pct)) return '<span class="rpt-pct-warn">--</span>';
-  var p = Math.round(pct*100);
-  var cls = p>=90 ? 'rpt-pct-ok' : (p>=50 ? 'rpt-pct-warn' : 'rpt-pct-bad');
+  if(pct===null || isNaN(pct)) return '<span class="rpt-pct-warn">--</span>';
+
+  var p = Math.round(pct * 100);
+  var cls = '';
+
+  if(p < 50){
+    cls = 'rpt-pct-bad';
+  } else if(p < 90){
+    cls = 'rpt-pct-warn';
+  } else if(p <= 100){
+    cls = 'rpt-pct-ok';
+  } else if(p <= 115){
+    cls = 'rpt-pct-warn';
+  } else {
+    cls = 'rpt-pct-bad';
+  }
+
   return '<span class="'+cls+'">'+p+'%</span>';
 }
 function rptMxn(n) {
