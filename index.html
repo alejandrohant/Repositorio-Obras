@@ -293,50 +293,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 .rpt-tbl td:first-child{text-align:left;color:#e2e8f0;font-weight:500}
 .rpt-tbl tr.rpt-tot td{background:#1e2d2a;color:#10b981;font-weight:700;border-top:2px solid #10b981}
 .rpt-tbl tr.rpt-warn td{color:#f87171}
-.rpt-totals{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
-  margin:0 0 22px;
-}
-
-.rpt-total{
-  background:#062b1f;
-  border:1.5px solid #00e0a4;
-  border-radius:12px;
-  padding:14px 16px;
-}
-
-.rpt-total-risk{
-  background:#2a1111;
-  border-color:#f87171;
-}
-
-.rpt-total-k{
-  color:#9fb0c5;
-  font-size:11px;
-  font-weight:800;
-  margin-bottom:8px;
-  letter-spacing:.05em;
-}
-
-.rpt-total-v{
-  color:#00e0a4;
-  font-size:16px;
-  font-weight:900;
-  line-height:1.2;
-}
-
-.rpt-total-risk .rpt-total-v{
-  color:#f87171;
-}
-.rpt-summary-line .rpt-pct-ok,
-.rpt-summary-line .rpt-pct-warn,
-.rpt-summary-line .rpt-pct-bad{
-  font-size:13px;
-  font-weight:800;
-}
-.rpt-pct-ok{color:#10b981;font-weight:700}
+.rpt-total-risk .rpt-pct-ok{color:#10b981;font-weight:700}
 .rpt-pct-warn{color:#f59e0b;font-weight:700}
 .rpt-pct-bad{color:#f87171;font-weight:700}
 .rpt-subtbl-hdr{font-size:10px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px;padding-left:4px}
@@ -3461,65 +3418,39 @@ function buildReporteContratista(prf, fasesCtrl){
 
     var moEst = calcMoEstCtr(f);
     var cuotEst = moEst * (f.fcuotasImss || 0.354);
+    var moPag = totales.mo;
+    var cuotPag = totales.cuotas;
 
     totalMoEst += moEst;
-    totalMoPag += totales.mo;
-
+    totalMoPag += moPag;
     totalCuotEst += cuotEst;
-    totalCuotPag += totales.cuotas;
+    totalCuotPag += cuotPag;
 
-    var pctMO = moEst > 0 ? (totales.mo / moEst) : null;
-    var pctCuot = cuotEst > 0 ? (totales.cuotas / cuotEst) : null;
+    var pctMO = moEst > 0 ? moPag / moEst : null;
+    var pctCuot = cuotEst > 0 ? cuotPag / cuotEst : null;
+    var hayRiesgo = (moEst > 0 && moPag < moEst * 0.5) || (cuotEst > 0 && cuotPag < cuotEst * 0.5);
 
-    rows += '<tr>'
+    rows += '<tr class="' + (hayRiesgo ? 'rpt-warn' : '') + '">'
       + '<td>' + (f.objeto || '--') + '</td>'
       + '<td>' + rptMxn(f.importe || 0) + '</td>'
-      + '<td>' + rptMxn(moEst) + '</td>'
-      + '<td>' + rptMxn(totales.mo) + '</td>'
+      + '<td>' + rptMxn(moEst > 0 ? moEst : null) + '</td>'
+      + '<td>' + rptMxn(moPag > 0 ? moPag : null) + '</td>'
       + '<td>' + pctTag(pctMO) + '</td>'
-      + '<td>' + rptMxn(cuotEst) + '</td>'
-      + '<td>' + rptMxn(totales.cuotas) + '</td>'
+      + '<td>' + rptMxn(cuotEst > 0 ? cuotEst : null) + '</td>'
+      + '<td>' + rptMxn(cuotPag > 0 ? cuotPag : null) + '</td>'
       + '<td>' + pctTag(pctCuot) + '</td>'
       + '</tr>';
 
   });
 
-  var pctFinal = totalCuotEst > 0 ? (totalCuotPag / totalCuotEst) : null;
+  var pctMOTot = totalMoEst > 0 ? totalMoPag / totalMoEst : null;
+  var pctCuotTot = totalCuotEst > 0 ? totalCuotPag / totalCuotEst : null;
+  var contingencia = totalCuotEst - totalCuotPag;
 
   var h = '';
 
-  h += '<div class="ctrl-blk" style="margin-top:22px;background:#1f1f31;border-radius:16px;padding:18px;border:1px solid #2d2d44">';
-  h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:16px">REPORTE DEL CONTRATISTA</div>';
-  h += '<div class="ctrl-body">';
-
-h += '<div class="rpt-totals">';
-
-h += '<div class="rpt-total">';
-h += '<div class="rpt-total-k">TOTAL MO ESTIMADA</div>';
-h += '<div class="rpt-total-v">' + rptMxn(totalMoEst) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total">';
-h += '<div class="rpt-total-k">TOTAL MO PAGADA</div>';
-h += '<div class="rpt-total-v">' + rptMxn(totalMoPag) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total">';
-h += '<div class="rpt-total-k">TOTAL CUOTAS ESTIMADAS</div>';
-h += '<div class="rpt-total-v">' + rptMxn(totalCuotEst) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total">';
-h += '<div class="rpt-total-k">TOTAL CUOTAS PAGADAS</div>';
-h += '<div class="rpt-total-v">' + rptMxn(totalCuotPag) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total rpt-total-risk">';
-h += '<div class="rpt-total-k">CONTINGENCIA TOTAL</div>';
-h += '<div class="rpt-total-v">' + rptMxn(totalCuotEst-totalCuotPag) + '</div>';
-h += '</div>';
-
-h += '</div>';
+  h += '<div class="ctrl-blk" style="margin-top:22px;background:#1e1e2e;border-radius:12px;padding:20px 24px;border:0">';
+  h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:14px">REPORTE DEL CONTRATISTA</div>';
 
   h += '<table class="rpt-tbl">';
   h += '<thead><tr>'
@@ -3535,9 +3466,24 @@ h += '</div>';
 
   h += rows;
 
+  h += '<tr class="rpt-tot">'
+    + '<td colspan="2">TOTAL</td>'
+    + '<td>' + rptMxn(totalMoEst > 0 ? totalMoEst : null) + '</td>'
+    + '<td>' + rptMxn(totalMoPag > 0 ? totalMoPag : null) + '</td>'
+    + '<td>' + pctTag(pctMOTot) + '</td>'
+    + '<td>' + rptMxn(totalCuotEst > 0 ? totalCuotEst : null) + '</td>'
+    + '<td>' + rptMxn(totalCuotPag > 0 ? totalCuotPag : null) + '</td>'
+    + '<td>' + pctTag(pctCuotTot) + '</td>'
+    + '</tr>';
+
   h += '</tbody></table>';
 
-  h += '</div>';
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(totalCuotEst) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(totalCuotPag) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia Total</label><span class="' + (contingencia > 0 ? 'warn' : '') + '">' + (contingencia > 0 ? '&#9888; ' : '') + rptMxn(contingencia) + '</span></div>'
+    + '</div>';
+
   h += '</div>';
 
   return h;
