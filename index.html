@@ -3253,6 +3253,26 @@ function abrirNuevaFaseConPadre(padre){
 // ============ CONTROL MENSUAL ============
 function irControlObra(obraObj) {
   var obraFases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
+  if(String(o.construye || '') === '1'){
+  fases.unshift({
+    id: 'prop_' + o.id,
+    origen: 'Propietaria',
+    rfcOrigen: o.rfc || '',
+    obra: o.nombre || '',
+    sirocPrincipal: o.siroc || '',
+    rfc: o.rfc || '',
+    contratista: o.patron || o.nombre || 'Propietaria',
+    perfil: 'Propietaria',
+    rp: o.rp || '',
+    objeto: 'Obra propia propietaria',
+    tipoCto: 'Obra propia',
+    aplicaSiroc: 1,
+    siroc: o.siroc || '',
+    ubicacion: o.ubicacion || '',
+    inicia: o.inicia || '',
+    termina: o.termina || ''
+  });
+}
   var rfcsUnicos = [];
   obraFases.forEach(function(f){
     if(rfcsUnicos.indexOf(f.rfc) < 0) rfcsUnicos.push(f.rfc);
