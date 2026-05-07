@@ -3403,7 +3403,90 @@ function irControlContratistaDesdeFase(faseObj){
   });
 
   panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
+function buildReporteContratista(prf, fasesCtrl){
 
+  var totalMoEst = 0;
+  var totalMoPag = 0;
+  var totalCuotEst = 0;
+  var totalCuotPag = 0;
+
+  var rows = '';
+
+  fasesCtrl.forEach(function(f){
+
+    var totales = getCtrlTotales(f.id);
+
+    var moEst = calcMoEstCtr(f);
+    var cuotEst = moEst * (f.fcuotasImss || 0.354);
+
+    totalMoEst += moEst;
+    totalMoPag += totales.mo;
+
+    totalCuotEst += cuotEst;
+    totalCuotPag += totales.cuotas;
+
+    var pctMO = moEst > 0 ? (totales.mo / moEst) : null;
+    var pctCuot = cuotEst > 0 ? (totales.cuotas / cuotEst) : null;
+
+    rows += '<tr>'
+      + '<td>' + (f.objeto || '--') + '</td>'
+      + '<td>' + rptMxn(moEst) + '</td>'
+      + '<td>' + rptMxn(totales.mo) + '</td>'
+      + '<td>' + pctTag(pctMO) + '</td>'
+      + '<td>' + rptMxn(cuotEst) + '</td>'
+      + '<td>' + rptMxn(totales.cuotas) + '</td>'
+      + '<td>' + pctTag(pctCuot) + '</td>'
+      + '</tr>';
+
+  });
+
+  var pctFinal = totalCuotEst > 0 ? (totalCuotPag / totalCuotEst) : null;
+
+  var h = '';
+
+  h += '<div class="ctrl-blk">';
+  h += '<div class="ctrl-hd">REPORTE DEL CONTRATISTA</div>';
+
+  h += '<div style="padding:18px">';
+
+  h += '<div class="rpt-mini-grid">';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">MO ESTIMADA</div>';
+  h += '<div class="rpt-mini-val">' + rptMxn(totalMoEst) + '</div>';
+  h += '</div>';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">MO PAGADA</div>';
+  h += '<div class="rpt-mini-val">' + rptMxn(totalMoPag) + '</div>';
+  h += '</div>';
+
+  h += '<div class="rpt-mini-card">';
+  h += '<div class="rpt-mini-lbl">% CUOTAS</div>';
+  h += '<div class="rpt-mini-val">' + pctTag(pctFinal) + '</div>';
+  h += '</div>';
+
+  h += '</div>';
+
+  h += '<table class="rpt-tbl">';
+  h += '<thead><tr>'
+    + '<th>Fase</th>'
+    + '<th>MO Estimada</th>'
+    + '<th>MO Pagada</th>'
+    + '<th>% MO</th>'
+    + '<th>Cuotas Est.</th>'
+    + '<th>Cuotas Pag.</th>'
+    + '<th>% Cuotas</th>'
+    + '</tr></thead><tbody>';
+
+  h += rows;
+
+  h += '</tbody></table>';
+
+  h += '</div></div>';
+
+  return h;
+}
   show('pg-ctrl');
 }
   
