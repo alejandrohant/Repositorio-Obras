@@ -3477,40 +3477,14 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:16px">REPORTE DEL CONTRATISTA</div>';
   h += '<div class="ctrl-body">';
 
-
-  h += '<div class="rpt-total-grid">';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">MO ESTIMADA</div>';
-h += '<div class="rpt-total-val">' + rptMxn(totalMoEst) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">MO PAGADA</div>';
-h += '<div class="rpt-total-val">' + rptMxn(totalMoPag) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">CUOTAS ESTIMADAS</div>';
-h += '<div class="rpt-total-val">' + rptMxn(totalCuotEst) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">CUOTAS PAGADAS</div>';
-h += '<div class="rpt-total-val">' + rptMxn(totalCuotPag) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">CONTINGENCIA</div>';
-h += '<div class="rpt-total-val">' + rptMxn(totalCuotEst-totalCuotPag) + '</div>';
-h += '</div>';
-
-h += '<div class="rpt-total-card">';
-h += '<div class="rpt-total-lbl">% CUMPLIMIENTO</div>';
-h += '<div class="rpt-total-val">' + pctTag(pctFinal) + '</div>';
-h += '</div>';
-
-h += '</div>';
+  h += '<div class="rpt-summary-line">';
+  h += '<div><span>MO estimada</span><strong>' + rptMxn(totalMoEst) + '</strong></div>';
+  h += '<div><span>MO pagada</span><strong>' + rptMxn(totalMoPag) + '</strong></div>';
+  h += '<div><span>Cuotas estimadas</span><strong>' + rptMxn(totalCuotEst) + '</strong></div>';
+  h += '<div><span>Cuotas pagadas</span><strong>' + rptMxn(totalCuotPag) + '</strong></div>';
+  h += '<div><span>Contingencia</span><strong>' + rptMxn(totalCuotEst-totalCuotPag) + '</strong></div>';
+  h += '<div><span>% cumplimiento</span><strong>' + pctTag(pctFinal) + '</strong></div>';
+  h += '</div>';
 
   h += '<table class="rpt-tbl">';
   h += '<thead><tr>'
