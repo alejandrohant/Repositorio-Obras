@@ -3321,9 +3321,9 @@ function irControlObra(obraObj) {
     var fasesRfc = obraFases.filter(function(f){ return f.rfc === rfc; });
 
     // RFC section
-    var rfcHtml = buildRFCHtml(prf);
+    var rfcHtml = buildRFCHtml(prf, fasesRfc);
     // SUA section
-    var suaHtml = buildSUAHtml(prf);
+    var suaHtml = buildSUAHtml(prf, fasesRfc);
 
     // Fases sections
     var fasesHtml = '';
