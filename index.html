@@ -3558,59 +3558,76 @@ function irControl(perfil) {
   show('pg-ctrl');
 }
 
-function renderControlTabs(perfil) {
+  function renderControlTabs(perfil) {
+
   var tabsEl = document.getElementById('ctrl-tabs');
   var panelsEl = document.getElementById('ctrl-panels');
+
   tabsEl.innerHTML = '';
   panelsEl.innerHTML = '';
 
-  // Tab 1: RFC
-  addCtrlTab('rfc', 'Obligaciones RFC', tabsEl, panelsEl, true);
+  // RFC
+  addCtrlTab('rfc','Obligaciones RFC',tabsEl,panelsEl,true);
   renderPanelRFC(perfil);
 
-  // Tab 2: SUA por RP
-  addCtrlTab('sua', 'Pagos SUA / RP', tabsEl, panelsEl, false);
+  // SUA
+  addCtrlTab('sua','Pagos SUA / RP',tabsEl,panelsEl,false);
   renderPanelSUA(perfil);
 
-  // Si el perfil es propietaria y construye, agregar control propio de la propietaria
-  var esPropietaria = (perfil.tipo || '').toLowerCase() === 'propietaria';
-  var construye = String(perfil.construye || '') === '1';
+  // 🔴 CONTROL PROPIETARIA
+  if(
+    (perfil.tipo || '').toLowerCase() === 'propietaria'
+    &&
+    String(perfil.construye || '') === '1'
+  ){
 
-  if(esPropietaria && construye){
-    var fasePropietaria = {
-      id: 'prop_' + (perfil.id || perfil.rfc),
-      origen: 'Propietaria',
-      rfcOrigen: perfil.rfc || '',
-      obra: perfil.nombre || '',
-      sirocPrincipal: perfil.siroc || '',
-      rfc: perfil.rfc || '',
-      contratista: perfil.nombre || '',
-      perfil: 'Propietaria',
-      rp: perfil.rp || '',
-      objeto: perfil.nombre || 'Obra propietaria',
-      tipoCto: 'Obra propia',
-      aplicaSiroc: 1,
-      siroc: perfil.siroc || '',
-      ubicacion: perfil.ubicacion || perfil.domicilio || '',
-      inicia: perfil.inicia || '',
-      termina: perfil.termina || '',
-      cumplimiento: perfil.cumplimiento || ''
+    var faseProp = {
+      id:'propietaria',
+      contratista:perfil.patron || perfil.nombre || 'Propietaria',
+      perfil:'Propietaria',
+      rp:perfil.rp || '',
+      siroc:perfil.siroc || '',
+      objeto:'Obra propia propietaria',
+      inicia:perfil.inicia || '',
+      termina:perfil.termina || ''
     };
 
-    addCtrlTab('fase_propietaria', 'Propietaria', tabsEl, panelsEl, false);
-    renderPanelFase(perfil, fasePropietaria, 'fase_propietaria');
+    addCtrlTab(
+      'fase_propietaria',
+      'Propietaria',
+      tabsEl,
+      panelsEl,
+      false
+    );
+
+    renderPanelFase(
+      perfil,
+      faseProp,
+      'fase_propietaria'
+    );
   }
 
-  // Tabs de fases reales del contratista
+  // 🔴 FASES NORMALES
   var fases = gFases().filter(function(f){
-    return (f.rfc || '').toUpperCase() === (perfil.rfc || '').toUpperCase();
+    return f.rfc === perfil.rfc;
   });
 
-  fases.forEach(function(f) {
+  fases.forEach(function(f){
+
     var tabId = 'fase_' + f.id;
-    addCtrlTab(tabId, f.siroc || (f.objeto || '').substring(0,20), tabsEl, panelsEl, false);
-    renderPanelFase(perfil, f, tabId);
+
+    addCtrlTab(
+      tabId,
+      f.siroc || (f.objeto || '').substring(0,20),
+      tabsEl,
+      panelsEl,
+      false
+    );
+
+    renderPanelFase(perfil,f,tabId);
+
   });
+
 }
 function calcISNFase(){
   var elImporte = document.getElementById('fa-importe');
