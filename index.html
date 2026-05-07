@@ -4291,7 +4291,15 @@ function generarReporte(obraObj, tipo) {
 
     grandTotalMoEst += totalMoEst;
     grandTotalMoPag += totalMoPag;
-    grandTotalCuotEst += totalCuotEst;
+
+    if(String(obraObj.construye || '') === '1'){
+      if((ctr.perfil || '').toLowerCase() === 'propietaria'){
+        grandTotalCuotEst = totalCuotEst;
+      }
+    }else{
+      grandTotalCuotEst += totalCuotEst;
+    }
+
     grandTotalCuotPag += totalCuotPag;
 
     h += '</div>';
