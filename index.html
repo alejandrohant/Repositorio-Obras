@@ -319,6 +319,9 @@ select.fg-sel:focus{border-color:#a78bfa}
   font-weight:800;
   line-height:1.2;
 }
+.rpt-cont{
+  color:#f87171 !important;
+}
 .rpt-summary-line .rpt-pct-ok,
 .rpt-summary-line .rpt-pct-warn,
 .rpt-summary-line .rpt-pct-bad{
@@ -3486,7 +3489,7 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '<div><span>MO pagada</span><strong>' + rptMxn(totalMoPag) + '</strong></div>';
   h += '<div><span>Cuotas estimadas</span><strong>' + rptMxn(totalCuotEst) + '</strong></div>';
   h += '<div><span>Cuotas pagadas</span><strong>' + rptMxn(totalCuotPag) + '</strong></div>';
-  h += '<div><span>Contingencia</span><strong>' + rptMxn(totalCuotEst-totalCuotPag) + '</strong></div>';
+  h += '<div><span>Contingencia</span><strong class="rpt-cont">' + rptMxn(totalCuotEst-totalCuotPag) + '</strong></div>';
   h += '<div><span>% cumplimiento</span><strong>' + pctTag(pctFinal) + '</strong></div>';
   h += '</div>';
 
