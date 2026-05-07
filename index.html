@@ -3456,6 +3456,7 @@ function buildReporteContratista(prf, fasesCtrl){
 
     rows += '<tr>'
       + '<td>' + (f.objeto || '--') + '</td>'
+      + '<td>' + rptMxn(f.importe || 0) + '</td>'
       + '<td>' + rptMxn(moEst) + '</td>'
       + '<td>' + rptMxn(totales.mo) + '</td>'
       + '<td>' + pctTag(pctMO) + '</td>'
@@ -3497,6 +3498,7 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '<table class="rpt-tbl">';
   h += '<thead><tr>'
     + '<th>Fase</th>'
+    + '<th>Importe</th>'
     + '<th>MO Estimada</th>'
     + '<th>MO Pagada</th>'
     + '<th>% MO</th>'
