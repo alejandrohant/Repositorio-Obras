@@ -3405,6 +3405,7 @@ function irControlContratistaDesdeFase(faseObj){
   panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
 function buildReporteContratista(prf, fasesCtrl){
 
+  var totalImporte = 0;
   var totalMoEst = 0;
   var totalMoPag = 0;
   var totalCuotEst = 0;
@@ -3421,6 +3422,7 @@ function buildReporteContratista(prf, fasesCtrl){
     var moPag = totales.mo;
     var cuotPag = totales.cuotas;
 
+    totalImporte += Number(f.importe || 0);
     totalMoEst += moEst;
     totalMoPag += moPag;
     totalCuotEst += cuotEst;
@@ -3467,7 +3469,8 @@ function buildReporteContratista(prf, fasesCtrl){
   h += rows;
 
   h += '<tr class="rpt-tot">'
-    + '<td colspan="2">TOTAL</td>'
+    + '<td>TOTAL</td>'
+    + '<td>' + rptMxn(totalImporte > 0 ? totalImporte : null) + '</td>'
     + '<td>' + rptMxn(totalMoEst > 0 ? totalMoEst : null) + '</td>'
     + '<td>' + rptMxn(totalMoPag > 0 ? totalMoPag : null) + '</td>'
     + '<td>' + pctTag(pctMOTot) + '</td>'
@@ -3479,6 +3482,7 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '</tbody></table>';
 
   h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Total Contratos</label><span>' + rptMxn(totalImporte) + '</span></div>'
     + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(totalCuotEst) + '</span></div>'
     + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(totalCuotPag) + '</span></div>'
     + '<div class="rpt-total-item"><label>Contingencia Total</label><span class="' + (contingencia > 0 ? 'warn' : '') + '">' + (contingencia > 0 ? '&#9888; ' : '') + rptMxn(contingencia) + '</span></div>'
