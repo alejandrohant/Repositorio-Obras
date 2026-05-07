@@ -4252,27 +4252,6 @@ function generarReporte(obraObj, tipo) {
         + '<td>' + pctTag(pctCuot) + '</td>'
         + '</tr>';
 
-      // Subcontratistas row if any
-      if(subfases.length>0) {
-        h += '<tr style="background:#1a1a2e"><td colspan="8" style="padding:6px 12px">';
-        h += '<div class="rpt-subtbl-hdr">Subcontratistas de este contrato</div>';
-        h += '<table class="rpt-tbl" style="margin-bottom:0"><thead><tr>'
-          + '<th>Subcontratista</th><th>SIROC</th><th>MO Pagada</th><th>Cuotas Pagadas</th><th>% Cuotas</th>'
-          + '</tr></thead><tbody>';
-        subfases.forEach(function(sf){
-          var st = getCtrlTotales(sf.id);
-          var sfCuotEst = calcMoEstSub(sf) * (sf.fcuotasImss||0.354);
-          var pctSf = sfCuotEst>0 ? st.cuotas/sfCuotEst : null;
-          h += '<tr>'
-            + '<td>' + sf.contratista + '</td>'
-            + '<td style="font-family:monospace;font-size:11px">' + (sf.siroc||'--') + '</td>'
-            + '<td>' + rptMxn(st.mo>0?st.mo:null) + '</td>'
-            + '<td>' + rptMxn(st.cuotas>0?st.cuotas:null) + '</td>'
-            + '<td>' + pctTag(pctSf) + '</td>'
-            + '</tr>';
-        });
-        h += '</tbody></table></td></tr>';
-      }
     });
 
     // Total del contratista
