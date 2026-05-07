@@ -3340,10 +3340,10 @@ function irControlObra(obraObj) {
 }
 
 // Build RFC html without relying on fixed panel id
-function buildRFCHtml(perfil) {
+function buildRFCHtml(perfil, fasesBase) {
   var key = 'rfc_' + perfil.rfc;
   var ctrl = gCtrl();
-  var fases = gFases().filter(function(f){ return f.rfc === perfil.rfc; });
+  var fases = fasesBase || gFases().filter(function(f){ return f.rfc === perfil.rfc; });
   var fechas = fases.map(function(f){ return f.inicia; }).filter(Boolean).sort();
   var inicio = fechas.length ? fechas[0] : new Date().toISOString().slice(0,7) + '-01';
   var fechasFin = fases.map(function(f){ return f.termina; }).filter(Boolean).sort();
@@ -3384,10 +3384,10 @@ function buildRFCHtml(perfil) {
 }
 
 // Build SUA html without relying on fixed panel id
-function buildSUAHtml(perfil) {
+function buildSUAHtml(perfil, fasesBase) {
   var key = 'sua_' + perfil.rfc + '_' + (perfil.rp||'');
   var ctrl = gCtrl();
-  var fases = gFases().filter(function(f){ return f.rfc === perfil.rfc; });
+  var fases = fasesBase || gFases().filter(function(f){ return f.rfc === perfil.rfc; });
   var fechas = fases.map(function(f){ return f.inicia; }).filter(Boolean).sort();
   var inicio = fechas.length ? fechas[0] : new Date().toISOString().slice(0,7) + '-01';
   var fechasFin = fases.map(function(f){ return f.termina; }).filter(Boolean).sort();
@@ -3821,7 +3821,7 @@ function renderPanelSUA(perfil) {
   var key = 'sua_' + perfil.rfc + '_' + (perfil.rp||'');
   var ctrl = gCtrl();
 
-  var fases = gFases().filter(function(f){ return f.rfc === perfil.rfc; });
+  var fases = fasesBase || gFases().filter(function(f){ return f.rfc === perfil.rfc; });
   var fechas = fases.map(function(f){ return f.inicia; }).filter(Boolean).sort();
   var inicio = fechas[0] || new Date().toISOString().slice(0,7) + '-01';
   var fechasFin = fases.map(function(f){ return f.termina; }).filter(Boolean).sort();
