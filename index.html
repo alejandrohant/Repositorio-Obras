@@ -293,6 +293,35 @@ select.fg-sel:focus{border-color:#a78bfa}
 .rpt-tbl td:first-child{text-align:left;color:#e2e8f0;font-weight:500}
 .rpt-tbl tr.rpt-tot td{background:#1e2d2a;color:#10b981;font-weight:700;border-top:2px solid #10b981}
 .rpt-tbl tr.rpt-warn td{color:#f87171}
+.rpt-grand{
+  margin-top:16px;
+  background:#062b1f;
+  border:1.5px solid #10b981;
+  border-radius:12px;
+  padding:14px 20px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+
+.rpt-grand span{
+  display:block;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.rpt-grand b{
+  color:#10b981;
+  font-size:18px;
+  font-weight:900;
+}
+
+.rpt-grand b.bad{
+  color:#f87171;
+}
 .rpt-total-risk .rpt-pct-ok{color:#10b981;font-weight:700}
 .rpt-pct-warn{color:#f59e0b;font-weight:700}
 .rpt-pct-bad{color:#f87171;font-weight:700}
@@ -3481,12 +3510,12 @@ function buildReporteContratista(prf, fasesCtrl){
 
   h += '</tbody></table>';
 
-  h += '<div class="rpt-total">'
-    + '<div class="rpt-total-item"><label>Total Contratos</label><span>' + rptMxn(totalImporte) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(totalCuotEst) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(totalCuotPag) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Contingencia Total</label><span class="' + (contingencia > 0 ? 'warn' : '') + '">' + (contingencia > 0 ? '&#9888; ' : '') + rptMxn(contingencia) + '</span></div>'
-    + '</div>';
+  h += '<div class="rpt-grand">';
+  h += '<div><span>TOTAL CONTRATOS</span><b>' + rptMxn(totalImporte) + '</b></div>';
+  h += '<div><span>TOTAL CUOTAS ESTIMADAS</span><b>' + rptMxn(totalCuotEst) + '</b></div>';
+  h += '<div><span>TOTAL CUOTAS PAGADAS</span><b>' + rptMxn(totalCuotPag) + '</b></div>';
+  h += '<div><span>CONTINGENCIA TOTAL</span><b class="bad">⚠ ' + rptMxn(totalCuotEst-totalCuotPag) + '</b></div>';
+  h += '</div>';
 
   h += '</div>';
 
