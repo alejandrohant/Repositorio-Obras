@@ -880,7 +880,6 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="fg" id="wrap-prf-idrl"><label>ID Representante Legal</label><select id="prf-idrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="wrap-prf-csatrl"><label>Constancia SAT del RL</label><select id="prf-csatrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
     <div class="fg" id="wrap-prf-idfisica" style="display:none"><label>IDENTIFICACIÓN PERSONA FÍSICA</label><select id="prf-idfisica" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg" id="prf-construye-wrap" style="display:none"><label>Construye (solo propietaria)</label><select id="prf-construye" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Sí</option><option value="2">No</option><option value="4">No aplica</option></select></div>
     <div class="fg full"><label>Domicilio Fiscal</label><input id="prf-dom"></div>
     <div class="fg"><label>C.P.</label><input id="prf-cp" oninput="buscarCP()">
     <div class="fg"><label>Estado</label><input id="prf-estado"></div>
@@ -905,6 +904,14 @@ select.fg-sel:focus{border-color:#a78bfa}
         <div class="fg full fp"><label>Nombre Obra *</label><input id="p-nom"></div>
         <div class="fg fp"><label>RFC *</label><input id="p-rfc" oninput="autollenarPerfilObra('p')"></div>
         <div class="fg fp"><label>Nombre Propietaria *</label><input id="p-pat"></div>
+        <div class="fg fp">
+  <label>¿La propietaria construye?</label>
+  <select id="p-construye" class="fg-sel">
+    <option value="">Selecciona...</option>
+    <option value="1">Sí construye</option>
+    <option value="2">No construye</option>
+  </select>
+</div>
         <div class="fg fp"><label>RP</label><input id="p-rp"></div>
         <div class="fg fp"><label>Factor de Cuotas (%)</label><input type="number" step="0.01" id="p-fcuotas" value="35.40" oninput="calcMODOF()"></div>
         <div class="fg fp"><label>No. Licencia</label><input id="p-lic"></div>
@@ -2239,7 +2246,6 @@ async function guardarPerfil(e){
     poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
     idRL: parseInt(document.getElementById('prf-idrl').value) || 0,
     constSATRL: parseInt(document.getElementById('prf-csatrl').value) || 0,
-    construye: tipo === 'propietaria' ? (parseInt(document.getElementById('prf-construye').value) || 0) : 0,
     domicilio: document.getElementById('prf-dom').value.trim(),
     cp: document.getElementById('prf-cp').value.trim(),
     estado: document.getElementById('prf-estado').value.trim(),
