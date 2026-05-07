@@ -4135,26 +4135,27 @@ function getCtrlTotales(faseId) {
 }
 
 function generarReporte(obraObj, tipo) {
-  var fases = gFases().filter(function(f){ return f.obra===obraObj.nombre; });
-  if(String(o.construye || '') === '1'){
-  fases.unshift({
-    id: 'prop_' + o.id,
-    obra: o.nombre,
-    rfc: o.rfc || '',
-    contratista: o.patron || o.nombre || 'Propietaria',
-    perfil: 'Propietaria',
-    rp: o.rp || '',
-    objeto: 'Obra propia propietaria',
-    siroc: o.siroc || '',
-    inicia: o.inicia || '',
-    termina: o.termina || '',
-    fmoImss: o.factorMOPresupuesto ? (Number(o.factorMOPresupuesto) / 100) : 0,
-    fcuotasImss: o.fcuotas ? (Number(o.fcuotas) / 100) : 0,
-    importe: o.valorObra || 0,
-    moPagProp: 0,
-    cuotasPagProp: 0
-  });
-}
+  var fases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
+
+  if(String(obraObj.construye || '') === '1'){
+    fases.unshift({
+      id: 'prop_' + obraObj.id,
+      obra: obraObj.nombre,
+      rfc: obraObj.rfc || '',
+      contratista: obraObj.patron || obraObj.nombre || 'Propietaria',
+      perfil: 'Propietaria',
+      rp: obraObj.rp || '',
+      objeto: 'Obra propia propietaria',
+      siroc: obraObj.siroc || '',
+      inicia: obraObj.inicia || '',
+      termina: obraObj.termina || '',
+      fmoImss: obraObj.factorMOPresupuesto ? (Number(obraObj.factorMOPresupuesto) / 100) : 0,
+      fcuotasImss: obraObj.fcuotas ? (Number(obraObj.fcuotas) / 100) : 0,
+      importe: obraObj.valorObra || 0,
+      moPagProp: 0,
+      cuotasPagProp: 0
+    });
+  }
   var perfiles = gPrf();
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
