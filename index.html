@@ -1071,7 +1071,9 @@ function gP(){return JSON.parse(localStorage.getItem('op')||'[]');}
 function gC(){return JSON.parse(localStorage.getItem('oc')||'[]');}
 function sP(a){localStorage.setItem('op',JSON.stringify(a));}
 function sC(a){localStorage.setItem('oc',JSON.stringify(a));}
-function gid(x){return x+'_'+Date.now();}
+function gid(x){
+  return x + '_' + Date.now() + '_' + Math.random().toString(36).substring(2,8);
+}
 function show(id){document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte').forEach(function(p){p.classList.remove('active');});document.getElementById(id).classList.add('active');}
 let currentUser = null;
 
