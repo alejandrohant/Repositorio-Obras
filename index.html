@@ -3270,7 +3270,7 @@ function irControlObra(obraObj) {
       rfc: obraObj.rfc || '',
       contratista: obraObj.patron || obraObj.nombre || 'Propietaria',
       perfil: 'Propietaria',
-      rp: obraObj.rp || '',
+      rp: obraObj.rp || '--',
       objeto: 'Obra propia propietaria',
       tipoCto: 'Obra propia',
       aplicaSiroc: 1,
@@ -4203,7 +4203,7 @@ function generarReporte(obraObj, tipo) {
 
     h += '<div class="rpt-card">';
     h += '<h3>' + ctr.nombre + '</h3>';
-    h += '<div class="rpt-rfc">RFC: ' + ctr.rfc + ' &nbsp;|&nbsp; RP: ' + (prf.rp||'--') + '</div>';
+    h += '<div class="rpt-rfc">RP: ' + ((fasesCtrl[0] && fasesCtrl[0].rp) || prf.rp || '--') + '</div>';
 
     // Tabla de contratos del contratista
     h += '<table class="rpt-tbl"><thead><tr>'
