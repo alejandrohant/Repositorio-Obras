@@ -1486,6 +1486,9 @@ function abrirEditar(id){
     document.getElementById('p-nom').value=o.nombre||'';
     document.getElementById('p-rfc').value=o.rfc||'';
     document.getElementById('p-pat').value=o.patron||'';
+    if(document.getElementById('p-construye')){
+  document.getElementById('p-construye').value = o.construye || '';
+}
     document.getElementById('p-rp').value=o.rp||'';
     document.getElementById('p-lic').value=o.licencia||'';
     document.getElementById('p-sir').value=o.siroc||'';
