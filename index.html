@@ -3928,18 +3928,6 @@ function montoInputCtrl(key, periodo, campo, val) {
     extraOnChange = 'var moCell=this.closest(\'tr\').querySelector(\'.mo-impl\');'
       + 'if(moCell){var v=parseFloat(this.value)||0;moCell.textContent=v>0?\'' + '\\u0024\'' + '+Intl.NumberFormat(\'es-MX\',{minimumFractionDigits:2}).format(v/0.01):\'--\';}';
   }
-  if(['cop','rcv','inf'].includes(campo)) {
-    // Update Cuotas cell in same row
-    extraOnChange += 'var row=this.closest(\'tr\');'
-      + 'var cuotasCell=row.querySelector(\'.cuotas-row\');'
-      + 'if(cuotasCell){'
-      + 'var cop=parseFloat(row.querySelector(\'input[data-campo="cop"]\').value)||0;'
-      + 'var rcv=parseFloat(row.querySelector(\'input[data-campo="rcv"]\').value)||0;'
-      + 'var inf=parseFloat(row.querySelector(\'input[data-campo="inf"]\').value)||0;'
-      + 'var sum=cop+rcv+inf;'
-      + 'cuotasCell.textContent=sum>0?mxn(sum):\'--\';'
-      + '}';
-  }
   return '<input class="ctrl-inp" type="number" step="0.01" value="' + (val||'') + '" '
     + 'data-campo="' + campo + '" '
     + 'onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseFloat(this.value)||null);' + extraOnChange + '" '
