@@ -3922,15 +3922,9 @@ function docSelectCtrl(key, periodo, campo, val) {
 
 function montoInputCtrl(key, periodo, campo, val) {
   var esc = function(s){return s.replace(/'/g,"\'");};
-  var extraOnChange = '';
-  if(campo === 'gps') {
-    // Update MO implicita cell in same row
-    extraOnChange = 'var moCell=this.closest(\'tr\').querySelector(\'.mo-impl\');'
-      + 'if(moCell){var v=parseFloat(this.value)||0;moCell.textContent=v>0?\'' + '\\u0024\'' + '+Intl.NumberFormat(\'es-MX\',{minimumFractionDigits:2}).format(v/0.01):\'--\';}';
-  }
   return '<input class="ctrl-inp" type="number" step="0.01" value="' + (val||'') + '" '
     + 'data-campo="' + campo + '" '
-    + 'onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseFloat(this.value)||null);' + extraOnChange + '" '
+    + 'oninput="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseFloat(this.value)||null);actualizarFilaControl(this)" '
     + 'placeholder="0.00">';
 }
 
@@ -3940,6 +3934,29 @@ function setCtrlVal(key, periodo, campo, val) {
   if(!ctrl[key][periodo]) ctrl[key][periodo] = {};
   ctrl[key][periodo][campo] = val;
   sCtrl(ctrl);
+}
+
+function actualizarFilaControl(inputEl) {
+  if(!inputEl || !inputEl.closest) return;
+  var row = inputEl.closest('tr');
+  if(!row) return;
+  var gpsInput = row.querySelector('input[data-campo="gps"]');
+  var copInput = row.querySelector('input[data-campo="cop"]');
+  var rcvInput = row.querySelector('input[data-campo="rcv"]');
+  var infInput = row.querySelector('input[data-campo="inf"]');
+  var gps = parseFloat((gpsInput && gpsInput.value) || '') || 0;
+  var cop = parseFloat((copInput && copInput.value) || '') || 0;
+  var rcv = parseFloat((rcvInput && rcvInput.value) || '') || 0;
+  var inf = parseFloat((infInput && infInput.value) || '') || 0;
+  var moCell = row.querySelector('.mo-impl');
+  if(moCell) {
+    moCell.textContent = gps > 0 ? mxn(gps / 0.01) : '--';
+  }
+  var cuotasCell = row.querySelector('.cuotas-row');
+  if(cuotasCell) {
+    var total = cop + rcv + inf;
+    cuotasCell.textContent = total > 0 ? mxn(total) : '--';
+  }
 }
 
 // Panel RFC: obligaciones del contribuyente por RFC
