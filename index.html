@@ -2144,7 +2144,6 @@ function irFichaPerfil(id){
     {lbl:'ID Representante Legal',v:p.idRL},
     {lbl:'Constancia SAT del RL',v:p.constSATRL},
   ];
-  if(p.tipo==='propietaria') docs.push({lbl:'Construye',v:p.construye});
   var docsH='';
   docs.forEach(function(d){docsH+='<div class="campo"><label>'+d.lbl+'</label>'+estLabel(d.v)+'</div>';});
   var h='<div class="sec"><h3>Identificación</h3>'
