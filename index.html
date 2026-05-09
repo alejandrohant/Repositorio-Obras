@@ -549,7 +549,6 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="fhdr-t"><h2 id="prf-fnom"></h2><div class="ftipo" id="prf-ftipo"></div></div>
     <div class="facts">
       <button class="bfe" id="prf-bfe">Editar</button>
-      <button class="fase-bfases" id="prf-bctrl" style="display:none">Control</button>
       <button class="bfd" id="prf-bfd">Eliminar</button>
     </div>
   </div>
@@ -2137,8 +2136,6 @@ function irFichaPerfil(id){
   document.getElementById('prf-fbk').onclick=function(){irPerfiles();};
   document.getElementById('prf-bfe').onclick=function(){abrirEditarPerfil(id);};
   document.getElementById('prf-bfd').onclick=function(){pedirDelPrf(id);};
-  var btnCtrl=document.getElementById('prf-bctrl');
-  if(btnCtrl){btnCtrl.style.display='inline-block';btnCtrl.onclick=function(){irControl(p);};}
   var docs=[
     {lbl:'Acuse constancia SAT',v:p.acuseSAT},
     {lbl:'Acuse REPSE',v:p.acuseREPSE},
