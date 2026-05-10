@@ -3615,6 +3615,67 @@ function pctOut(v){
   return (v * 100).toFixed(2).replace(/\.00$/, '');
 }
 // Build fase html without relying on fixed panel id
+function buildISNSection(fase, ctrl, key) {
+  // Find the obra by name
+  var obras = gC();
+  var obra = obras.find(function(o){ return o.nombre === fase.obra; });
+  
+  // Only show if obra exists and has isnPagadoPor defined
+  if(!obra || !obra.isnPagadoPor) return '';
+  
+  // Show section if:
+  // - For propietaria: isnPagadoPor = 'propietaria' and this is the propietaria fase
+  // - For contratistas: isnPagadoPor = 'contratistas'
+  var isProp = (fase.perfil||'').toLowerCase() === 'propietaria';
+  var isContratista = (fase.perfil||'').toLowerCase() !== 'propietaria';
+  var pagadoPor = (obra.isnPagadoPor||'').toLowerCase();
+  
+  var shouldShow = (isProp && pagadoPor === 'propietaria') || (isContratista && pagadoPor === 'contratistas');
+  if(!shouldShow) return '';
+  
+  var h = '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control ISN</h3>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">';
+  
+  var docCols = [
+    {k:'isn_aviso',l:'Aviso de Inicio de Obra'},
+    {k:'isn_decl',l:'Declaración ISN'},
+    {k:'isn_comprobante',l:'Comprobante de Pago ISN'},
+    {k:'isn_constancia',l:'Constancia de No Adeudo ISN'},
+    {k:'isn_complementario',l:'ISN Complementario'}
+  ];
+  
+  docCols.forEach(function(c) {
+    var v = getCtrlVal(ctrl, key, '__isn', c.k);
+    h += '<div><label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600">' + c.l + '</label>'
+      + '<div>' + docSelectCtrl(key, '__isn', c.k, v) + '</div></div>';
+  });
+  
+  var isnEstimado = obra.isnEst || 0;
+  var isnPagado = parseFloat(getCtrlVal(ctrl, key, '__isn', 'isn_pagado')) || 0;
+  var contingencia = isnEstimado - isnPagado;
+  
+  h += '<div><label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600">ISN Estimado</label>'
+    + '<div style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#cbd5e1;font-weight:500;cursor:not-allowed">'
+    + mxn(isnEstimado)
+    + '</div></div>';
+  
+  h += '<div><label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600">ISN Pagado</label>'
+    + '<input type="number" step="0.01" class="ctrl-inp" data-campo="isn_pagado" value="' + (isnPagado||'') + '" '
+    + 'oninput="setCtrlVal(\'' + key.replace(/'/g,"\\'") + '\',\'__isn\',\'isn_pagado\',parseFloat(this.value)||null);actualizarFilaControl(this)" '
+    + 'placeholder="0.00" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none;transition:border 0.2s" '
+    + 'onchange="this.style.borderColor=\'#2d2d44\'" onfocus="this.style.borderColor=\'#a78bfa\'">'
+    + '</div>';
+  
+  h += '<div><label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600">Contingencia ISN</label>'
+    + '<div style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#cbd5e1;font-weight:500;cursor:not-allowed" class="isn-contingencia" data-isn-est="' + isnEstimado + '">'
+    + (contingencia > 0 ? mxn(contingencia) : '--')
+    + '</div></div>';
+  
+  h += '</div></div>';
+  
+  return h;
+}
+
 function buildFaseHtml(perfil, fase) {
   var key = 'fase_' + fase.id;
   var ctrl = gCtrl();
@@ -3694,6 +3755,13 @@ function buildFaseHtml(perfil, fase) {
     h += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td></tr>';
   });
   h += '</tbody></table></div></div>';
+  
+  // ISN Control section
+  var isnSection = buildISNSection(fase, ctrl, key);
+  if(isnSection) {
+    h += isnSection;
+  }
+  
   return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
 }
 
@@ -3938,6 +4006,22 @@ function setCtrlVal(key, periodo, campo, val) {
 
 function actualizarFilaControl(inputEl) {
   if(!inputEl || !inputEl.closest) return;
+  
+  var campo = inputEl.getAttribute('data-campo');
+  
+  // Handle ISN Pagado field
+  if(campo === 'isn_pagado') {
+    var isnPagado = parseFloat(inputEl.value) || 0;
+    var contingenciaDiv = inputEl.closest('.ctrl-seccion').querySelector('.isn-contingencia');
+    if(contingenciaDiv) {
+      var isnEstimado = parseFloat(contingenciaDiv.getAttribute('data-isn-est')) || 0;
+      var contingencia = isnEstimado - isnPagado;
+      contingenciaDiv.textContent = contingencia > 0 ? mxn(contingencia) : '--';
+    }
+    return;
+  }
+  
+  // Handle table row updates (GPS, COP, RCV, INF)
   var row = inputEl.closest('tr');
   if(!row) return;
   var gpsInput = row.querySelector('input[data-campo="gps"]');
