@@ -3363,7 +3363,7 @@ function irControlObra(obraObj) {
       fasesHtml += buildFaseHtml(prf, f);
     });
 
-    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra')) : '';
+    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj) : '';
     panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
     first = false;
   });
@@ -3431,7 +3431,7 @@ function irControlContratistaDesdeFase(faseObj){
   var obraBaseISN = gP().concat(gC()).find(function(o){
   return (o.nombre || '') === (faseObj.obra || '');
 });
-var controlISNHtml = debeMostrarControlISN(obraBaseISN, 'contratista') ? buildControlISN() : '';
+var controlISNHtml = debeMostrarControlISN(obraBaseISN, 'contratista') ? buildControlISN('isn_ctr_' + ((prf && prf.rfc) || faseObj.rfc || 'rfc') + '_' + (faseObj.obra || 'obra'), faseObj) : '';
 panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml + buildReporteContratista(prf, obraFases);
 
   show('pg-ctrl');
@@ -3456,35 +3456,86 @@ function setCtrlISNVal(key, campo, val){
   localStorage.setItem('control', JSON.stringify(ctrl));
 }
 
-function buildControlISN(key){
+function getCtrlISNVal(key, campo){
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  if(!ctrl[key]) return '';
+  return ctrl[key][campo] || '';
+}
 
+function buildControlISN(key, ref){
   key = key || 'isn_global';
   var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
   var data = ctrl[key] || {};
 
   function selISN(campo){
     var val = data[campo] || '0';
-    return '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + key + '\',\'' + campo + '\',this.value)">'
-      + '<option value="0" ' + (val==='0'?'selected':'') + '>--</option>'
-      + '<option value="1" ' + (val==='1'?'selected':'') + '>Presentado</option>'
-      + '<option value="2" ' + (val==='2'?'selected':'') + '>Pendiente</option>'
-      + '<option value="3" ' + (val==='3'?'selected':'') + '>Erróneo</option>'
-      + '<option value="4" ' + (val==='4'?'selected':'') + '>No aplica</option>'
-      + '</select>';
+    return '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + key + '\',\'' + campo + '\',this.value)">' +
+      '<option value="0" ' + (val==='0'?'selected':'') + '>--</option>' +
+      '<option value="1" ' + (val==='1'?'selected':'') + '>Presentado</option>' +
+      '<option value="2" ' + (val==='2'?'selected':'') + '>Pendiente</option>' +
+      '<option value="3" ' + (val==='3'?'selected':'') + '>Erróneo</option>' +
+      '<option value="4" ' + (val==='4'?'selected':'') + '>No aplica</option>' +
+      '</select>';
   }
 
   var h = '';
 
-  h += '<table class="ctrl-tbl">';
-  h += '<thead><tr><th>Documento</th><th>Estado</th></tr></thead>';
-  h += '<tbody>';
-
+  // Documentos generales
+  h += '<div style="margin-bottom:16px"><h4 style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:10px">Documentos generales</h4>';
+  h += '<table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
   h += '<tr><td>Aviso de Inicio de Obra</td><td>' + selISN('avisoInicioObra') + '</td></tr>';
-  h += '<tr><td>Declaración ISN</td><td>' + selISN('declaracionISN') + '</td></tr>';
-  h += '<tr><td>Comprobante de pago ISN</td><td>' + selISN('comprobantePagoISN') + '</td></tr>';
   h += '<tr><td>Constancia No Adeudo ISN</td><td>' + selISN('constanciaNoAdeudoISN') + '</td></tr>';
+  h += '</tbody></table></div>';
 
-  h += '</tbody></table>';
+  // Forma de pago
+  var formaPago = data.formaPagoISN || 'unico';
+  h += '<div style="margin-bottom:16px"><label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600;display:block;margin-bottom:8px">Forma de pago ISN</label>';
+  h += '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + key + '\',\'formaPagoISN\',this.value);location.reload()" style="width:200px">';
+  h += '<option value="unico" ' + (formaPago==='unico'?'selected':'') + '>Pago único</option>';
+  h += '<option value="mensual" ' + (formaPago==='mensual'?'selected':'') + '>Pagos mensuales</option>';
+  h += '</select></div>';
+
+  // Condicional: Pago único
+  if(formaPago === 'unico'){
+    h += '<div style="margin-bottom:16px"><h4 style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:10px">ISN Único</h4>';
+    h += '<table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
+    h += '<tr><td>Declaración ISN Único</td><td>' + selISN('declaracionISNUnico') + '</td></tr>';
+    h += '<tr><td>Comprobante de pago único</td><td>' + selISN('comprobantePagoUnico') + '</td></tr>';
+    h += '<tr><td>ISN Único pagado</td><td><input type="number" step="0.01" class="ctrl-inp" style="width:120px" value="' + (data.isnUnicoPagado || '') + '" onchange="setCtrlISNVal(\'' + key + '\',\'isnUnicoPagado\',parseFloat(this.value)||null)" placeholder="0.00"></td></tr>';
+    h += '</tbody></table></div>';
+  }
+
+  // Condicional: Pagos mensuales
+  if(formaPago === 'mensual' && ref && ref.inicia && ref.termina){
+    var periodos = mesesEntre(ref.inicia, ref.termina);
+    h += '<div style="margin-bottom:16px"><h4 style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:10px">ISN por período</h4>';
+    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>ISN pagado</th><th>Declaración ISN</th><th>Comprobante de pago</th></tr></thead><tbody>';
+    
+    periodos.forEach(function(p){
+      var isnPagVal = data['isnPagado_' + p] || '';
+      var declVal = data['declaracionISN_' + p] || '0';
+      var compVal = data['comprobantePagoISN_' + p] || '0';
+      
+      h += '<tr><td>' + periodoLabel(p) + '</td>';
+      h += '<td><input type="number" step="0.01" class="ctrl-inp" style="width:100px" value="' + isnPagVal + '" onchange="setCtrlISNVal(\'' + key + '\',\'isnPagado_' + p + '\',parseFloat(this.value)||null)" placeholder="0.00"></td>';
+      h += '<td><select class="ctrl-sel" style="width:120px" onchange="setCtrlISNVal(\'' + key + '\',\'declaracionISN_' + p + '\',this.value)">';
+      h += '<option value="0" ' + (declVal==='0'?'selected':'') + '>--</option>';
+      h += '<option value="1" ' + (declVal==='1'?'selected':'') + '>Presentado</option>';
+      h += '<option value="2" ' + (declVal==='2'?'selected':'') + '>Pendiente</option>';
+      h += '<option value="3" ' + (declVal==='3'?'selected':'') + '>Erróneo</option>';
+      h += '<option value="4" ' + (declVal==='4'?'selected':'') + '>No aplica</option>';
+      h += '</select></td>';
+      h += '<td><select class="ctrl-sel" style="width:120px" onchange="setCtrlISNVal(\'' + key + '\',\'comprobantePagoISN_' + p + '\',this.value)">';
+      h += '<option value="0" ' + (compVal==='0'?'selected':'') + '>--</option>';
+      h += '<option value="1" ' + (compVal==='1'?'selected':'') + '>Presentado</option>';
+      h += '<option value="2" ' + (compVal==='2'?'selected':'') + '>Pendiente</option>';
+      h += '<option value="3" ' + (compVal==='3'?'selected':'') + '>Erróneo</option>';
+      h += '<option value="4" ' + (compVal==='4'?'selected':'') + '>No aplica</option>';
+      h += '</select></td></tr>';
+    });
+    
+    h += '</tbody></table></div></div>';
+  }
 
   return wrapCollapsible('CONTROL ISN', h);
 }
