@@ -3427,7 +3427,7 @@ function irControlContratistaDesdeFase(faseObj){
     fasesHtml += buildFaseHtml(prf, f);
   });
 
-  panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
+  panel.innerHTML = rfcHtml + suaHtml + buildControlISN() + fasesHtml + buildReporteContratista(prf, obraFases);
   function buildControlISN(){
 
   var h = '';
