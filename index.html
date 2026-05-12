@@ -3427,11 +3427,27 @@ function irControlContratistaDesdeFase(faseObj){
     fasesHtml += buildFaseHtml(prf, f);
   });
 
-  panel.innerHTML = rfcHtml + suaHtml + buildControlISN() + fasesHtml + buildReporteContratista(prf, obraFases);
+  var obraBaseISN = gP().concat(gC()).find(function(o){
+  return (o.nombre || '') === (faseObj.obra || '');
+});
+var controlISNHtml = debeMostrarControlISN(obraBaseISN, 'contratista') ? buildControlISN() : '';
+panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml + buildReporteContratista(prf, obraFases);
 
   show('pg-ctrl');
 }
+function debeMostrarControlISN(obraObj, modo){
+  var pagadoPor = ((obraObj && obraObj.isnPagadoPor) || '').toLowerCase();
 
+  if(modo === 'propietaria'){
+    return pagadoPor === 'propietaria';
+  }
+
+  if(modo === 'contratista'){
+    return pagadoPor === 'contratistas' || pagadoPor === 'contratista';
+  }
+
+  return false;
+}
 function buildControlISN(){
 
   var h = '';
