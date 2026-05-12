@@ -3428,6 +3428,56 @@ function irControlContratistaDesdeFase(faseObj){
   });
 
   panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
+  function buildControlISN(){
+
+  var h = '';
+
+  h += '<div class="ctrl-collapsible">';
+  h += '<div class="ctrl-coll-hdr" onclick="toggleCtrlColl(this)">';
+  h += '<h3>CONTROL ISN</h3>';
+  h += '<span class="ctrl-coll-chev">▼</span>';
+  h += '</div>';
+
+  h += '<div class="ctrl-coll-body">';
+
+  h += '<table class="ctrl-tbl">';
+  h += '<thead>';
+  h += '<tr>';
+  h += '<th>Documento</th>';
+  h += '<th>Estado</th>';
+  h += '</tr>';
+  h += '</thead>';
+
+  h += '<tbody>';
+
+  h += '<tr>';
+  h += '<td>Aviso de Inicio de Obra</td>';
+  h += '<td>--</td>';
+  h += '</tr>';
+
+  h += '<tr>';
+  h += '<td>Declaración ISN</td>';
+  h += '<td>--</td>';
+  h += '</tr>';
+
+  h += '<tr>';
+  h += '<td>Comprobante de pago ISN</td>';
+  h += '<td>--</td>';
+  h += '</tr>';
+
+  h += '<tr>';
+  h += '<td>Constancia No Adeudo ISN</td>';
+  h += '<td>--</td>';
+  h += '</tr>';
+
+  h += '</tbody>';
+  h += '</table>';
+
+  h += '</div>';
+  h += '</div>';
+
+  return h;
+}
 function buildReporteContratista(prf, fasesCtrl){
 
   var totalImporte = 0;
