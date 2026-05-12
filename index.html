@@ -3428,12 +3428,16 @@ function irControlContratistaDesdeFase(faseObj){
   });
 
   panel.innerHTML = rfcHtml + suaHtml + buildControlISN() + fasesHtml + buildReporteContratista(prf, obraFases);
-  function buildControlISN(){
+
+  show('pg-ctrl');
+}
+
+function buildControlISN(){
 
   var h = '';
 
   h += '<div class="ctrl-collapsible">';
-  h += '<div class="ctrl-coll-hdr" onclick="toggleCtrlColl(this)">';
+  h += '<div class="ctrl-coll-hdr" onclick="toggleCtrlCollBody(this)">';
   h += '<h3>CONTROL ISN</h3>';
   h += '<span class="ctrl-coll-chev">▼</span>';
   h += '</div>';
