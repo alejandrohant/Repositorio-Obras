@@ -3363,7 +3363,8 @@ function irControlObra(obraObj) {
       fasesHtml += buildFaseHtml(prf, f);
     });
 
-    panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
+    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN() : '';
+    panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
     first = false;
   });
 
