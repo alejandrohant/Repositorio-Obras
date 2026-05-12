@@ -3450,7 +3450,7 @@ function debeMostrarControlISN(obraObj, modo){
   return false;
 }
 function setCtrlISNVal(key, campo, val){
-  var ctrl = getCtrl();
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
   if(!ctrl[key]) ctrl[key] = {};
   ctrl[key][campo] = val;
   localStorage.setItem('control', JSON.stringify(ctrl));
@@ -3459,7 +3459,7 @@ function setCtrlISNVal(key, campo, val){
 function buildControlISN(key){
 
   key = key || 'isn_global';
-  var ctrl = getCtrl();
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
   var data = ctrl[key] || {};
 
   function selISN(campo){
