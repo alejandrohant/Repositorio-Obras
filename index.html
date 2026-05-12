@@ -3363,7 +3363,7 @@ function irControlObra(obraObj) {
       fasesHtml += buildFaseHtml(prf, f);
     });
 
-    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN() : '';
+    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra')) : '';
     panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
     first = false;
   });
@@ -3449,52 +3449,42 @@ function debeMostrarControlISN(obraObj, modo){
 
   return false;
 }
-function buildControlISN(){
+function setCtrlISNVal(key, campo, val){
+  var ctrl = getCtrl();
+  if(!ctrl[key]) ctrl[key] = {};
+  ctrl[key][campo] = val;
+  localStorage.setItem('control', JSON.stringify(ctrl));
+}
 
-  function selISN(){
-    return '<select class="ctrl-sel">'
-      + '<option value="0">--</option>'
-      + '<option value="1">Presentado</option>'
-      + '<option value="2">Pendiente</option>'
-      + '<option value="3">Erróneo</option>'
-      + '<option value="4">No aplica</option>'
+function buildControlISN(key){
+
+  key = key || 'isn_global';
+  var ctrl = getCtrl();
+  var data = ctrl[key] || {};
+
+  function selISN(campo){
+    var val = data[campo] || '0';
+    return '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + esc(key) + '\',\'' + campo + '\',this.value)">'
+      + '<option value="0" ' + (val==='0'?'selected':'') + '>--</option>'
+      + '<option value="1" ' + (val==='1'?'selected':'') + '>Presentado</option>'
+      + '<option value="2" ' + (val==='2'?'selected':'') + '>Pendiente</option>'
+      + '<option value="3" ' + (val==='3'?'selected':'') + '>Erróneo</option>'
+      + '<option value="4" ' + (val==='4'?'selected':'') + '>No aplica</option>'
       + '</select>';
   }
 
   var h = '';
 
   h += '<table class="ctrl-tbl">';
-  h += '<thead>';
-  h += '<tr>';
-  h += '<th>Documento</th>';
-  h += '<th>Estado</th>';
-  h += '</tr>';
-  h += '</thead>';
-
+  h += '<thead><tr><th>Documento</th><th>Estado</th></tr></thead>';
   h += '<tbody>';
 
-  h += '<tr>';
-  h += '<td>Aviso de Inicio de Obra</td>';
-  h += '<td>' + selISN() + '</td>';
-  h += '</tr>';
+  h += '<tr><td>Aviso de Inicio de Obra</td><td>' + selISN('avisoInicioObra') + '</td></tr>';
+  h += '<tr><td>Declaración ISN</td><td>' + selISN('declaracionISN') + '</td></tr>';
+  h += '<tr><td>Comprobante de pago ISN</td><td>' + selISN('comprobantePagoISN') + '</td></tr>';
+  h += '<tr><td>Constancia No Adeudo ISN</td><td>' + selISN('constanciaNoAdeudoISN') + '</td></tr>';
 
-  h += '<tr>';
-  h += '<td>Declaración ISN</td>';
-  h += '<td>' + selISN() + '</td>';
-  h += '</tr>';
-
-  h += '<tr>';
-  h += '<td>Comprobante de pago ISN</td>';
-  h += '<td>' + selISN() + '</td>';
-  h += '</tr>';
-
-  h += '<tr>';
-  h += '<td>Constancia No Adeudo ISN</td>';
-  h += '<td>' + selISN() + '</td>';
-  h += '</tr>';
-
-  h += '</tbody>';
-  h += '</table>';
+  h += '</tbody></table>';
 
   return wrapCollapsible('CONTROL ISN', h);
 }
