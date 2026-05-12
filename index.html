@@ -3464,7 +3464,7 @@ function buildControlISN(key){
 
   function selISN(campo){
     var val = data[campo] || '0';
-    return '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + esc(key) + '\',\'' + campo + '\',this.value)">'
+    return '<select class="ctrl-sel" onchange="setCtrlISNVal(\'' + key + '\',\'' + campo + '\',this.value)">'
       + '<option value="0" ' + (val==='0'?'selected':'') + '>--</option>'
       + '<option value="1" ' + (val==='1'?'selected':'') + '>Presentado</option>'
       + '<option value="2" ' + (val==='2'?'selected':'') + '>Pendiente</option>'
