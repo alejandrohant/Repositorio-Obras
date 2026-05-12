@@ -3451,6 +3451,16 @@ function debeMostrarControlISN(obraObj, modo){
 }
 function buildControlISN(){
 
+  function selISN(){
+    return '<select class="ctrl-sel">'
+      + '<option value="0">--</option>'
+      + '<option value="1">Presentado</option>'
+      + '<option value="2">Pendiente</option>'
+      + '<option value="3">Erróneo</option>'
+      + '<option value="4">No aplica</option>'
+      + '</select>';
+  }
+
   var h = '';
 
   h += '<table class="ctrl-tbl">';
@@ -3465,22 +3475,22 @@ function buildControlISN(){
 
   h += '<tr>';
   h += '<td>Aviso de Inicio de Obra</td>';
-  h += '<td>--</td>';
+  h += '<td>' + selISN() + '</td>';
   h += '</tr>';
 
   h += '<tr>';
   h += '<td>Declaración ISN</td>';
-  h += '<td>--</td>';
+  h += '<td>' + selISN() + '</td>';
   h += '</tr>';
 
   h += '<tr>';
   h += '<td>Comprobante de pago ISN</td>';
-  h += '<td>--</td>';
+  h += '<td>' + selISN() + '</td>';
   h += '</tr>';
 
   h += '<tr>';
   h += '<td>Constancia No Adeudo ISN</td>';
-  h += '<td>--</td>';
+  h += '<td>' + selISN() + '</td>';
   h += '</tr>';
 
   h += '</tbody>';
