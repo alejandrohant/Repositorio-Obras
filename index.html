@@ -4604,6 +4604,29 @@ function rptMxn(n) {
 }
 function generarReporteISN(o,t){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+
+  function dinero(n){
+    return typeof rptMxn === 'function' ? rptMxn(n) : mxn(n);
+  }
+
+  function isnPagadoFase(f){
+    var data = ctrl['isn_fase_' + f.id] || {};
+    var forma = data.formaPagoISN || 'unico';
+    var total = 0;
+
+    if(forma === 'unico'){
+      total = parseFloat(data.isnUnicoPagado) || 0;
+    }else{
+      Object.keys(data).forEach(function(k){
+        if(k.indexOf('isnPagado_') === 0){
+          total += parseFloat(data[k]) || 0;
+        }
+      });
+    }
+
+    return total;
+  }
 
   var isnEstimado = parseFloat(o.isnEst) || 0;
   var isnPagado = sumarISNPagadoControlFasesObra(o.nombre);
@@ -4614,10 +4637,7 @@ function generarReporteISN(o,t){
 
   h += '<div class="rpt-header">'
     + '<div class="rpt-logo">ISN</div>'
-    + '<div class="rpt-title">'
-    + '<h1>Reporte ISN</h1>'
-    + '<p>Control de impuesto sobre nómina por obra / fase</p>'
-    + '</div>'
+    + '<div class="rpt-title"><h1>Reporte ISN</h1><p>Control de impuesto sobre nómina por obra / fase</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
@@ -4629,14 +4649,65 @@ function generarReporteISN(o,t){
     + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (o.siroc || '--') + '</span></div>'
     + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(o.inicia) + ' — ' + fdate(o.termina) + '</span></div>'
     + '<div class="rpt-dato"><label>ISN pagado por</label><span>' + (o.isnPagadoPor || '--') + '</span></div>'
-    + '</div>'
-    + '</div>';
+    + '</div></div>';
 
   h += '<div class="rpt-total">'
-    + '<div class="rpt-total-item"><label>ISN estimado</label><span>' + rptMxn(isnEstimado) + '</span></div>'
-    + '<div class="rpt-total-item"><label>ISN pagado</label><span>' + rptMxn(isnPagado) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Contingencia ISN</label><span class="warn">' + rptMxn(contingencia) + '</span></div>'
+    + '<div class="rpt-total-item"><label>ISN estimado</label><span>' + dinero(isnEstimado) + '</span></div>'
+    + '<div class="rpt-total-item"><label>ISN pagado</label><span>' + dinero(isnPagado) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia ISN</label><span class="warn">' + dinero(contingencia) + '</span></div>'
     + '</div>';
+
+  if(String(o.isnPagadoPor || '').toLowerCase() === 'contratistas'){
+    var fases = gFases().filter(function(f){
+      var mismaObra = (f.obra || '') === (o.nombre || '');
+      var esPropietaria =
+        String(f.id || '').indexOf('prop_') === 0 ||
+        String(f.perfil || '').toLowerCase() === 'propietaria' ||
+        String(f.origen || '').toLowerCase() === 'propietaria';
+
+      return mismaObra && !esPropietaria;
+    });
+
+    h += '<div class="rpt-obra" style="margin-top:18px">';
+    h += '<h2>Detalle por contratista / fase</h2>';
+
+    h += '<table class="rpt-tbl">';
+    h += '<thead><tr>'
+      + '<th>Contratista</th>'
+      + '<th>SIROC / Fase</th>'
+      + '<th>Importe contrato</th>'
+      + '<th>ISN estimado</th>'
+      + '<th>ISN pagado</th>'
+      + '<th>Contingencia</th>'
+      + '</tr></thead><tbody>';
+
+    if(!fases.length){
+      h += '<tr><td colspan="6">No hay fases de contratistas registradas para esta obra.</td></tr>';
+    }
+
+    fases.forEach(function(f){
+      var est = parseFloat(f.isnEst) || 0;
+      var pag = isnPagadoFase(f);
+      var cont = est - pag;
+      if(cont < 0) cont = 0;
+
+      var contratista = f.contratista || f.perfilNombre || f.perfil || f.rfc || '--';
+      var sirocFase = (f.siroc || 'Sin SIROC') + ' / ' + (f.objeto || f.fase || '--');
+      var importe = parseFloat(f.importe || f.importeMXN || f.valorTotal || 0) || 0;
+
+      h += '<tr>'
+        + '<td>' + contratista + '</td>'
+        + '<td>' + sirocFase + '</td>'
+        + '<td>' + dinero(importe) + '</td>'
+        + '<td>' + dinero(est) + '</td>'
+        + '<td>' + dinero(pag) + '</td>'
+        + '<td><span class="warn">' + dinero(cont) + '</span></td>'
+        + '</tr>';
+    });
+
+    h += '</tbody></table>';
+    h += '</div>';
+  }
 
   document.getElementById('rpt-contenido').innerHTML = h;
 
