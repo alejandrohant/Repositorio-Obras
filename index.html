@@ -4616,7 +4616,47 @@ function getCtrlTotales(faseId) {
   return {gps:gps, mo:gps>0?gps/0.01:0, cuotas:cop+rcv+inf, cop:cop, rcv:rcv, inf:inf};
 }
 function generarReporteISN(o,t){
-  alert('Reporte ISN en construcción');
+
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+
+  var isnEstimado = parseFloat(o.isnEst) || 0;
+  var isnPagado = sumarISNPagadoControlFasesObra(o.nombre);
+  var contingencia = isnEstimado - isnPagado;
+
+  if(contingencia < 0) contingencia = 0;
+
+  var h = '';
+
+  h += '<div class="rpt">';
+  h += '<h1>Reporte ISN</h1>';
+
+  h += '<div class="rsec">';
+  h += '<h3>Obra</h3>';
+
+  h += '<div class="rrow"><b>Obra:</b> '+(o.nombre || '--')+'</div>';
+  h += '<div class="rrow"><b>RFC:</b> '+(o.rfc || '--')+'</div>';
+  h += '<div class="rrow"><b>Responsable ISN:</b> '+(o.isnPagadoPor || '--')+'</div>';
+
+  h += '</div>';
+
+  h += '<div class="rsec">';
+  h += '<h3>ISN</h3>';
+
+  h += '<div class="rrow"><b>ISN estimado:</b> '+mxn(isnEstimado)+'</div>';
+  h += '<div class="rrow"><b>ISN pagado:</b> '+mxn(isnPagado)+'</div>';
+  h += '<div class="rrow"><b>Contingencia ISN:</b> '+mxn(contingencia)+'</div>';
+
+  h += '</div>';
+
+  h += '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+
+  document.getElementById('rpt-bk').onclick=function(){
+    show('pg-ficha');
+  };
+
+  show('pg-reporte');
 }
 function generarReporte(obraObj, tipo) {
   var fases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
