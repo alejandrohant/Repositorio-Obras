@@ -3897,7 +3897,9 @@ if(faseEsPropietaria){
   debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'contratista');
 }
 
-h += buildControlISN('isn_fase_' + fase.id, fase);
+if(debeMostrarISN){
+  h += buildControlISN('isn_fase_' + fase.id, fase);
+}
 
 return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
 }
