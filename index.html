@@ -4602,53 +4602,41 @@ function rptMxn(n) {
   if(!n && n!==0) return '--';
   return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(n);
 }
-function getCtrlTotales(faseId) {
-  var key = 'fase_' + faseId;
-  var data = gCtrl()[key] || {};
-  var gps=0,cop=0,rcv=0,inf=0;
-  Object.keys(data).forEach(function(p){
-    if(p==='__extra'||p==='__cierre') return;
-    gps += parseFloat(data[p].gps)||0;
-    cop += parseFloat(data[p].cop)||0;
-    rcv += parseFloat(data[p].rcv)||0;
-    inf += parseFloat(data[p].inf)||0;
-  });
-  return {gps:gps, mo:gps>0?gps/0.01:0, cuotas:cop+rcv+inf, cop:cop, rcv:rcv, inf:inf};
-}
 function generarReporteISN(o,t){
-
-  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
   var isnEstimado = parseFloat(o.isnEst) || 0;
   var isnPagado = sumarISNPagadoControlFasesObra(o.nombre);
   var contingencia = isnEstimado - isnPagado;
-
   if(contingencia < 0) contingencia = 0;
 
   var h = '';
 
-  h += '<div class="rpt">';
-  h += '<h1>Reporte ISN</h1>';
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">ISN</div>'
+    + '<div class="rpt-title">'
+    + '<h1>Reporte ISN</h1>'
+    + '<p>Control de impuesto sobre nómina por obra / fase</p>'
+    + '</div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
 
-  h += '<div class="rsec">';
-  h += '<h3>Obra</h3>';
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (o.nombre || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Propietaria / Contratante</label><span>' + (o.patron || o.contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (o.rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (o.siroc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(o.inicia) + ' — ' + fdate(o.termina) + '</span></div>'
+    + '<div class="rpt-dato"><label>ISN pagado por</label><span>' + (o.isnPagadoPor || '--') + '</span></div>'
+    + '</div>'
+    + '</div>';
 
-  h += '<div class="rrow"><b>Obra:</b> '+(o.nombre || '--')+'</div>';
-  h += '<div class="rrow"><b>RFC:</b> '+(o.rfc || '--')+'</div>';
-  h += '<div class="rrow"><b>Responsable ISN:</b> '+(o.isnPagadoPor || '--')+'</div>';
-
-  h += '</div>';
-
-  h += '<div class="rsec">';
-  h += '<h3>ISN</h3>';
-
-  h += '<div class="rrow"><b>ISN estimado:</b> '+mxn(isnEstimado)+'</div>';
-  h += '<div class="rrow"><b>ISN pagado:</b> '+mxn(isnPagado)+'</div>';
-  h += '<div class="rrow"><b>Contingencia ISN:</b> '+mxn(contingencia)+'</div>';
-
-  h += '</div>';
-
-  h += '</div>';
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>ISN estimado</label><span>' + rptMxn(isnEstimado) + '</span></div>'
+    + '<div class="rpt-total-item"><label>ISN pagado</label><span>' + rptMxn(isnPagado) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia ISN</label><span class="warn">' + rptMxn(contingencia) + '</span></div>'
+    + '</div>';
 
   document.getElementById('rpt-contenido').innerHTML = h;
 
