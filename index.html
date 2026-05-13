@@ -1294,7 +1294,7 @@ function sumarISNPagadoControlFasesObra(nombreObra){
   var pagadoPor = String((obra && obra.isnPagadoPor) || '').toLowerCase().trim();
 
   var fases = gFases().filter(function(f){
-    var esMismaObra = (f.obra || '') === (nombreObra || '');
+    var mismaObra = (f.obra || '') === (nombreObra || '');
 
     var esPropietaria =
       String(f.id || '').indexOf('prop_') === 0 ||
@@ -1302,11 +1302,11 @@ function sumarISNPagadoControlFasesObra(nombreObra){
       String(f.origen || '').toLowerCase() === 'propietaria';
 
     if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
-      return esMismaObra && !esPropietaria;
+      return mismaObra && !esPropietaria;
     }
 
     if(pagadoPor === 'propietaria'){
-      return esMismaObra && esPropietaria;
+      return mismaObra && esPropietaria;
     }
 
     return false;
@@ -1315,18 +1315,24 @@ function sumarISNPagadoControlFasesObra(nombreObra){
   var total = 0;
 
   fases.forEach(function(f){
-    var data = ctrl['isn_fase_' + f.id] || {};
+    var key = 'isn_fase_' + f.id;
+    var data = ctrl[key] || {};
     var forma = data.formaPagoISN || 'unico';
 
     if(forma === 'unico'){
       total += parseFloat(data.isnUnicoPagado) || 0;
-    }else{
-      Object.keys(data).forEach(function(k){
-        if(k.indexOf('isnPagado_') === 0){
-          total += parseFloat(data[k]) || 0;
-        }
-      });
+      return;
     }
+
+    var periodos = mesesEntre(f.inicia || '', f.termina || '');
+    var extras = (data.__extra || []);
+    var periodosValidos = periodos.concat(extras).filter(function(p,i,a){
+      return a.indexOf(p) === i;
+    });
+
+    periodosValidos.forEach(function(p){
+      total += parseFloat(data['isnPagado_' + p]) || 0;
+    });
   });
 
   return total;
