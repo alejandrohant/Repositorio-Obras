@@ -2724,19 +2724,50 @@ function irFichaFase(id){
       return html;
     })();
   // Grupo 5: ISN
+  var ctrlISNAll = JSON.parse(localStorage.getItem('control') || '{}');
+  var ctrlISN = ctrlISNAll['isn_fase_' + f.id] || {};
+  var totalISNPagadoDesdeControl = 0;
+  if(ctrlISN.formaPagoISN === 'unico'){
+    totalISNPagadoDesdeControl = Number(ctrlISN.isnUnicoPagado || 0);
+  } else if(ctrlISN.formaPagoISN === 'mensual'){
+    for(var key in ctrlISN){
+      if(key.indexOf('isnPagado_')===0){
+        totalISNPagadoDesdeControl += Number(ctrlISN[key] || 0);
+      }
+    }
+  }
+  var contingenciaISN = isnTotEst>0 ? Math.max(0, isnTotEst - totalISNPagadoDesdeControl) : null;
+  var pagosISNDetalle = '';
+  if(ctrlISN.formaPagoISN === 'unico'){
+    pagosISNDetalle += campoFase('Forma de pago','Pago único');
+    pagosISNDetalle += campoFase('Declaración ISN Único',docTag(ctrlISN.declaracionISNUnico));
+    pagosISNDetalle += campoFase('Comprobante pago único',docTag(ctrlISN.comprobantePagoUnico));
+    pagosISNDetalle += campoFase('ISN Único pagado',mxn(Number(ctrlISN.isnUnicoPagado || 0)));
+  } else if(ctrlISN.formaPagoISN === 'mensual'){
+    pagosISNDetalle += campoFase('Forma de pago','Pagos mensuales');
+    Object.keys(ctrlISN).sort().forEach(function(key){
+      if(key.indexOf('isnPagado_')===0){
+        var val = Number(ctrlISN[key] || 0);
+        if(val>0){
+          pagosISNDetalle += campoFase('ISN pagado '+key.substring(10), mxn(val));
+        }
+      }
+    });
+  }
   var g5='<div class="fase-grid">'
     +campoFase('Factor MO ISN',f.fmoIsn?pct(f.fmoIsn):null)
     +campoFase('Factor ISN',f.fisn?pct(f.fisn):null)
     +campoFase('ISN est. contrato',f.isnEst?mxn(f.isnEst):null)
     +campoFase('ISN est. convenios',f.isnConv?mxn(f.isnConv):null)
     +campoFase('Total ISN estimado',isnTotEst>0?mxn(isnTotEst):null)
-    +campoFase('Total ISN pagado',isnTotPag>0?'<span class="num">'+mxn(isnTotPag)+'</span>':null)
-    +(isnTotEst>0?campoFase('Contingencia ISN','<span style="color:#f87171;font-weight:600">'+mxn(isnTotEst-isnTotPag)+'</span>','full'):'')
+    +campoFase('Total ISN pagado','<span class="num">'+mxn(totalISNPagadoDesdeControl)+'</span>')
+    +(isnTotEst>0?campoFase('Contingencia ISN','<span style="color:#f87171;font-weight:600">'+mxn(contingenciaISN)+'</span>','full'):'')
+    +campoFase('Aviso de Inicio de Obra',docTag(ctrlISN.avisoInicioObra))
+    +campoFase('Constancia No Adeudo ISN',docTag(ctrlISN.constanciaNoAdeudoISN))
     +'</div>'
     +'<div style="margin-top:8px"><div class="sub-group-hdr" onclick="toggleSG(this)"><span>Pagos ISN detalle</span><span class="sg-chev">&#9660;</span></div>'
     +'<div style="display:none"><div class="fase-grid">'
-    +[1,2,3,4,5].map(function(n){return f['isnP'+n]?campoFase('ISN pagado '+n,mxn(f['isnP'+n])):'';}).join('')
-    +(f.isnPconv?campoFase('ISN pagado convenios',mxn(f.isnPconv)):'')
+    +pagosISNDetalle
     +'</div></div></div>';
   // Grupo 6: CORP (solo si aplica)
   var g6='';
