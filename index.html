@@ -3873,6 +3873,10 @@ function buildFaseHtml(perfil, fase) {
     h += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
     h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">&#8635; Actualizar</button>';
   }
+  if(debeMostrarISN){
+  h += buildControlISN('isn_fase_' + fase.id, fase);
+  }
+
   // Cierre
   h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Cierre</h3>';
   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
@@ -3895,10 +3899,6 @@ if(faseEsPropietaria){
   debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'propietaria');
 }else{
   debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'contratista');
-}
-
-if(debeMostrarISN){
-  h += buildControlISN('isn_fase_' + fase.id, fase);
 }
 
 return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
