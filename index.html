@@ -3364,7 +3364,7 @@ function irControlObra(obraObj) {
     });
 
     var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj) : '';
-    panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
+    panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
     first = false;
   });
 
@@ -3432,7 +3432,7 @@ function irControlContratistaDesdeFase(faseObj){
   return (o.nombre || '') === (faseObj.obra || '');
 });
 var controlISNHtml = debeMostrarControlISN(obraBaseISN, 'contratista') ? buildControlISN('isn_ctr_' + ((prf && prf.rfc) || faseObj.rfc || 'rfc') + '_' + (faseObj.obra || 'obra'), faseObj) : '';
-panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml + buildReporteContratista(prf, obraFases);
+panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
 
   show('pg-ctrl');
 }
@@ -3881,13 +3881,27 @@ function buildFaseHtml(perfil, fase) {
   });
   h += '</tbody></table></div></div>';
   
-  // ISN Control section
-  var isnSection = buildISNSection(fase, ctrl, key);
-  if(isnSection) {
-    h += isnSection;
-  }
-  
-  return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
+  var obraBaseISN = gP().concat(gC()).find(function(o){
+  return (o.nombre || '') === (fase.obra || '');
+});
+
+var faseEsPropietaria =
+  String(fase.id || '').indexOf('prop_') === 0 ||
+  (fase.perfil || '').toLowerCase() === 'propietaria';
+
+var debeMostrarISN = false;
+
+if(faseEsPropietaria){
+  debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'propietaria');
+}else{
+  debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'contratista');
+}
+
+if(debeMostrarISN){
+  h += buildControlISN('isn_fase_' + fase.id, fase);
+}
+
+return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
 }
 
 function agregarPeriodoManualInline(faseId, btn) {
