@@ -1335,7 +1335,19 @@ function irFicha(id){
   document.getElementById('bfe').onclick=function(){abrirEditar(id);};
   document.getElementById('bfases').onclick=function(){irFases(o,t);};
   document.getElementById('bctrl-obra').onclick=function(){irControlObra(o);};
-  document.getElementById('breporte-obra').onclick=function(){generarReporte(o,t);};
+  document.getElementById('breporte-obra').onclick=function(){
+  document.getElementById('modal-reportes').classList.add('open');
+
+  document.getElementById('btn-rpt-cuotas').onclick=function(){
+    document.getElementById('modal-reportes').classList.remove('open');
+    generarReporte(o,t);
+  };
+
+  document.getElementById('btn-rpt-isn').onclick=function(){
+    document.getElementById('modal-reportes').classList.remove('open');
+    generarReporteISN(o,t);
+  };
+};
   document.getElementById('bfd').onclick=function(){pedirDel(id);};
 
   var bestBtn=document.getElementById('best');
