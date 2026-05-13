@@ -4502,6 +4502,35 @@ function agregarPeriodoManual(faseId, tabId, perfilId) {
   if(perfil && fase) renderPanelFase(perfil, fase, tabId);
 }
 
+function getCtrlTotales(faseId){
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  var data = ctrl[faseId] || {};
+
+  var gps = 0;
+  var cop = 0;
+  var rcv = 0;
+  var inf = 0;
+  var cuotas = 0;
+
+  Object.keys(data).forEach(function(k){
+    var v = parseFloat(data[k]) || 0;
+
+    if(k.indexOf('gps_') === 0) gps += v;
+    if(k.indexOf('cop_') === 0) cop += v;
+    if(k.indexOf('rcv_') === 0) rcv += v;
+    if(k.indexOf('inf_') === 0) inf += v;
+  });
+
+  cuotas = cop + rcv + inf;
+
+  return {
+    gps: gps,
+    cop: cop,
+    rcv: rcv,
+    inf: inf,
+    cuotas: cuotas
+  };
+}
 function guardarControl() {
   // Data is saved on each change via setCtrlVal, this just confirms
   alert('Cambios guardados correctamente.');
