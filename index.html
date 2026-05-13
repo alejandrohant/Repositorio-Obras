@@ -1375,26 +1375,8 @@ function irFicha(id){
         +'<div class="campo"><label>ISN estimado</label><span class="num">'+mxn(o.isnEst)+'</span></div>'
         +'<div class="campo"><label>ISN pagado por</label><span>'+(o.isnPagadoPor||'--')+'</span></div>'
         +(function(){
-          var pagadoPorISN = (o.isnPagadoPor || '').toLowerCase();
           var isnEstimadoObra = parseFloat(o.isnEst) || 0;
-          var isnPagadoControl = 0;
-          var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
-          if(pagadoPorISN === 'propietaria'){
-            var ctrlKey = 'isn_prop_' + (o.id || o.nombre || 'obra');
-            var dataProp = ctrl[ctrlKey] || {};
-            var formaPago = dataProp.formaPagoISN || 'unico';
-            if(formaPago === 'unico'){
-              isnPagadoControl = parseFloat(dataProp.isnUnicoPagado) || 0;
-            }else{
-              Object.keys(dataProp).forEach(function(k){
-                if(k.indexOf('isnPagado_') === 0){
-                  isnPagadoControl += parseFloat(dataProp[k]) || 0;
-                }
-              });
-            }
-          }else if(pagadoPorISN === 'contratistas' || pagadoPorISN === 'contratista'){
-            isnPagadoControl = sumarISNPagadoControlFasesObra(o.nombre);
-          }
+          var isnPagadoControl = sumarISNPagadoControlFasesObra(o.nombre);
           var contingenciaISN = isnEstimadoObra - isnPagadoControl;
           if(contingenciaISN < 0) contingenciaISN = 0;
           return '<div class="campo"><label>Total ISN pagado</label><span class="num">'+mxn(isnPagadoControl)+'</span></div>'
