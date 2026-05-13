@@ -1279,20 +1279,37 @@ function sumarISNPagadoControlFasesObra(nombreObra){
   var fases = gFases().filter(function(f){
     return (f.obra || '') === (nombreObra || '');
   });
+
   var total = 0;
-  fases.forEach(function(f){
-    var data = ctrl['isn_fase_' + f.id] || {};
+
+  function sumarData(data){
+    data = data || {};
     var forma = data.formaPagoISN || 'unico';
+
     if(forma === 'unico'){
-      total += parseFloat(data.isnUnicoPagado) || 0;
-    }else{
-      Object.keys(data).forEach(function(k){
-        if(k.indexOf('isnPagado_') === 0){
-          total += parseFloat(data[k]) || 0;
-        }
-      });
+      return parseFloat(data.isnUnicoPagado) || 0;
+    }
+
+    var subtotal = 0;
+    Object.keys(data).forEach(function(k){
+      if(k.indexOf('isnPagado_') === 0){
+        subtotal += parseFloat(data[k]) || 0;
+      }
+    });
+
+    return subtotal;
+  }
+
+  fases.forEach(function(f){
+    total += sumarData(ctrl['isn_fase_' + f.id] || {});
+  });
+
+  Object.keys(ctrl).forEach(function(k){
+    if(k.indexOf('isn_fase_prop_') === 0 || k.indexOf('isn_prop_') === 0){
+      total += sumarData(ctrl[k] || {});
     }
   });
+
   return total;
 }
 function irFicha(id){
