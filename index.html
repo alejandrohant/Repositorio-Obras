@@ -3877,8 +3877,22 @@ function buildFaseHtml(perfil, fase) {
   h += buildControlISN('isn_fase_' + fase.id, fase);
   }
 
-  // Cierre
-  h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Cierre</h3>';
+  var obraBaseISN = gP().concat(gC()).find(function(o){
+  return (o.nombre || '') === (fase.obra || '');
+});
+
+var faseEsPropietaria = String(fase.id || '').indexOf('prop_') === 0 || (fase.perfil || '').toLowerCase() === 'propietaria';
+
+var debeMostrarISN = faseEsPropietaria
+  ? debeMostrarControlISN(obraBaseISN, 'propietaria')
+  : debeMostrarControlISN(obraBaseISN, 'contratista');
+
+if(debeMostrarISN){
+  h += buildControlISN('isn_fase_' + fase.id, fase);
+}
+
+// Cierre
+h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Cierre</h3>';
   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
   colsCierre.forEach(function(c){
     h += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td></tr>';
