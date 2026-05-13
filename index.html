@@ -2391,10 +2391,13 @@ var IFASES=[
 function gFases(){return JSON.parse(localStorage.getItem('fases')||'[]');}
 function sFases(a){localStorage.setItem('fases',JSON.stringify(a));}
 function docTag(v){
-  if(v===1)return '<span class="fase-tag fase-tag-ok">Presentado</span>';
-  if(v===2)return '<span class="fase-tag fase-tag-pend">Pendiente</span>';
-  if(v===3)return '<span class="fase-tag fase-tag-err">Erroneo</span>';
-  if(v===4)return '<span class="fase-tag fase-tag-na">N/A</span>';
+  v = String(v == null ? '' : v).toLowerCase().trim();
+
+  if(v === '1' || v === 'presentado') return '<span class="fase-tag fase-tag-ok">Presentado</span>';
+  if(v === '2' || v === 'pendiente' || v === 'no presentado') return '<span class="fase-tag fase-tag-pend">Pendiente</span>';
+  if(v === '3' || v === 'erroneo' || v === 'erróneo') return '<span class="fase-tag fase-tag-err">Erroneo</span>';
+  if(v === '4' || v === 'no aplica' || v === 'n/a') return '<span class="fase-tag fase-tag-na">N/A</span>';
+
   return '<span class="fase-tag fase-tag-na">--</span>';
 }
 function calcPresupuesto(){
