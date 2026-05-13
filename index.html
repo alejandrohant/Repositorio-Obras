@@ -1372,18 +1372,28 @@ function irFicha(id){
       +'</div>'
 
       +'<div class="sec"><h3>ISN</h3>'
-        +'<div class="campo"><label>Forma de pago ISN</label><span>'+(o.isn||'--')+'</span></div>'
-        +'<div class="campo"><label>Factor ISN</label><span>'+((o.factorISN||0).toFixed ? o.factorISN.toFixed(2) : (parseFloat(o.factorISN)||0).toFixed(2))+'%</span></div>'
         +'<div class="campo"><label>ISN estimado</label><span class="num">'+mxn(o.isnEst)+'</span></div>'
         +'<div class="campo"><label>ISN pagado por</label><span>'+(o.isnPagadoPor||'--')+'</span></div>'
         +(function(){
           var pagadoPorISN = (o.isnPagadoPor || '').toLowerCase();
           var isnEstimadoObra = parseFloat(o.isnEst) || 0;
           var isnPagadoControl = 0;
-          if(pagadoPorISN === 'contratistas' || pagadoPorISN === 'contratista'){
+          var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+          if(pagadoPorISN === 'propietaria'){
+            var ctrlKey = 'isn_prop_' + (o.id || o.nombre || 'obra');
+            var dataProp = ctrl[ctrlKey] || {};
+            var formaPago = dataProp.formaPagoISN || 'unico';
+            if(formaPago === 'unico'){
+              isnPagadoControl = parseFloat(dataProp.isnUnicoPagado) || 0;
+            }else{
+              Object.keys(dataProp).forEach(function(k){
+                if(k.indexOf('isnPagado_') === 0){
+                  isnPagadoControl += parseFloat(dataProp[k]) || 0;
+                }
+              });
+            }
+          }else if(pagadoPorISN === 'contratistas' || pagadoPorISN === 'contratista'){
             isnPagadoControl = sumarISNPagadoControlFasesObra(o.nombre);
-          }else{
-            isnPagadoControl = parseFloat(o.isnPagado) || 0;
           }
           var contingenciaISN = isnEstimadoObra - isnPagadoControl;
           if(contingenciaISN < 0) contingenciaISN = 0;
