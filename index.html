@@ -3527,28 +3527,37 @@ function irControlObra(obraObj) {
       };
     })(tabId);
 
-    // Build panel content: RFC obligations + all fases for this contratista in this obra
-    var fasesRfc = obraFases.filter(function(f){ return f.rfc === rfc; });
+        // Build panel content: RFC/SUA solo cuando corresponde a quien ejecuta obra
+    var fasesRfc = obraFases.filter(function(f){
+      return String(f.rfc || '').trim().toUpperCase() === String(rfc || '').trim().toUpperCase();
+    });
 
-    // RFC section
-    var rfcHtml = buildRFCHtml(prf, fasesRfc);
-    // SUA section
-    var suaHtml = buildSUAHtml(prf, fasesRfc);
+    var esPropietariaDeEstaObra =
+      String(rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase();
 
-    // Fases sections
+    var propietariaConstruye = String(obraObj.construye || '') === '1';
+
+    var propietariaSoloISN =
+      esPropietariaDeEstaObra &&
+      !propietariaConstruye &&
+      debeMostrarControlISN(obraObj, 'propietaria');
+
+    prf.__controlFases = fasesRfc;
+
+    var rfcHtml = propietariaSoloISN ? '' : buildRFCHtml(prf, fasesRfc);
+    var suaHtml = propietariaSoloISN ? '' : buildSUAHtml(prf, fasesRfc);
+
     var fasesHtml = '';
     fasesRfc.forEach(function(f){
       fasesHtml += '<hr style="border-color:#2d2d44;margin:16px 0">';
       fasesHtml += buildFaseHtml(prf, f);
     });
 
-    var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj) : '';
+    var controlISNHtml = esPropietariaDeEstaObra && debeMostrarControlISN(obraObj, 'propietaria')
+      ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj)
+      : '';
 
-    if(String(rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase()){
-      panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
-    } else {
-      panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
-    }
+    panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
 
     first = false;
   });
