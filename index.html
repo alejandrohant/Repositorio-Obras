@@ -2494,7 +2494,8 @@ function renderFasesList(fases){
   el.onclick=function(e){
     var card=e.target.closest('.flist-card');if(!card)return;
     var id=card.getAttribute('data-id');
-    if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditarFase(id);}
+    if(e.target.classList.contains('brep')){e.stopPropagation();abrirReportesFase(id);}
+    else if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditarFase(id);}
     else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDelFase(id);}
     else{irFichaFase(id);}
   };
