@@ -1067,7 +1067,8 @@ select.fg-sel:focus{border-color:#a78bfa}
     <h3 style="color:#a78bfa">Reportes</h3>
 
     <div style="display:grid;gap:10px;margin-top:16px">
-      <button class="nbtn" id="btn-rpt-cuotas">Reporte cuotas IMSS</button>
+      <button class="nbtn" id="btn-rpt-cuotas-m2">Reporte cuotas IMSS — m² licencia</button>
+      <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
       <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
       <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
     </div>
@@ -1392,10 +1393,29 @@ function irFicha(id){
   document.getElementById('breporte-obra').onclick=function(){
   document.getElementById('modal-reportes').classList.add('open');
 
-  document.getElementById('btn-rpt-cuotas').onclick=function(){
-    document.getElementById('modal-reportes').classList.remove('open');
-    generarReporte(o,t);
-  };
+  var btnRptM2 = document.getElementById('btn-rpt-cuotas-m2');
+  var btnRptPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
+
+  if(btnRptM2){
+    btnRptM2.textContent = t === 'p' ? 'Reporte cuotas IMSS — m² licencia' : 'Reporte cuotas IMSS';
+    btnRptM2.onclick=function(){
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporte(o, t, t === 'p' ? 'm2' : 'contratos');
+    };
+  }
+
+  if(btnRptPresupuesto){
+    btnRptPresupuesto.style.display = t === 'p' ? '' : 'none';
+    btnRptPresupuesto.onclick=function(){
+      if(!o.cuotasPresupuesto){
+        alert('Esta obra no tiene presupuesto capturado.');
+        return;
+      }
+
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporte(o, t, 'presupuesto');
+    };
+  }
 
   document.getElementById('btn-rpt-isn').onclick=function(){
     document.getElementById('modal-reportes').classList.remove('open');
@@ -4867,7 +4887,9 @@ function generarReporteISN(o,t){
 
   show('pg-reporte');
 }
-function generarReporte(obraObj, tipo) {
+  function generarReporte(obraObj, tipo, baseReporte) {
+  baseReporte = baseReporte || 'contratos';
+
   var fases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
 
   if(String(obraObj.construye || '') === '1'){
@@ -4893,6 +4915,19 @@ function generarReporte(obraObj, tipo) {
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
   // Build HTML
+  var baseLabel = 'Contratos / fases';
+  var baseCuotasObra = null;
+
+  if(tipo === 'p' && baseReporte === 'm2'){
+    baseLabel = 'm² licencia';
+    baseCuotasObra = parseFloat(obraObj.cuotas) || 0;
+  }
+
+  if(tipo === 'p' && baseReporte === 'presupuesto'){
+    baseLabel = 'Presupuesto';
+    baseCuotasObra = parseFloat(obraObj.cuotasPresupuesto) || 0;
+  }
+
   var h = '';
 
   // Header
@@ -4900,7 +4935,7 @@ function generarReporte(obraObj, tipo) {
     + '<div class="rpt-logo">RO</div>'
     + '<div class="rpt-title">'
     + '<h1>Repositorio de Obras</h1>'
-    + '<p>Reporte de Cumplimiento IMSS-RCV-Infonavit</p>'
+    + '<p>Reporte de Cumplimiento IMSS-RCV-Infonavit — Base: ' + baseLabel + '</p>'
     + '</div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
@@ -5018,13 +5053,17 @@ function generarReporte(obraObj, tipo) {
   });
 
   // Gran total de la obra
+  if(tipo === 'p' && baseCuotasObra !== null){
+    grandTotalCuotEst = baseCuotasObra;
+  }
+
   var contMoObra = grandTotalMoEst - grandTotalMoPag;
   var contCuotObra = grandTotalCuotEst - grandTotalCuotPag;
   var pctMOObra = grandTotalMoEst>0 ? grandTotalMoPag/grandTotalMoEst : null;
   var pctCuotObra = grandTotalCuotEst>0 ? grandTotalCuotPag/grandTotalCuotEst : null;
 
   h += '<div class="rpt-total">'
-    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(grandTotalCuotEst) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas (' + baseLabel + ')</label><span>' + rptMxn(grandTotalCuotEst) + '</span></div>'
     + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(grandTotalCuotPag) + '</span></div>'
     + '<div class="rpt-total-item"><label>Contingencia Total</label><span class="'+(contCuotObra>0?'warn':'')+'">'+(contCuotObra>0?'&#9888; ':'')+rptMxn(contCuotObra)+'</span></div>'
     + '</div>';
