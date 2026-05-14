@@ -29,9 +29,10 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .ocard{background:#1e1e2e;border-radius:12px;padding:20px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;position:relative}
 .ocard:hover{border-color:#10b981}
 .oacts{position:absolute;top:14px;right:14px;display:flex;gap:8px}
-.bedit,.bdel{border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600}
+.bedit,.bdel,.brep{border:none;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600}
 .bedit{background:#2d2d44;color:#a78bfa}.bedit:hover{background:#3d3d5a}
 .bdel{background:#2d1a1a;color:#f87171}.bdel:hover{background:#3d2222}
+.brep{background:#1e2a3a;color:#60a5fa}.brep:hover{background:#263957}
 .onom{font-size:16px;font-weight:600;color:#f1f5f9;margin-bottom:10px;padding-right:120px}
 .odet{display:grid;gap:4px}
 .ofil{display:flex;gap:8px;font-size:13px}
@@ -193,7 +194,7 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .flist-card{background:#1e1e2e;border-radius:12px;padding:16px 18px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;position:relative;margin-bottom:10px}
 .flist-card:hover{border-color:#10b981}
 .flist-card .flist-acts{position:absolute;top:12px;right:12px;display:flex;gap:6px}
-.flist-nom{font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:6px;padding-right:130px}
+.flist-nom{font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:6px;padding-right:230px}
 .flist-det{display:grid;gap:3px}
 .flist-row{display:flex;gap:8px;font-size:12px;align-items:center}
 .flist-lab{color:#64748b;font-weight:600;min-width:80px}
@@ -2474,7 +2475,7 @@ function renderFasesList(fases){
     var isnTotal=calcIsnTotal(f);
     var hasCorp=f.corp1>0&&f.corp1!==4||f.corp2>0&&f.corp2!==4;
     h+='<div class="flist-card" data-id="'+f.id+'">';
-    h+='<div class="flist-acts"><button class="bedit" data-id="'+f.id+'">Editar</button><button class="bdel" data-id="'+f.id+'">Eliminar</button></div>';
+    h+='<div class="flist-acts"><button class="brep" data-id="'+f.id+'">Reportes</button><button class="bedit" data-id="'+f.id+'">Editar</button><button class="bdel" data-id="'+f.id+'">Eliminar</button></div>';
     h+='<div class="flist-nom">'+f.objeto+'</div>';
     h+='<div class="flist-det">';
     h+='<div class="flist-row"><span class="flist-lab">Contratista:</span><span>'+f.contratista+'</span></div>';
@@ -5116,6 +5117,317 @@ function generarReporteISN(o,t){
   // Render
   document.getElementById('rpt-contenido').innerHTML = h;
   document.getElementById('rpt-bk').onclick = function(){ show('pg-ficha'); };
+  show('pg-reporte');
+}
+function obraBaseDeFase(f){
+  return gP().concat(gC()).find(function(o){
+    return String(o.nombre || '').trim() === String(f.obra || '').trim();
+  }) || {};
+}
+
+function fasePagaISNContratista(f){
+  var obraBase = obraBaseDeFase(f);
+  var perfil = String(f.perfil || '').toLowerCase().trim();
+
+  var esPropietaria =
+    perfil === 'propietaria' ||
+    String(f.id || '').indexOf('prop_') === 0;
+
+  return !esPropietaria && debeMostrarControlISN(obraBase, 'contratista');
+}
+
+function fasesReporteDesdeFase(f){
+  var lista = [f];
+
+  var subfases = gFases().filter(function(sf){
+    return sf.id !== f.id &&
+           f.siroc &&
+           sf.sirocPrincipal === f.siroc;
+  });
+
+  return lista.concat(subfases);
+}
+
+function moEstimadaReporteFase(f){
+  var perfil = String(f.perfil || '').toLowerCase().trim();
+
+  if(perfil === 'propietaria'){
+    return calcMoEstProp(f);
+  }
+
+  if(perfil === 'subcontratista'){
+    return calcMoEstSub(f);
+  }
+
+  return calcMoEstCtr(f);
+}
+
+function factorCuotasReporteFase(f){
+  var factor = parseFloat(f.fcuotasImss);
+
+  if(!factor){
+    factor = 0.354;
+  }
+
+  if(factor > 1){
+    factor = factor / 100;
+  }
+
+  return factor;
+}
+
+function abrirReportesFase(faseId){
+  var f = gFases().find(function(x){
+    return x.id === faseId;
+  });
+
+  if(!f) return;
+
+  document.getElementById('modal-reportes').classList.add('open');
+
+  var btnCuotas = document.getElementById('btn-rpt-cuotas-m2');
+  var btnPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
+  var btnISN = document.getElementById('btn-rpt-isn');
+
+  if(btnCuotas){
+    btnCuotas.style.display = '';
+    btnCuotas.textContent = 'Reporte de Cuotas IMSS';
+    btnCuotas.onclick = function(){
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporteCuotasFase(f);
+    };
+  }
+
+  if(btnPresupuesto){
+    btnPresupuesto.style.display = 'none';
+    btnPresupuesto.onclick = null;
+  }
+
+  if(btnISN){
+    btnISN.style.display = '';
+    btnISN.textContent = 'Reporte de ISN';
+    btnISN.onclick = function(){
+      if(!fasePagaISNContratista(f)){
+        alert('No aplica: el ISN de esta fase lo paga la propietaria.');
+        return;
+      }
+
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporteISNFase(f);
+    };
+  }
+}
+
+function generarReporteCuotasFase(f){
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var fases = fasesReporteDesdeFase(f);
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">IMSS</div>'
+    + '<div class="rpt-title"><h1>Reporte de Cuotas IMSS</h1><p>Control IMSS-RCV-Infonavit por fase</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (f.objeto || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Obra</label><span>' + (f.obra || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Contratista</label><span>' + (f.contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (f.rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (f.siroc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(f.inicia) + ' — ' + fdate(f.termina) + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle de cuotas</h3>';
+  h += '<table class="rpt-tbl"><thead><tr>'
+    + '<th>Fase / Subfase</th>'
+    + '<th>SIROC</th>'
+    + '<th>MO estimada</th>'
+    + '<th>MO pagada</th>'
+    + '<th>% MO</th>'
+    + '<th>Cuotas estimadas</th>'
+    + '<th>Cuotas pagadas</th>'
+    + '<th>% Cuotas</th>'
+    + '<th>Contingencia</th>'
+    + '</tr></thead><tbody>';
+
+  var totalMoEst = 0;
+  var totalMoPag = 0;
+  var totalCuotasEst = 0;
+  var totalCuotasPag = 0;
+
+  fases.forEach(function(ff){
+    var moEst = moEstimadaReporteFase(ff);
+    var factor = factorCuotasReporteFase(ff);
+    var cuotasEst = moEst * factor;
+    var totales = getCtrlTotales(ff.id);
+
+    var moPag = totales.mo || 0;
+    var cuotasPag = totales.cuotas || 0;
+    var contCuotas = cuotasEst - cuotasPag;
+    if(contCuotas < 0) contCuotas = 0;
+
+    totalMoEst += moEst;
+    totalMoPag += moPag;
+    totalCuotasEst += cuotasEst;
+    totalCuotasPag += cuotasPag;
+
+    var pctMO = moEst > 0 ? moPag / moEst : null;
+    var pctCuotas = cuotasEst > 0 ? cuotasPag / cuotasEst : null;
+    var hayRiesgo = contCuotas > 0;
+
+    h += '<tr class="' + (hayRiesgo ? 'rpt-warn' : '') + '">'
+      + '<td>' + (ff.objeto || '--') + '</td>'
+      + '<td style="font-family:monospace;font-size:11px">' + (ff.siroc || '--') + '</td>'
+      + '<td>' + rptMxn(moEst > 0 ? moEst : null) + '</td>'
+      + '<td>' + rptMxn(moPag > 0 ? moPag : null) + '</td>'
+      + '<td>' + pctTag(pctMO) + '</td>'
+      + '<td>' + rptMxn(cuotasEst > 0 ? cuotasEst : null) + '</td>'
+      + '<td>' + rptMxn(cuotasPag > 0 ? cuotasPag : null) + '</td>'
+      + '<td>' + pctTag(pctCuotas) + '</td>'
+      + '<td>' + rptMxn(contCuotas) + '</td>'
+      + '</tr>';
+  });
+
+  var contingenciaTotal = totalCuotasEst - totalCuotasPag;
+  if(contingenciaTotal < 0) contingenciaTotal = 0;
+
+  var pctMOTotal = totalMoEst > 0 ? totalMoPag / totalMoEst : null;
+  var pctCuotasTotal = totalCuotasEst > 0 ? totalCuotasPag / totalCuotasEst : null;
+
+  h += '<tr class="rpt-tot">'
+    + '<td colspan="2">TOTAL</td>'
+    + '<td>' + rptMxn(totalMoEst) + '</td>'
+    + '<td>' + rptMxn(totalMoPag) + '</td>'
+    + '<td>' + pctTag(pctMOTotal) + '</td>'
+    + '<td>' + rptMxn(totalCuotasEst) + '</td>'
+    + '<td>' + rptMxn(totalCuotasPag) + '</td>'
+    + '<td>' + pctTag(pctCuotasTotal) + '</td>'
+    + '<td>' + rptMxn(contingenciaTotal) + '</td>'
+    + '</tr>';
+
+  h += '</tbody></table></div>';
+
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(totalCuotasEst) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(totalCuotasPag) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia</label><span class="' + (contingenciaTotal > 0 ? 'warn' : '') + '">' + rptMxn(contingenciaTotal) + '</span></div>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+  document.getElementById('rpt-bk').onclick = function(){
+    show('pg-fases');
+  };
+
+  show('pg-reporte');
+}
+
+function totalISNPagadoReporteFase(f){
+  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  var data = ctrl['isn_fase_' + f.id] || {};
+  var forma = data.formaPagoISN || 'unico';
+  var total = 0;
+
+  if(forma === 'unico'){
+    total = parseFloat(data.isnUnicoPagado) || 0;
+  } else {
+    Object.keys(data).forEach(function(k){
+      if(k.indexOf('isnPagado_') === 0){
+        total += parseFloat(data[k]) || 0;
+      }
+    });
+  }
+
+  return total;
+}
+
+function generarReporteISNFase(f){
+  if(!fasePagaISNContratista(f)){
+    alert('No aplica: el ISN de esta fase lo paga la propietaria.');
+    return;
+  }
+
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var fases = fasesReporteDesdeFase(f);
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">ISN</div>'
+    + '<div class="rpt-title"><h1>Reporte de ISN</h1><p>Control de ISN por fase</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (f.objeto || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Obra</label><span>' + (f.obra || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Contratista</label><span>' + (f.contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (f.rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (f.siroc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(f.inicia) + ' — ' + fdate(f.termina) + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle ISN</h3>';
+  h += '<table class="rpt-tbl"><thead><tr>'
+    + '<th>Fase / Subfase</th>'
+    + '<th>SIROC</th>'
+    + '<th>Importe contrato</th>'
+    + '<th>ISN estimado</th>'
+    + '<th>ISN pagado</th>'
+    + '<th>Contingencia</th>'
+    + '</tr></thead><tbody>';
+
+  var totalEst = 0;
+  var totalPag = 0;
+
+  fases.forEach(function(ff){
+    var importe = parseFloat(ff.importe || ff.sub || ff.valorObra || 0) || 0;
+    var est = parseFloat(ff.isnEst) || 0;
+    var pag = totalISNPagadoReporteFase(ff);
+    var cont = est - pag;
+    if(cont < 0) cont = 0;
+
+    totalEst += est;
+    totalPag += pag;
+
+    h += '<tr class="' + (cont > 0 ? 'rpt-warn' : '') + '">'
+      + '<td>' + (ff.objeto || '--') + '</td>'
+      + '<td style="font-family:monospace;font-size:11px">' + (ff.siroc || '--') + '</td>'
+      + '<td>' + rptMxn(importe > 0 ? importe : null) + '</td>'
+      + '<td>' + rptMxn(est > 0 ? est : null) + '</td>'
+      + '<td>' + rptMxn(pag > 0 ? pag : null) + '</td>'
+      + '<td>' + rptMxn(cont) + '</td>'
+      + '</tr>';
+  });
+
+  var totalCont = totalEst - totalPag;
+  if(totalCont < 0) totalCont = 0;
+
+  h += '<tr class="rpt-tot">'
+    + '<td colspan="3">TOTAL</td>'
+    + '<td>' + rptMxn(totalEst) + '</td>'
+    + '<td>' + rptMxn(totalPag) + '</td>'
+    + '<td>' + rptMxn(totalCont) + '</td>'
+    + '</tr>';
+
+  h += '</tbody></table></div>';
+
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>ISN Estimado</label><span>' + rptMxn(totalEst) + '</span></div>'
+    + '<div class="rpt-total-item"><label>ISN Pagado</label><span>' + rptMxn(totalPag) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia ISN</label><span class="' + (totalCont > 0 ? 'warn' : '') + '">' + rptMxn(totalCont) + '</span></div>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+  document.getElementById('rpt-bk').onclick = function(){
+    show('pg-fases');
+  };
+
   show('pg-reporte');
 }
 // ============ FIN REPORTE ============
