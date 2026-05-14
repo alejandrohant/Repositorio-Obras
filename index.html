@@ -3681,16 +3681,12 @@ function buildControlISN(key, ref){
 
   // Condicional: Pago único
   h += '<div class="isn-pago-unico" style="display:' + (formaPago === 'unico' ? 'block' : 'none') + '">';
-  if(true){
-    if(formaPago === 'unico'){
-      h += '<div style="margin-bottom:16px"><h4 style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:10px">ISN Único</h4>';
-      h += '<table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
-      h += '<tr><td>Declaración ISN Único</td><td>' + selISN('declaracionISNUnico') + '</td></tr>';
-      h += '<tr><td>Comprobante de pago único</td><td>' + selISN('comprobantePagoUnico') + '</td></tr>';
-      h += '<tr><td>ISN Único pagado</td><td><input type="number" step="0.01" class="ctrl-inp" style="width:120px" value="' + (data.isnUnicoPagado || '') + '" onchange="setCtrlISNVal(\'' + key + '\',\'isnUnicoPagado\',parseFloat(this.value)||null)" placeholder="0.00"></td></tr>';
-      h += '</tbody></table></div>';
-    }
-  }
+  h += '<div style="margin-bottom:16px"><h4 style="font-size:12px;color:#a78bfa;font-weight:600;margin-bottom:10px">ISN Único</h4>';
+  h += '<table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
+  h += '<tr><td>Declaración ISN Único</td><td>' + selISN('declaracionISNUnico') + '</td></tr>';
+  h += '<tr><td>Comprobante de pago único</td><td>' + selISN('comprobantePagoUnico') + '</td></tr>';
+  h += '<tr><td>ISN Único pagado</td><td><input type="number" step="0.01" class="ctrl-inp" style="width:120px" value="' + (data.isnUnicoPagado || '') + '" onchange="setCtrlISNVal(\'' + key + '\',\'isnUnicoPagado\',parseFloat(this.value)||null)" placeholder="0.00"></td></tr>';
+  h += '</tbody></table></div>';
   h += '</div>';
   // Condicional: Pagos mensuales
   h += '<div class="isn-pago-mensual" style="display:' + (formaPago === 'mensual' ? 'block' : 'none') + '">';
