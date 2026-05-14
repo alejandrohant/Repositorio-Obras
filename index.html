@@ -1350,6 +1350,10 @@ function sumarISNPagadoControlFasesObra(nombreObra){
   if(pagadoPor === 'propietaria'){
     sumarKeyControl('isn_prop_' + (obra.id || obra.nombre || 'obra'));
 
+    // Compatibilidad con capturas anteriores del bloque duplicado
+    sumarKeyControl('isn_fase_prop_' + (obra.id || ''));
+    sumarKeyControl('isn_fase_prop_' + (obra.nombre || ''));
+
     fasesObra.forEach(function(f){
       if(esFasePropietaria(f)){
         sumarKeyControl('isn_fase_' + f.id);
@@ -3455,9 +3459,18 @@ function irControlObra(obraObj) {
     });
   }
   var rfcsUnicos = [];
+
+  if(debeMostrarControlISN(obraObj, 'propietaria') && obraObj.rfc){
+    rfcsUnicos.push(obraObj.rfc);
+  }
+
   obraFases.forEach(function(f){
-    if(rfcsUnicos.indexOf(f.rfc) < 0) rfcsUnicos.push(f.rfc);
+    var rfcFase = f.rfc || '';
+    if(rfcFase && rfcsUnicos.indexOf(rfcFase) < 0){
+      rfcsUnicos.push(rfcFase);
+    }
   });
+
   var perfiles = gPrf();
 
   document.getElementById('ctrl-nom').textContent = obraObj.nombre + ' — Control';
@@ -4044,23 +4057,21 @@ function buildFaseHtml(perfil, fase) {
     h += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
     h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">&#8635; Actualizar</button>';
   }
-  if(debeMostrarISN){
-  h += buildControlISN('isn_fase_' + fase.id, fase);
-  }
-
   var obraBaseISN = gP().concat(gC()).find(function(o){
-  return (o.nombre || '') === (fase.obra || '');
-});
+    return (o.nombre || '') === (fase.obra || '');
+  });
 
-var faseEsPropietaria = String(fase.id || '').indexOf('prop_') === 0 || (fase.perfil || '').toLowerCase() === 'propietaria';
+  var faseEsPropietaria =
+    String(fase.id || '').indexOf('prop_') === 0 ||
+    (fase.perfil || '').toLowerCase() === 'propietaria';
 
-var debeMostrarISN = faseEsPropietaria
-  ? debeMostrarControlISN(obraBaseISN, 'propietaria')
-  : debeMostrarControlISN(obraBaseISN, 'contratista');
+  var debeMostrarISN =
+    !faseEsPropietaria &&
+    debeMostrarControlISN(obraBaseISN, 'contratista');
 
-if(debeMostrarISN){
-  h += buildControlISN('isn_fase_' + fase.id, fase);
-}
+  if(debeMostrarISN){
+    h += buildControlISN('isn_fase_' + fase.id, fase);
+  }
 
 // Cierre
 h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Cierre</h3>';
