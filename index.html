@@ -261,6 +261,15 @@ select.fg-sel:focus{border-color:#a78bfa}
 .ctrl-coll-chev.open{transform:rotate(180deg)}
 .ctrl-coll-body{display:none;padding:16px 18px}
 .ctrl-coll-body.open{display:block}
+.ctrl-fase-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.ctrl-fase-title h3{margin-bottom:4px}
+.ctrl-fase-meta{font-size:11px;color:#94a3b8;line-height:1.5}
+.ctrl-fase-menu{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+.ctrl-fase-btn{background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;color:#94a3b8;cursor:pointer}
+.ctrl-fase-btn:hover{border-color:#10b981;color:#10b981}
+.ctrl-fase-btn.sel{background:#1e2d2a;border-color:#10b981;color:#10b981}
+.ctrl-fase-panel{display:none}
+.ctrl-fase-panel.active{display:block}
 
 /* REPORTE */
 .pg-reporte{display:none;padding:32px 24px;max-width:900px;margin:0 auto}
@@ -3450,11 +3459,30 @@ function irControlObra(obraObj) {
       fasesHtml += buildFaseHtml(prf, f);
     });
 
-    var controlISNHtml = esPropietariaDeEstaObra && debeMostrarControlISN(obraObj, 'propietaria')
-      ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj)
-      : '';
+    if(propietariaSoloISN){
+      fasesHtml += '<hr style="border-color:#2d2d44;margin:16px 0">';
+      fasesHtml += buildFaseHtml(prf, {
+        id: 'prop_' + (obraObj.id || obraObj.nombre || 'obra'),
+        origen: 'Propietaria',
+        rfcOrigen: obraObj.rfc || '',
+        obra: obraObj.nombre || '',
+        sirocPrincipal: obraObj.siroc || '',
+        rfc: obraObj.rfc || '',
+        contratista: obraObj.patron || obraObj.nombre || 'Propietaria',
+        perfil: 'Propietaria',
+        rp: obraObj.rp || '--',
+        objeto: 'SIROC propietaria',
+        tipoCto: 'Propietaria',
+        aplicaSiroc: 1,
+        siroc: obraObj.siroc || '',
+        ubicacion: obraObj.ubicacion || '',
+        inicia: obraObj.inicia || '',
+        termina: obraObj.termina || '',
+        soloISN: true
+      });
+    }
 
-    panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
+    panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
 
     first = false;
   });
@@ -3633,11 +3661,11 @@ function buildControlISN(key, ref){
     h += '</tbody></table></div></div>';
   }
   h += '</div>';
-  return wrapCollapsible('CONTROL ISN', h);
+  return '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control ISN</h3>' + h + '</div>';
 }
 
 function togglePagoISN(sel){
-  var cont = sel.closest('.ctrl-coll-body') || sel.closest('.ctrl-collapsible');
+  var cont = sel.closest('.ctrl-seccion') || sel.closest('.ctrl-coll-body') || sel.closest('.ctrl-collapsible');
   if(!cont) return;
 
   var unico = cont.querySelector('.isn-pago-unico');
@@ -3900,12 +3928,33 @@ function buildFaseHtml(perfil, fase) {
   var vencido = fase.termina && fase.termina.slice(0,7) < hoy;
   var extra = (ctrl[key] && ctrl[key]['__extra']) ? ctrl[key]['__extra'] : [];
   var todosPeridos = periodos.concat(extra).filter(function(p,i,a){ return a.indexOf(p)===i; }).sort();
+
+  var faseIdSafe = String(fase.id || 'fase').replace(/[^a-zA-Z0-9_-]/g,'_');
+  var soloISN = fase.soloISN === true;
+
+  var obraBaseISN = gP().concat(gC()).find(function(o){
+    return String(o.nombre || '').trim() === String(fase.obra || '').trim();
+  });
+
+  var faseEsPropietaria =
+    String(fase.id || '').indexOf('prop_') === 0 ||
+    String(fase.perfil || '').toLowerCase().trim() === 'propietaria';
+
+  var debeMostrarISN = faseEsPropietaria
+    ? debeMostrarControlISN(obraBaseISN, 'propietaria')
+    : debeMostrarControlISN(obraBaseISN, 'contratista');
+
+  var keyISN = faseEsPropietaria
+    ? 'isn_prop_' + ((obraBaseISN && (obraBaseISN.id || obraBaseISN.nombre)) || fase.id || 'obra')
+    : 'isn_fase_' + fase.id;
+
   var colsMonto = [
     {k:'gps',l:'GPS ($)',tip:'GPS / 0.01 = MO'},
     {k:'cop',l:'COP ($)',tip:'Cuota Obrero-Patronal'},
     {k:'rcv',l:'RCV ($)',tip:'Retiro, Cesantía y Vejez'},
     {k:'inf',l:'INF ($)',tip:'Infonavit'}
   ];
+
   var cols = [
     {k:'vinc',l:'Vinculación'},
     {k:'rep_siroc',l:'Reporte SIROC'},
@@ -3914,11 +3963,34 @@ function buildFaseHtml(perfil, fase) {
     {k:'nom_pdf',l:'Nóminas PDF'},
     {k:'nom_xml',l:'Nóminas XML'}
   ];
+
   var colsCierre = [
-    {k:'acta',l:'Acta entrega'},{k:'av_term',l:'Aviso terminación'},
-    {k:'corp1',l:'CORP 01'},{k:'corp2',l:'CORP 02'},{k:'oficio',l:'Oficio conclusión'},{k:'dictamen',l:'Dictamen'}
+    {k:'acta',l:'Acta entrega'},
+    {k:'av_term',l:'Aviso terminación'},
+    {k:'corp1',l:'CORP 01'},
+    {k:'corp2',l:'CORP 02'},
+    {k:'pago_dif',l:'Pago de diferencias antes de Oficio conclusión'},
+    {k:'oficio',l:'Oficio conclusión'},
+    {k:'dictamen',l:'Aviso de dictamen'},
+    {k:'dictamen_sin_salvedades',l:'Dictamen sin salvedades'}
   ];
-  // Calculate totals from stored data for summary
+
+  var colsContratos = [
+    {k:'docContrato',l:'Contrato',fallback:fase.docContrato},
+    {k:'docFirmado',l:'Contrato firmado',fallback:fase.docFirmado},
+    {k:'docSiroc',l:'Acuse SIROC',fallback:fase.docSiroc},
+    {k:'docSirocVig',l:'SIROC vigente',fallback:fase.docSirocVig},
+    {k:'docExplosion',l:'Explosión de insumos',fallback:fase.docExplosion},
+    {k:'docPlanos',l:'Planos de construcción',fallback:fase.docPlanos}
+  ];
+
+  function getValContrato(campo, fallback){
+    if(ctrl[key] && ctrl[key]['__contratos'] && ctrl[key]['__contratos'][campo] != null){
+      return ctrl[key]['__contratos'][campo];
+    }
+    return fallback || 0;
+  }
+
   var totalGPS=0,totalCOP=0,totalRCV=0,totalINF=0;
   todosPeridos.forEach(function(p){
     totalGPS += parseFloat(getCtrlVal(ctrl,key,p,'gps'))||0;
@@ -3926,117 +3998,173 @@ function buildFaseHtml(perfil, fase) {
     totalRCV += parseFloat(getCtrlVal(ctrl,key,p,'rcv'))||0;
     totalINF += parseFloat(getCtrlVal(ctrl,key,p,'inf'))||0;
   });
+
   var moAcum = totalGPS > 0 ? totalGPS/0.01 : 0;
   var cuotasAcum = totalCOP + totalRCV + totalINF;
-  var h = '';
-  if(vencido) h += '<div class="ctrl-warn"><span class="ctrl-warn-icon">&#9888;</span><span>Contrato vencido desde <strong>' + periodoLabel(fase.termina.slice(0,7)) + '</strong>. Se requiere convenio modificatorio.</span></div>';
-  // Summary bar
-  h += '<div class="ctrl-summary-bar" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">'
-    + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">MO Acumulada</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (moAcum>0?mxn(moAcum):'--') + '</div></div>'
-    + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">Cuotas Pagadas</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (cuotasAcum>0?mxn(cuotasAcum):'--') + '</div></div>'
-    + '<div style="background:#2d1a00;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#f59e0b;font-weight:600;text-transform:uppercase;margin-bottom:2px">GPS Acumulado</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#f59e0b">' + (totalGPS>0?mxn(totalGPS):'--') + '</div></div>'
-    + '</div>';
-  h += '';
-  if(!todosPeridos.length) {
-    h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin periodos generados (fase sin fechas definidas).</p>';
-  } else {
-    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>Estado</th>';
-    colsMonto.forEach(function(c){ h += '<th title="' + c.tip + '">' + c.l + '</th>'; });
-    h += '<th>MO implícita</th><th>Cuotas</th>';
-    cols.forEach(function(c){ h += '<th>' + c.l + '</th>'; });
-    h += '</tr></thead><tbody>';
-    todosPeridos.forEach(function(p){
-      var esExtra = extra.indexOf(p) >= 0;
-      var esVenc = !esExtra && fase.termina && p > fase.termina.slice(0,7);
-      var badge = esExtra ? '<span class="periodo-badge pb-manual">Manual</span>'
-        : (esVenc ? '<span class="periodo-badge pb-venc">Vencido</span>' : '<span class="periodo-badge pb-ok">OK</span>');
-      var gpsVal = parseFloat(getCtrlVal(ctrl,key,p,'gps'))||0;
-      var moImpl = gpsVal > 0 ? mxn(gpsVal/0.01) : '--';
-      h += '<tr' + (esVenc?' class="venc"':'') + '><td>' + periodoLabel(p) + '</td><td>' + badge + '</td>';
-      colsMonto.forEach(function(c){ h += '<td>' + montoInputCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)||'') + '</td>'; });
-      var copVal = parseFloat(getCtrlVal(ctrl,key,p,'cop'))||0;
-      var rcvVal = parseFloat(getCtrlVal(ctrl,key,p,'rcv'))||0;
-      var infVal = parseFloat(getCtrlVal(ctrl,key,p,'inf'))||0;
-      var cuotasRow = (copVal+rcvVal+infVal) > 0 ? mxn(copVal+rcvVal+infVal) : '--';
-      h += '<td class="mo-impl" style="color:#a78bfa;font-weight:600;font-size:11px">' + moImpl + '</td>';
-      h += '<td class="cuotas-row" style="color:#10b981;font-weight:600;font-size:11px">' + cuotasRow + '</td>';
-      cols.forEach(function(c){
-        if(c.bimestral){
-          h += '<td>' + docSelectCtrlBimestralSiroc(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
-        } else {
-          h += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
-        }
-      });
-      h += '</tr>';
-    });
-    h += '</tbody></table></div>';
-    h += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
-    h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">&#8635; Actualizar</button>';
+
+  var cuotasHtml = '';
+
+  if(vencido && !soloISN){
+    cuotasHtml += '<div class="ctrl-warn"><span class="ctrl-warn-icon">&#9888;</span><span>Contrato vencido desde <strong>' + periodoLabel(fase.termina.slice(0,7)) + '</strong>. Se requiere convenio modificatorio.</span></div>';
   }
-  var obraBaseISN = gP().concat(gC()).find(function(o){
-    return (o.nombre || '') === (fase.obra || '');
-  });
 
-  var faseEsPropietaria =
-    String(fase.id || '').indexOf('prop_') === 0 ||
-    (fase.perfil || '').toLowerCase() === 'propietaria';
+  if(!soloISN){
+    cuotasHtml += '<div class="ctrl-summary-bar" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">'
+      + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">MO Acumulada</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (moAcum>0?mxn(moAcum):'--') + '</div></div>'
+      + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">Cuotas Pagadas</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (cuotasAcum>0?mxn(cuotasAcum):'--') + '</div></div>'
+      + '<div style="background:#2d1a00;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#f59e0b;font-weight:600;text-transform:uppercase;margin-bottom:2px">GPS Acumulado</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#f59e0b">' + (totalGPS>0?mxn(totalGPS):'--') + '</div></div>'
+      + '</div>';
 
-  var debeMostrarISN =
-    !faseEsPropietaria &&
-    debeMostrarControlISN(obraBaseISN, 'contratista');
+    cuotasHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control de Cuotas IMSS</h3>';
+
+    if(!todosPeridos.length) {
+      cuotasHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin periodos generados. La fase no tiene fechas definidas.</p>';
+    } else {
+      cuotasHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>Estado</th>';
+      colsMonto.forEach(function(c){ cuotasHtml += '<th title="' + c.tip + '">' + c.l + '</th>'; });
+      cuotasHtml += '<th>MO implícita</th><th>Cuotas</th>';
+      cols.forEach(function(c){ cuotasHtml += '<th>' + c.l + '</th>'; });
+      cuotasHtml += '</tr></thead><tbody>';
+
+      todosPeridos.forEach(function(p){
+        var esExtra = extra.indexOf(p) >= 0;
+        var esVenc = !esExtra && fase.termina && p > fase.termina.slice(0,7);
+        var badge = esExtra ? '<span class="periodo-badge pb-manual">Manual</span>'
+          : (esVenc ? '<span class="periodo-badge pb-venc">Vencido</span>' : '<span class="periodo-badge pb-ok">OK</span>');
+
+        var gpsVal = parseFloat(getCtrlVal(ctrl,key,p,'gps'))||0;
+        var moImpl = gpsVal > 0 ? mxn(gpsVal/0.01) : '--';
+
+        cuotasHtml += '<tr' + (esVenc?' class="venc"':'') + '><td>' + periodoLabel(p) + '</td><td>' + badge + '</td>';
+
+        colsMonto.forEach(function(c){
+          cuotasHtml += '<td>' + montoInputCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)||'') + '</td>';
+        });
+
+        var copVal = parseFloat(getCtrlVal(ctrl,key,p,'cop'))||0;
+        var rcvVal = parseFloat(getCtrlVal(ctrl,key,p,'rcv'))||0;
+        var infVal = parseFloat(getCtrlVal(ctrl,key,p,'inf'))||0;
+        var cuotasRow = (copVal+rcvVal+infVal) > 0 ? mxn(copVal+rcvVal+infVal) : '--';
+
+        cuotasHtml += '<td class="mo-impl" style="color:#a78bfa;font-weight:600;font-size:11px">' + moImpl + '</td>';
+        cuotasHtml += '<td class="cuotas-row" style="color:#10b981;font-weight:600;font-size:11px">' + cuotasRow + '</td>';
+
+        cols.forEach(function(c){
+          if(c.bimestral){
+            cuotasHtml += '<td>' + docSelectCtrlBimestralSiroc(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
+          } else {
+            cuotasHtml += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
+          }
+        });
+
+        cuotasHtml += '</tr>';
+      });
+
+      cuotasHtml += '</tbody></table></div>';
+      cuotasHtml += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
+      cuotasHtml += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">&#8635; Actualizar</button>';
+    }
+
+    cuotasHtml += '</div>';
+  }
+
+  var isnHtml = debeMostrarISN ? buildControlISN(keyISN, fase) : '';
+
+  var cierreHtml = '';
+  if(!soloISN){
+    cierreHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Cierre</h3>';
+    cierreHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
+    colsCierre.forEach(function(c){
+      cierreHtml += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td></tr>';
+    });
+    cierreHtml += '</tbody></table></div></div>';
+  }
+
+  var contratosHtml = '';
+  if(!faseEsPropietaria && !soloISN){
+    contratosHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Contratos</h3>';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
+    colsContratos.forEach(function(c){
+      contratosHtml += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__contratos', c.k, getValContrato(c.k, c.fallback)) + '</td></tr>';
+    });
+    contratosHtml += '</tbody></table></div></div>';
+  }
+
+  var panelInicial = soloISN && debeMostrarISN ? 'isn' : 'cuotas';
+
+  var h = '';
+  h += '<div class="ctrl-seccion" id="ctrlfase-card-' + faseIdSafe + '" style="margin-top:12px">';
+  h += '<div class="ctrl-fase-title">';
+  h += '<div>';
+  h += '<h3>' + (fase.objeto || 'Fase') + '</h3>';
+  h += '<div class="ctrl-fase-meta">';
+  h += 'SIROC: <span class="mono">' + (fase.siroc || 'Sin SIROC') + '</span>';
+  h += ' · Perfil: ' + (fase.perfil || '--');
+  h += ' · RP: ' + (fase.rp || '--');
+  h += '</div>';
+  h += '</div>';
+  h += '</div>';
+
+  h += '<div class="ctrl-fase-menu">';
+
+  if(!soloISN){
+    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'cuotas' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cuotas\',this)">Control de Cuotas IMSS</button>';
+  }
 
   if(debeMostrarISN){
-    h += buildControlISN('isn_fase_' + fase.id, fase);
+    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'isn' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'isn\',this)">Control ISN</button>';
   }
 
-// Cierre
-h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Cierre</h3>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
-  colsCierre.forEach(function(c){
-    h += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td></tr>';
-  });
-  h += '</tbody></table></div></div>';
-  
-  var obraBaseISN = gP().concat(gC()).find(function(o){
-  return (o.nombre || '') === (fase.obra || '');
-});
+  if(!soloISN){
+    h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cierre\',this)">Control Cierre</button>';
+  }
 
-var faseEsPropietaria =
-  String(fase.id || '').indexOf('prop_') === 0 ||
-  (fase.perfil || '').toLowerCase() === 'propietaria';
+  if(!faseEsPropietaria && !soloISN){
+    h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'contratos\',this)">Control Contratos</button>';
+  }
 
-var debeMostrarISN = false;
+  h += '</div>';
 
-if(faseEsPropietaria){
-  debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'propietaria');
-}else{
-  debeMostrarISN = debeMostrarControlISN(obraBaseISN, 'contratista');
-}
+  if(!soloISN){
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'cuotas' ? 'active' : '') + '" data-panel="cuotas">' + cuotasHtml + '</div>';
+  }
 
-return wrapCollapsible(fase.objeto + ' — ' + (fase.siroc||'Sin SIROC'), h);
+  if(debeMostrarISN){
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'isn' ? 'active' : '') + '" data-panel="isn">' + isnHtml + '</div>';
+  }
+
+  if(!soloISN){
+    h += '<div class="ctrl-fase-panel" data-panel="cierre">' + cierreHtml + '</div>';
+  }
+
+  if(!faseEsPropietaria && !soloISN){
+    h += '<div class="ctrl-fase-panel" data-panel="contratos">' + contratosHtml + '</div>';
+  }
+
+  h += '</div>';
+
+  return h;
 }
 
 function agregarPeriodoManualInline(faseId, btn) {
   var p = prompt('Ingresa el periodo (formato YYYY-MM, ej. 2026-08):');
-  if(!p || p.length!==7 || p[4]!=='-') { alert('Formato inválido. Usa YYYY-MM'); return; }
+  if(!p || p.length!==7 || p[4]!=='-') {
+    alert('Formato inválido. Usa YYYY-MM');
+    return;
+  }
+
   var ctrl = gCtrl();
   var key = 'fase_' + faseId;
+
   if(!ctrl[key]) ctrl[key] = {};
   if(!ctrl[key]['__extra']) ctrl[key]['__extra'] = [];
-  if(ctrl[key]['__extra'].indexOf(p) < 0) ctrl[key]['__extra'].push(p);
-  sCtrl(ctrl);
-  // Re-render the section by rebuilding the panel content
-  var fase = gFases().find(function(f){ return f.id === faseId; });
-  var prf = gPrf().find(function(x){ return fase && x.rfc === fase.rfc; });
-  if(fase && prf) {
-    var container = btn.closest('.ctrl-seccion').parentElement;
-    // Find and replace just the fase sections
-    var newHtml = buildFaseHtml(prf, fase);
-    var temp = document.createElement('div');
-    temp.innerHTML = newHtml;
-    var oldSection = btn.closest('.ctrl-seccion');
-    oldSection.outerHTML = temp.innerHTML;
+
+  if(ctrl[key]['__extra'].indexOf(p) < 0){
+    ctrl[key]['__extra'].push(p);
   }
+
+  sCtrl(ctrl);
+  recargarControl();
 }
 var ctrlPerfilCtx = null;
 var ctrlObraCtx = null;
@@ -4648,6 +4776,22 @@ function toggleCtrlColl(uid) {
   hdr.classList.toggle('open', open);
 }
 
+function toggleControlFasePanel(cardId, panelName, btn){
+  var card = document.getElementById('ctrlfase-card-' + cardId);
+  if(!card) return;
+
+  card.querySelectorAll('.ctrl-fase-panel').forEach(function(p){
+    p.classList.remove('active');
+  });
+
+  card.querySelectorAll('.ctrl-fase-btn').forEach(function(b){
+    b.classList.remove('sel');
+  });
+
+  var panel = card.querySelector('[data-panel="' + panelName + '"]');
+  if(panel) panel.classList.add('active');
+  if(btn) btn.classList.add('sel');
+}
 
 function agregarPeriodoRFC(rfc, tipo) {
   var p = prompt('Ingresa el periodo a agregar (formato YYYY-MM, ej. 2026-08):');
