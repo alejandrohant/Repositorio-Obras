@@ -255,6 +255,20 @@ select.fg-sel:focus{border-color:#a78bfa}
 }
 .ctrl-add-btn{background:#1e2d2a;border:1.5px dashed #10b981;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;color:#10b981;cursor:pointer;margin-top:8px}
 .ctrl-add-btn:hover{background:#10b981;color:#fff}
+.ctrl-conv-del{
+  background:#2d1a1a;
+  border:1px solid #7f1d1d;
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:11px;
+  font-weight:700;
+  color:#f87171;
+  cursor:pointer;
+}
+.ctrl-conv-del:hover{
+  background:#3d2222;
+  color:#fecaca;
+}
 .ctrl-save-btn{background:#10b981;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;margin-top:12px}
 .ctrl-save-btn:hover{background:#059669}
 .periodo-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
@@ -4219,7 +4233,7 @@ function buildFaseHtml(perfil, fase) {
     if(!conveniosCtrl.length){
       contratosHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin convenios modificatorios agregados.</p>';
     } else {
-      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th></tr></thead><tbody>';
+      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody>';
 
       conveniosCtrl.forEach(function(c, idx){
         contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
@@ -4231,6 +4245,8 @@ function buildFaseHtml(perfil, fase) {
 
         contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
           + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
+
+        contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
 
         contratosHtml += '</tr>';
       });
@@ -4679,6 +4695,22 @@ function actualizarResumenContrato(cardId){
   if(elFecha) elFecha.textContent = nuevaFecha ? fdate(nuevaFecha) : '--';
 }
 
+function abrirPanelContratosDespuesDeRecargar(cardId){
+  setTimeout(function(){
+    var card = document.getElementById('ctrlfase-card-' + cardId);
+    if(!card) return;
+
+    var btns = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn'));
+    var btnContratos = btns.find(function(b){
+      return b.textContent.trim() === 'Control Contratos';
+    });
+
+    if(btnContratos){
+      toggleControlFasePanel(cardId, 'contratos', btnContratos);
+    }
+  }, 80);
+}
+
 function agregarConvenioContrato(faseId, cardId){
   var key = 'fase_' + faseId;
   var ctrl = gCtrl();
@@ -4693,20 +4725,22 @@ function agregarConvenioContrato(faseId, cardId){
 
   sCtrl(ctrl);
   recargarControl();
+  abrirPanelContratosDespuesDeRecargar(cardId);
+}
 
-  setTimeout(function(){
-    var card = document.getElementById('ctrlfase-card-' + cardId);
-    if(!card) return;
+function eliminarConvenioContrato(faseId, idx, cardId){
+  if(!confirm('¿Eliminar este convenio modificatorio?')) return;
 
-    var btns = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn'));
-    var btnContratos = btns.find(function(b){
-      return b.textContent.trim() === 'Control Contratos';
-    });
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
 
-    if(btnContratos){
-      toggleControlFasePanel(cardId, 'contratos', btnContratos);
-    }
-  }, 80);
+  if(!ctrl[key] || !ctrl[key]['__convenios']) return;
+
+  ctrl[key]['__convenios'].splice(idx, 1);
+
+  sCtrl(ctrl);
+  recargarControl();
+  abrirPanelContratosDespuesDeRecargar(cardId);
 }
 function actualizarFilaControl(inputEl) {
   if(!inputEl || !inputEl.closest) return;
