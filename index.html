@@ -4264,6 +4264,11 @@ function docSelectCtrl(key, periodo, campo, val) {
     bloquear = !mes || [1,5,9].indexOf(mes) === -1;
   }
 
+  // Pagos SUA: Cédula bimestral y CFDI Infonavit solo meses pares
+  if(campo === 'ced_bim' || campo === 'cfdi_inf'){
+    bloquear = !mes || mes % 2 !== 0;
+  }
+
   if(bloquear){
     return '<select class="ctrl-sel" disabled style="opacity:.45;cursor:not-allowed"><option value="0">--</option></select>';
   }
