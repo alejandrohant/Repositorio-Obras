@@ -3476,7 +3476,10 @@ function irControlObra(obraObj) {
 
   document.getElementById('ctrl-nom').textContent = obraObj.nombre + ' — Control';
   document.getElementById('ctrl-sub').textContent = (obraObj.patron||obraObj.contratista||'') + ' · ' + rfcsUnicos.length + ' contratista' + (rfcsUnicos.length!==1?'s':'');
-  document.getElementById('ctrl-bk').onclick = function(){ show('pg-ficha'); };
+  document.getElementById('ctrl-bk').onclick = function(){
+    ta = gP().some(function(x){ return x.id === obraObj.id; }) ? 'p' : 'c';
+    irFicha(obraObj.id);
+  };
 
   var tabsEl = document.getElementById('ctrl-tabs');
   var panelsEl = document.getElementById('ctrl-panels');
