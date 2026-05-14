@@ -738,11 +738,6 @@ select.fg-sel:focus{border-color:#a78bfa}
           <div class="fg"><label>SIROC vigente</label><select class="fg-sel" id="fa-doc-sirocvig"><option value="0">--</option><option value="1">Si</option><option value="2">No</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Acta de entrega-recepcion</label><select class="fg-sel" id="fa-doc-acta"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Aviso de Terminacion</label><select class="fg-sel" id="fa-doc-avterm"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Aviso SATQ</label><select class="fg-sel" id="fa-doc-satq"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Pago Unico ISN</label><select class="fg-sel" id="fa-doc-pisn"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Declaracion ISN</label><select class="fg-sel" id="fa-doc-disn"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Carta No Adeudo ISN</label><select class="fg-sel" id="fa-doc-cnaisn"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>ISN complementario</label><select class="fg-sel" id="fa-doc-cisnc"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
         </div>
       </div>
       <!-- Grupo 4: IMSS -->
@@ -958,48 +953,9 @@ select.fg-sel:focus{border-color:#a78bfa}
         <div class="fg fp"><label>MO estimada presupuesto ($)</label><input id="p-mo-presupuesto" readonly></div>
         <div class="fg fp"><label>Cuotas estimadas presupuesto ($)</label><input id="p-cuotas-presupuesto" readonly></div>
         <div class="fg fp"><label>Forma de pago de ISN</label><select id="p-isn" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none"><option value="unico">Único</option><option value="mensual">Mensual</option><option value="parcialidades">Parcialidades</option></select></div>
-<div class="fg fp"><label>Factor ISN (%)</label><input type="number" step="0.01" id="p-fisn" value="4.00" oninput="calcMODOF(); calcISNPropietaria()"></div>
+<div class="fg fp"><label>Factor ISN (%)</label><input type="number" step="0.01" id="p-fisn" value="4.00" oninput="calcMODOF()"></div>
 <div class="fg fp"><label>ISN ESTIMADO ($)</label><input id="p-iest" readonly></div>
 
-<div class="fg fp"><label>ISN PAGADO POR</label>
-  <select id="p-isn-pagado-por" onchange="toggleISNPropietaria()" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none">
-    <option value="">Selecciona...</option>
-    <option value="propietaria">PROPIETARIA</option>
-    <option value="contratistas">CONTRATISTAS</option>
-  </select>
-</div>
-
-<div class="fg fp" id="p-isn-pagado-wrap" style="display:none"><label>ISN PAGADO ($)</label><input type="number" step="0.01" id="p-isn-pagado" oninput="calcISNPropietaria()"></div>
-<div class="fg fp" id="p-isn-pendiente-wrap" style="display:none"><label>ISN PENDIENTE ($)</label><input id="p-isn-pendiente" readonly></div>
-<div class="fg fp" id="p-aviso-inicio-wrap" style="display:none"><label>AVISO DE INICIO DE OBRA</label>
-  <select id="p-aviso-inicio" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none">
-    <option value="">Selecciona...</option>
-    <option value="presentado">PRESENTADO</option>
-    <option value="no_presentado">NO PRESENTADO</option>
-  </select>
-</div>
-<div class="fg fp" id="p-acuse-isn-wrap" style="display:none"><label>ACUSE DE DECLARACIÓN DE ISN</label>
-  <select id="p-acuse-isn" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none">
-    <option value="">Selecciona...</option>
-    <option value="presentado">PRESENTADO</option>
-    <option value="no_presentado">NO PRESENTADO</option>
-  </select>
-</div>
-<div class="fg fp" id="p-comprobante-isn-wrap" style="display:none"><label>COMPROBANTE DE PAGO DE ISN</label>
-  <select id="p-comprobante-isn" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none">
-    <option value="">Selecciona...</option>
-    <option value="presentado">PRESENTADO</option>
-    <option value="no_presentado">NO PRESENTADO</option>
-  </select>
-</div>
-<div class="fg fp" id="p-constancia-no-adeudo-wrap" style="display:none"><label>CONSTANCIA DE NO ADEUDO DE ISN</label>
-  <select id="p-constancia-no-adeudo" style="background:#0f1117 !important;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 12px;color:#e2e8f0;font-size:13px;outline:none">
-    <option value="">Selecciona...</option>
-    <option value="presentado">PRESENTADO</option>
-    <option value="no_presentado">NO PRESENTADO</option>
-  </select>
-</div>
-        <div class="fg full fp"><label>Ubicacion</label><input id="p-ubic"></div>
         <div class="fg fp"><label>Subdelegación</label><input id="p-subdelegacion"></div>
 
 <div class="fg fp"><label>Formato de Alta Patronal (ARP)</label><select id="p-arp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
@@ -1629,13 +1585,7 @@ function abrirCon(o){conObj=o;conMetodo='exp';document.getElementById('con-nom')
 var eId=null,eTipo=null;
 function selT(t){document.getElementById('opt-p').classList.toggle('sel',t==='p');document.getElementById('opt-c').classList.toggle('sel',t==='c');document.querySelectorAll('.fp').forEach(function(el){el.classList.toggle('show',t==='p');});document.querySelectorAll('.fc').forEach(function(el){el.classList.toggle('show',t==='c');});eTipo=t;}
 function abrirNueva(){eId=null;eTipo=null;document.getElementById('mtit').textContent='Nueva Obra';document.getElementById('tsel').style.display='grid';document.getElementById('frm').reset();document.querySelectorAll('.fp,.fc').forEach(function(el){el.classList.remove('show');});document.querySelectorAll('.topt').forEach(function(el){el.classList.remove('sel');});if(document.getElementById('p-isn-pagado-por')) document.getElementById('p-isn-pagado-por').value = '';
-if(document.getElementById('p-isn-pagado')) document.getElementById('p-isn-pagado').value = '';
-if(document.getElementById('p-isn-pendiente')) document.getElementById('p-isn-pendiente').value = '';
-if(document.getElementById('p-aviso-inicio')) document.getElementById('p-aviso-inicio').value = '';
-if(document.getElementById('p-acuse-isn')) document.getElementById('p-acuse-isn').value = '';
-if(document.getElementById('p-comprobante-isn')) document.getElementById('p-comprobante-isn').value = '';
-if(document.getElementById('p-constancia-no-adeudo')) document.getElementById('p-constancia-no-adeudo').value = '';
-toggleISNPropietaria();document.getElementById('modal').classList.add('open');}
+document.getElementById('modal').classList.add('open');}
 function abrirEditar(id){
   var p=gP(),c=gC();
   var o=p.find(function(x){return x.id===id;});
@@ -1724,13 +1674,6 @@ if(document.getElementById('p-iest')){
   document.getElementById('p-iest').value = isnReal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 if(document.getElementById('p-isn-pagado-por')) document.getElementById('p-isn-pagado-por').value = o.isnPagadoPor || '';
-if(document.getElementById('p-isn-pagado')) document.getElementById('p-isn-pagado').value = o.isnPagado || '';
-if(document.getElementById('p-aviso-inicio')) document.getElementById('p-aviso-inicio').value = o.avisoInicioObra || '';
-if(document.getElementById('p-acuse-isn')) document.getElementById('p-acuse-isn').value = o.acuseDeclaracionISN || '';
-if(document.getElementById('p-comprobante-isn')) document.getElementById('p-comprobante-isn').value = o.comprobantePagoISN || '';
-if(document.getElementById('p-constancia-no-adeudo')) document.getElementById('p-constancia-no-adeudo').value = o.constanciaNoAdeudoISN || '';
-toggleISNPropietaria();
-calcISNPropietaria();
     setTimeout(calcMODOF, 50);
 
     if(typeof calcMODOF === 'function'){
@@ -1825,12 +1768,6 @@ async function guardar(e){
       factorISN: numSafe(document.getElementById('p-fisn').value),
 isnEst: datasetOrValue('p-iest'),
 isnPagadoPor: document.getElementById('p-isn-pagado-por') ? document.getElementById('p-isn-pagado-por').value.trim() : '',
-isnPagado: numSafe(document.getElementById('p-isn-pagado') ? document.getElementById('p-isn-pagado').value : 0),
-isnPendiente: datasetOrValue('p-isn-pendiente'),
-avisoInicioObra: document.getElementById('p-aviso-inicio') ? document.getElementById('p-aviso-inicio').value.trim() : '',
-acuseDeclaracionISN: document.getElementById('p-acuse-isn') ? document.getElementById('p-acuse-isn').value.trim() : '',
-comprobantePagoISN: document.getElementById('p-comprobante-isn') ? document.getElementById('p-comprobante-isn').value.trim() : '',
-constanciaNoAdeudoISN: document.getElementById('p-constancia-no-adeudo') ? document.getElementById('p-constancia-no-adeudo').value.trim() : '',
 ubicacion: document.getElementById('p-ubic').value.trim(),
 subdelegacion: document.getElementById('p-subdelegacion') ? document.getElementById('p-subdelegacion').value.trim() : '',
 arp: document.getElementById('p-arp') ? parseInt(document.getElementById('p-arp').value) || 0 : 0,
@@ -2041,27 +1978,7 @@ function calcMODOF(){
   elIest.value = isnEstimado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function toggleISNPropietaria(){
-  var mostrar = (document.getElementById('p-isn-pagado-por')?.value || '') === 'propietaria';
-  [
-    'p-isn-pagado-wrap',
-    'p-isn-pendiente-wrap',
-    'p-aviso-inicio-wrap',
-    'p-acuse-isn-wrap',
-    'p-comprobante-isn-wrap',
-    'p-constancia-no-adeudo-wrap'
-  ].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.style.display = mostrar ? '' : 'none';
-  });
-
-  if(!mostrar){
-    if(document.getElementById('p-isn-pendiente')){
-      document.getElementById('p-isn-pendiente').dataset.valor = 0;
-      document.getElementById('p-isn-pendiente').value = '';
-    }
-  } else {
-    calcISNPropietaria();
-  }
+  return;
 }
 
 function toggleISNSectionFase(){
@@ -2079,38 +1996,11 @@ function toggleISNSectionFase(){
     mostrar = pagadoPor === 'contratistas' || pagadoPor === 'contratista';
   }
 
-  // Sección ISN completa
   var sec = document.getElementById('fa-isn-section');
   if(sec) sec.style.display = mostrar ? '' : 'none';
-
-  // Documentos ISN dentro de Fase
-  [
-    'fa-doc-satq',
-    'fa-doc-pisn',
-    'fa-doc-disn',
-    'fa-doc-cnaisn',
-    'fa-doc-cisnc'
-  ].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el && el.closest('.fg')){
-      el.closest('.fg').style.display = mostrar ? '' : 'none';
-    }
-  });
 }
 function calcISNPropietaria(){
-  var pagadoPor = document.getElementById('p-isn-pagado-por')?.value || '';
-  if(pagadoPor !== 'propietaria') return;
-
-  var isnEstimado = parseFloat(document.getElementById('p-iest')?.dataset?.valor || document.getElementById('p-iest')?.value?.replace(/,/g,'')) || 0;
-  var isnPagado = parseFloat(document.getElementById('p-isn-pagado')?.value) || 0;
-  var pendiente = isnEstimado - isnPagado;
-  if(pendiente < 0) pendiente = 0;
-
-  var elPend = document.getElementById('p-isn-pendiente');
-  if(elPend){
-    elPend.dataset.valor = pendiente;
-    elPend.value = pendiente.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
+  return;
 }
 function autollenarPerfilObra(tipo){
   const rfcInputId = tipo === 'p' ? 'p-rfc' : 'c-rfc';
@@ -2777,9 +2667,7 @@ function irFichaFase(id){
   // Grupo 3: Documentos
   var docs3=[
     ['Contrato',f.docContrato],['Contrato firmado',f.docFirmado],['Acuse SIROC',f.docSiroc],
-    ['SIROC vigente',f.docSirocVig],['Acta entrega-recepcion',f.docActa],['Aviso de Terminacion',f.docAvterm],
-    ['Aviso SATQ',f.docSatq],['Pago Unico ISN',f.docPisn],['Declaracion ISN',f.docDisn],
-    ['Carta No Adeudo ISN',f.docCnaisn],['ISN complementario',f.docCisnc]
+    ['SIROC vigente',f.docSirocVig],['Acta entrega-recepcion',f.docActa],['Aviso de Terminacion',f.docAvterm]
   ];
   var g3='<div class="fase-doc-grid">'+docs3.map(function(d){
     return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
@@ -3081,7 +2969,7 @@ function abrirEditarFase(id){
     document.getElementById('fa-csub3').value=f.csub3||'';
   }
 
-  var docFields=['contrato','firmado','siroc','sirocvig','acta','avterm','satq','pisn','disn','cnaisn','cisnc'];
+  var docFields=['contrato','firmado','siroc','sirocvig','acta','avterm'];
   docFields.forEach(function(k){
     var el=document.getElementById('fa-doc-'+k);
     if(el)el.value=f['doc'+k.charAt(0).toUpperCase()+k.slice(1)]||0;
@@ -3294,11 +3182,6 @@ async function guardarFase(){
     docSirocVig:parseInt(document.getElementById('fa-doc-sirocvig').value)||0,
     docActa:parseInt(document.getElementById('fa-doc-acta').value)||0,
     docAvterm:parseInt(document.getElementById('fa-doc-avterm').value)||0,
-    docSatq:parseInt(document.getElementById('fa-doc-satq').value)||0,
-    docPisn:parseInt(document.getElementById('fa-doc-pisn').value)||0,
-    docDisn:parseInt(document.getElementById('fa-doc-disn').value)||0,
-    docCnaisn:parseInt(document.getElementById('fa-doc-cnaisn').value)||0,
-    docCisnc:parseInt(document.getElementById('fa-doc-cisnc').value)||0,
     corp1:parseInt(document.getElementById('fa-corp1').value)||0,
     corp2:parseInt(document.getElementById('fa-corp2').value)||0,
     corpRes:parseInt(document.getElementById('fa-corp-res').value)||0,
