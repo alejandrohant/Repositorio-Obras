@@ -3274,10 +3274,14 @@ function irSubfases(fasePadre){
     // volver a la ficha de la fase padre
     irFichaFase(fasePadre.id);
   };
-  // Boton nueva fase en contexto subfase — precargar sirocPrincipal del padre
-  document.querySelector('.pg-fases .nbtn').onclick=function(){
-    abrirNuevaFaseConPadre(fasePadre);
-  };
+  // Botón nueva subfase en contexto de subfase
+  var btnNuevaSubfase = document.querySelector('.pg-fases .nbtn');
+  if(btnNuevaSubfase){
+    btnNuevaSubfase.textContent = '+ Nueva Subfase';
+    btnNuevaSubfase.onclick = function(){
+      abrirNuevaFaseConPadre(fasePadre);
+    };
+  }
   renderFasesList(subfases);
   show('pg-fases');
 }
