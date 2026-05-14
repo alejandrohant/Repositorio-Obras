@@ -3457,6 +3457,10 @@ function abrirNuevaFaseConPadre(padre){
 
 // ============ CONTROL MENSUAL ============
 function irControlObra(obraObj) {
+  ctrlPerfilCtx = null;
+  ctrlObraCtx = obraObj;
+  ctrlFaseCtx = null;
+
   var obraFases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
 
   if(String(obraObj.construye || '') === '1'){
@@ -3588,6 +3592,10 @@ function irControlObra(obraObj) {
   show('pg-ctrl');
 }
 function irControlContratistaDesdeFase(faseObj){
+  ctrlPerfilCtx = null;
+  ctrlObraCtx = null;
+  ctrlFaseCtx = faseObj;
+
   var obraNombre = faseObj.obra || '';
   var rfc = faseObj.rfc || '';
 
@@ -4152,6 +4160,8 @@ function agregarPeriodoManualInline(faseId, btn) {
   }
 }
 var ctrlPerfilCtx = null;
+var ctrlObraCtx = null;
+var ctrlFaseCtx = null;
 
 function mesesEntre(inicio, fin) {
   if(!inicio) return [];
@@ -4648,36 +4658,44 @@ function agregarPeriodoManual(faseId, tabId, perfilId) {
 }
 
 function getCtrlTotales(faseId){
-  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
-  var data = ctrl[faseId] || {};
+  var ctrl = gCtrl ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
 
+  var key = String(faseId || '');
+  if(key.indexOf('fase_') !== 0){
+    key = 'fase_' + key;
+  }
+
+  var data = ctrl[key] || {};
   var gps = 0;
   var cop = 0;
   var rcv = 0;
   var inf = 0;
-  var cuotas = 0;
 
-  Object.keys(data).forEach(function(k){
-    var v = parseFloat(data[k]) || 0;
+  Object.keys(data).forEach(function(periodo){
+    if(periodo === '__extra' || periodo === '__cierre') return;
 
-    if(k.indexOf('gps_') === 0) gps += v;
-    if(k.indexOf('cop_') === 0) cop += v;
-    if(k.indexOf('rcv_') === 0) rcv += v;
-    if(k.indexOf('inf_') === 0) inf += v;
+    var row = data[periodo] || {};
+
+    if(typeof row === 'object'){
+      gps += parseFloat(row.gps) || 0;
+      cop += parseFloat(row.cop) || 0;
+      rcv += parseFloat(row.rcv) || 0;
+      inf += parseFloat(row.inf) || 0;
+    }
   });
-
-  cuotas = cop + rcv + inf;
 
   return {
     gps: gps,
+    mo: gps > 0 ? gps / 0.01 : 0,
     cop: cop,
     rcv: rcv,
     inf: inf,
-    cuotas: cuotas
+    cuotas: cop + rcv + inf
   };
 }
 async function guardarControl() {
   await sincronizarControlSupabase();
+  recargarControl();
   alert('Cambios guardados correctamente.');
 }
 
@@ -4743,7 +4761,17 @@ function updateSummaryBar(tbl) {
 
 
 function recargarControl() {
-  if(ctrlPerfilCtx) {
+  if(ctrlObraCtx){
+    irControlObra(ctrlObraCtx);
+    return;
+  }
+
+  if(ctrlFaseCtx){
+    irControlContratistaDesdeFase(ctrlFaseCtx);
+    return;
+  }
+
+  if(ctrlPerfilCtx){
     renderControlTabs(ctrlPerfilCtx);
   }
 }
