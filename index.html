@@ -1126,6 +1126,7 @@ async function initAuth(){
     localStorage.removeItem('oc');
     localStorage.removeItem('perfiles');
     localStorage.removeItem('fases');
+    localStorage.removeItem('control');
     counts();
     goHome();
     alert('Inicia sesión para cargar tus datos.');
@@ -1149,13 +1150,19 @@ async function cargarDatosSupabase(){
     .select('*')
     .eq('user_id', user.id);
 
-  const { data: fases, error: e3 } = await supabaseClient
+    const { data: fases, error: e3 } = await supabaseClient
     .from('fases')
     .select('*')
     .eq('user_id', user.id);
 
-  if(e1 || e2 || e3){
-    console.error('Error cargando Supabase:', e1, e2, e3);
+  const { data: control, error: e4 } = await supabaseClient
+    .from('control')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if(e1 || e2 || e3 || e4){
+    console.error('Error cargando Supabase:', e1, e2, e3, e4);
     alert('No se pudieron cargar datos desde Supabase');
     return;
   }
@@ -1174,7 +1181,8 @@ async function cargarDatosSupabase(){
       .map(x => x.data || x)
   ));
 
-  localStorage.setItem('fases', JSON.stringify((fases || []).map(x => x.data || x)));
+    localStorage.setItem('fases', JSON.stringify((fases || []).map(x => x.data || x)));
+  localStorage.setItem('control', JSON.stringify((control && control.data) ? control.data : {}));
 
   counts();
   goHome();
@@ -1274,6 +1282,7 @@ async function signOut(){
   localStorage.removeItem('oc');
   localStorage.removeItem('perfiles');
   localStorage.removeItem('fases');
+  localStorage.removeItem('control');
 
   renderAuthStatus();
   counts();
@@ -3586,10 +3595,10 @@ function debeMostrarControlISN(obraObj, modo){
   return false;
 }
 function setCtrlISNVal(key, campo, val){
-  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  var ctrl = gCtrl();
   if(!ctrl[key]) ctrl[key] = {};
   ctrl[key][campo] = val;
-  localStorage.setItem('control', JSON.stringify(ctrl));
+  sCtrl(ctrl);
 }
 
 function getCtrlISNVal(key, campo){
@@ -4100,7 +4109,42 @@ function periodoLabel(p) {
 }
 
 function gCtrl() { return JSON.parse(localStorage.getItem('control') || '{}'); }
-function sCtrl(d) { localStorage.setItem('control', JSON.stringify(d)); }
+var controlSyncTimer = null;
+
+function sCtrl(d) {
+  localStorage.setItem('control', JSON.stringify(d));
+  programarSyncControlSupabase();
+}
+
+function programarSyncControlSupabase(){
+  clearTimeout(controlSyncTimer);
+  controlSyncTimer = setTimeout(sincronizarControlSupabase, 700);
+}
+
+async function sincronizarControlSupabase(){
+  try{
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return;
+
+    var dataControl = JSON.parse(localStorage.getItem('control') || '{}');
+
+    const { error } = await supabaseClient
+      .from('control')
+      .upsert({
+        user_id: user.id,
+        data: dataControl,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if(error){
+      console.error('SUPABASE CONTROL ERROR:', error);
+    } else {
+      console.log('Control sincronizado en Supabase');
+    }
+  } catch(err){
+    console.error('Error sincronizando control con Supabase:', err);
+  }
+}
 
 function getCtrlVal(ctrl, key, periodo, campo) {
   return (ctrl[key] && ctrl[key][periodo] && ctrl[key][periodo][campo] != null)
@@ -4566,8 +4610,8 @@ function getCtrlTotales(faseId){
     cuotas: cuotas
   };
 }
-function guardarControl() {
-  // Data is saved on each change via setCtrlVal, this just confirms
+async function guardarControl() {
+  await sincronizarControlSupabase();
   alert('Cambios guardados correctamente.');
 }
 
