@@ -1295,9 +1295,9 @@ function counts(){var p=gP(),c=gC();document.getElementById('cnt-p').textContent
 var ta='';
 function irLista(t){ta=t;var lista=t==='p'?gP():gC();document.getElementById('ltit').textContent=t==='p'?'Obras Propietaria':'Obras Contratista';document.getElementById('lsub').textContent=lista.length+' obra'+(lista.length!==1?'s':'')+' registrada'+(lista.length!==1?'s':'');var h='';if(!lista.length){h='<div class="empty"><p>Sin obras registradas.</p></div>';}else{lista.forEach(function(o){var n2=t==='p'?o.patron:o.contratista;var lb=t==='p'?'Propietaria':'Contratista';h+='<div class="ocard" data-id="'+o.id+'"><div class="oacts"><button class="bedit" data-id="'+o.id+'">Editar</button><button class="bdel" data-id="'+o.id+'">Eliminar</button></div><div class="onom">'+o.nombre+'</div><div class="odet"><div class="ofil"><span class="olab">RFC:</span><span>'+o.rfc+'</span></div><div class="ofil"><span class="olab">'+lb+':</span><span>'+n2+'</span></div><div class="ofil"><span class="olab">Vigencia:</span><span>'+fdate(o.inicia)+' - '+fdate(o.termina)+'</span></div></div></div>';});}var ol=document.getElementById('olist');ol.innerHTML=h;ol.onclick=function(e){var card=e.target.closest('.ocard');if(!card)return;var id=card.getAttribute('data-id');if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditar(id);}else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDel(id);}else{irFicha(id);}};show('pg-lista');}
 function sumarISNPagadoControlFasesObra(nombreObra){
-  var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
+  var ctrl = gCtrl ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
 
-  var obra = gP().find(function(o){
+  var obra = gP().concat(gC()).find(function(o){
     return String(o.nombre || '').trim() === String(nombreObra || '').trim();
   }) || {};
 
@@ -1329,25 +1329,24 @@ function sumarISNPagadoControlFasesObra(nombreObra){
     total += sumarDataISN(ctrl[k] || {});
   }
 
+  function esFasePropietaria(f){
+    return (
+      String(f.id || '').indexOf('prop_') === 0 ||
+      String(f.perfil || '').toLowerCase().trim() === 'propietaria' ||
+      (obra.rfc && f.rfc && String(f.rfc).trim().toUpperCase() === String(obra.rfc).trim().toUpperCase()) ||
+      (obra.siroc && f.siroc && String(f.siroc).trim().toUpperCase() === String(obra.siroc).trim().toUpperCase())
+    );
+  }
+
   var fasesObra = gFases().filter(function(f){
     return String(f.obra || '').trim() === String(nombreObra || '').trim();
   });
 
   if(pagadoPor === 'propietaria'){
     sumarKeyControl('isn_prop_' + (obra.id || obra.nombre || 'obra'));
-    sumarKeyControl('isn_fase_prop_' + (obra.id || ''));
-    sumarKeyControl('isn_fase_prop_' + (obra.nombre || ''));
-    sumarKeyControl('isn_fase_propietaria');
 
     fasesObra.forEach(function(f){
-      var esPropietaria =
-        String(f.id || '').indexOf('prop_') === 0 ||
-        String(f.perfil || '').toLowerCase() === 'propietaria' ||
-        String(f.origen || '').toLowerCase() === 'propietaria' ||
-        (obra.rfc && f.rfc && String(f.rfc).trim() === String(obra.rfc).trim()) ||
-        (obra.siroc && f.siroc && String(f.siroc).trim() === String(obra.siroc).trim());
-
-      if(esPropietaria){
+      if(esFasePropietaria(f)){
         sumarKeyControl('isn_fase_' + f.id);
       }
     });
@@ -1357,14 +1356,15 @@ function sumarISNPagadoControlFasesObra(nombreObra){
 
   if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
     fasesObra.forEach(function(f){
-      if(String(f.id || '').indexOf('prop_') === 0) return;
-      sumarKeyControl('isn_fase_' + f.id);
+      if(!esFasePropietaria(f)){
+        sumarKeyControl('isn_fase_' + f.id);
+      }
     });
 
     return total;
   }
 
-  return 0;
+  return total;
 }
 
 function irFicha(id){
@@ -3467,10 +3467,26 @@ function irControlObra(obraObj) {
 
   var first = true;
   rfcsUnicos.forEach(function(rfc) {
-    var prf = perfiles.find(function(p){ return p.rfc === rfc; });
-    if(!prf) return;
-    var tabId = 'oc_' + rfc.replace(/[^a-zA-Z0-9]/g,'_');
-    var label = prf.nombre.split(' ')[0];
+    var prf = perfiles.find(function(p){
+      return String(p.rfc || '').trim().toUpperCase() === String(rfc || '').trim().toUpperCase();
+    });
+
+    if(!prf){
+      prf = {
+        id: 'tmp_' + rfc,
+        rfc: rfc || '',
+        nombre: String(rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase()
+          ? (obraObj.patron || obraObj.nombre || 'Propietaria')
+          : 'Sin perfil',
+        tipo: String(rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase()
+          ? 'propietaria'
+          : 'contratista',
+        rp: obraObj.rp || ''
+      };
+    }
+
+    var tabId = 'oc_' + String(rfc || '').replace(/[^a-zA-Z0-9]/g,'_');
+    var label = (prf.nombre || 'Control').split(' ')[0];
 
     // Create tab button
     var btn = document.createElement('button');
@@ -3509,7 +3525,13 @@ function irControlObra(obraObj) {
     });
 
     var controlISNHtml = debeMostrarControlISN(obraObj, 'propietaria') ? buildControlISN('isn_prop_' + (obraObj.id || obraObj.nombre || 'obra'), obraObj) : '';
-    panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
+
+    if(String(rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase()){
+      panel.innerHTML = rfcHtml + suaHtml + controlISNHtml + fasesHtml;
+    } else {
+      panel.innerHTML = rfcHtml + suaHtml + fasesHtml;
+    }
+
     first = false;
   });
 
