@@ -4250,12 +4250,33 @@ function addCtrlTab(id, label, tabsEl, panelsEl, active) {
 }
 
 function docSelectCtrl(key, periodo, campo, val) {
+  var mes = parseInt(String(periodo || '').split('-')[1], 10);
+
+  var bloquear = false;
+
+  // Op. Infonavit: solo meses pares
+  if(campo === 'op_inf'){
+    bloquear = !mes || mes % 2 !== 0;
+  }
+
+  // ICSOE y SISUB: solo inicio de cuatrimestre: Enero, Mayo, Septiembre
+  if(campo === 'icsoe' || campo === 'sisub'){
+    bloquear = !mes || [1,5,9].indexOf(mes) === -1;
+  }
+
+  if(bloquear){
+    return '<select class="ctrl-sel" disabled style="opacity:.45;cursor:not-allowed"><option value="0">--</option></select>';
+  }
+
   var opts = [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo'],['4','N/A']];
-  var esc = function(s){return s.replace(/'/g,"\'");};
+  var esc = function(s){return String(s || '').replace(/'/g,"\\'");};
+
   var sel = '<select class="ctrl-sel" onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseInt(this.value))">';
+
   opts.forEach(function(o){
     sel += '<option value="' + o[0] + '"' + (parseInt(val)===parseInt(o[0])?' selected':'') + '>' + o[1] + '</option>';
   });
+
   return sel + '</select>';
 }
 
