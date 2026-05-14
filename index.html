@@ -1287,75 +1287,55 @@ var ta='';
 function irLista(t){ta=t;var lista=t==='p'?gP():gC();document.getElementById('ltit').textContent=t==='p'?'Obras Propietaria':'Obras Contratista';document.getElementById('lsub').textContent=lista.length+' obra'+(lista.length!==1?'s':'')+' registrada'+(lista.length!==1?'s':'');var h='';if(!lista.length){h='<div class="empty"><p>Sin obras registradas.</p></div>';}else{lista.forEach(function(o){var n2=t==='p'?o.patron:o.contratista;var lb=t==='p'?'Propietaria':'Contratista';h+='<div class="ocard" data-id="'+o.id+'"><div class="oacts"><button class="bedit" data-id="'+o.id+'">Editar</button><button class="bdel" data-id="'+o.id+'">Eliminar</button></div><div class="onom">'+o.nombre+'</div><div class="odet"><div class="ofil"><span class="olab">RFC:</span><span>'+o.rfc+'</span></div><div class="ofil"><span class="olab">'+lb+':</span><span>'+n2+'</span></div><div class="ofil"><span class="olab">Vigencia:</span><span>'+fdate(o.inicia)+' - '+fdate(o.termina)+'</span></div></div></div>';});}var ol=document.getElementById('olist');ol.innerHTML=h;ol.onclick=function(e){var card=e.target.closest('.ocard');if(!card)return;var id=card.getAttribute('data-id');if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditar(id);}else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDel(id);}else{irFicha(id);}};show('pg-lista');}
 function sumarISNPagadoControlFasesObra(nombreObra){
   var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
-
   var obra = gP().find(function(o){
-    return String(o.nombre || '').trim() === String(nombreObra || '').trim();
-  }) || {};
+    return (o.nombre || '') === (nombreObra || '');
+  });
 
-  var pagadoPor = String(obra.isnPagadoPor || '').toLowerCase().trim();
+  var pagadoPor = String((obra && obra.isnPagadoPor) || '').toLowerCase().trim();
+
+  var fases = gFases().filter(function(f){
+    var mismaObra = (f.obra || '') === (nombreObra || '');
+
+    var esPropietaria =
+      String(f.id || '').indexOf('prop_') === 0 ||
+      String(f.perfil || '').toLowerCase() === 'propietaria' ||
+      String(f.origen || '').toLowerCase() === 'propietaria';
+
+    if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
+      return mismaObra && !esPropietaria;
+    }
+
+    if(pagadoPor === 'propietaria'){
+      return mismaObra && esPropietaria;
+    }
+
+    return false;
+  });
+
   var total = 0;
-  var keysSumadas = {};
 
-  function sumarDataISN(data){
-    data = data || {};
-    var subtotal = 0;
+  fases.forEach(function(f){
+    var key = 'isn_fase_' + f.id;
+    var data = ctrl[key] || {};
     var forma = data.formaPagoISN || 'unico';
 
     if(forma === 'unico'){
-      subtotal += parseFloat(data.isnUnicoPagado) || 0;
-    }else{
-      Object.keys(data).forEach(function(k){
-        if(k.indexOf('isnPagado_') === 0){
-          subtotal += parseFloat(data[k]) || 0;
-        }
-      });
+      total += parseFloat(data.isnUnicoPagado) || 0;
+      return;
     }
 
-    return subtotal;
-  }
+    var periodos = mesesEntre(f.inicia || '', f.termina || '');
+    var extras = (data.__extra || []);
+    var periodosValidos = periodos.concat(extras).filter(function(p,i,a){
+      return a.indexOf(p) === i;
+    });
 
-  function sumarKeyControl(k){
-    if(!k || keysSumadas[k]) return;
-    keysSumadas[k] = true;
-    total += sumarDataISN(ctrl[k] || {});
-  }
-
-  var fasesObra = gFases().filter(function(f){
-    return String(f.obra || '').trim() === String(nombreObra || '').trim();
+    periodosValidos.forEach(function(p){
+      total += parseFloat(data['isnPagado_' + p]) || 0;
+    });
   });
 
-  if(pagadoPor === 'propietaria'){
-    sumarKeyControl('isn_prop_' + (obra.id || obra.nombre || 'obra'));
-    sumarKeyControl('isn_fase_prop_' + (obra.id || ''));
-    sumarKeyControl('isn_fase_prop_' + (obra.nombre || ''));
-    sumarKeyControl('isn_fase_propietaria');
-
-    fasesObra.forEach(function(f){
-      var esPropietaria =
-        String(f.id || '').indexOf('prop_') === 0 ||
-        String(f.perfil || '').toLowerCase() === 'propietaria' ||
-        String(f.origen || '').toLowerCase() === 'propietaria' ||
-        (obra.rfc && f.rfc && String(f.rfc).trim() === String(obra.rfc).trim()) ||
-        (obra.siroc && f.siroc && String(f.siroc).trim() === String(obra.siroc).trim());
-
-      if(esPropietaria){
-        sumarKeyControl('isn_fase_' + f.id);
-      }
-    });
-
-    return total;
-  }
-
-  if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
-    fasesObra.forEach(function(f){
-      if(String(f.id || '').indexOf('prop_') === 0) return;
-      sumarKeyControl('isn_fase_' + f.id);
-    });
-
-    return total;
-  }
-
-  return 0;
+  return total;
 }
 function irFicha(id){
   var t=ta;
@@ -4720,15 +4700,11 @@ function generarReporteISN(o,t){
     + '<div class="rpt-total-item"><label>Contingencia ISN</label><span class="warn">' + dinero(contingencia) + '</span></div>'
     + '</div>';
 
-  if(String(o.isnPagadoPor || '').toLowerCase() === 'contratistas'){
+  if(String(o.isnPagadoPor || '').toLowerCase().trim() === 'contratistas' || String(o.isnPagadoPor || '').toLowerCase().trim() === 'contratista'){
     var fases = gFases().filter(function(f){
-      var mismaObra = (f.obra || '') === (o.nombre || '');
-      var esPropietaria =
-        String(f.id || '').indexOf('prop_') === 0 ||
-        String(f.perfil || '').toLowerCase() === 'propietaria' ||
-        String(f.origen || '').toLowerCase() === 'propietaria';
-
-      return mismaObra && !esPropietaria;
+      var mismaObra = String(f.obra || '').trim() === String(o.nombre || '').trim();
+      var dataISN = ctrl['isn_fase_' + f.id];
+      return mismaObra && dataISN;
     });
 
     h += '<div class="rpt-obra" style="margin-top:18px">';
