@@ -4921,6 +4921,23 @@ function generarReporteISN(o,t){
   var fases = gFases().filter(function(f){ return f.obra === obraObj.nombre; });
 
   if(String(obraObj.construye || '') === '1'){
+    var importePropReporte = 0;
+    var factorMOPropReporte = 0;
+    var objetoPropReporte = 'Obra propia propietaria';
+
+    if(tipo === 'p' && baseReporte === 'm2'){
+      importePropReporte = parseFloat(obraObj.moDOF) || 0;
+      factorMOPropReporte = 1;
+      objetoPropReporte = 'Obra propia propietaria — base m² licencia';
+    } else if(tipo === 'p' && baseReporte === 'presupuesto'){
+      importePropReporte = parseFloat(obraObj.valorObra) || 0;
+      factorMOPropReporte = obraObj.factorMOPresupuesto ? (Number(obraObj.factorMOPresupuesto) / 100) : 0;
+      objetoPropReporte = 'Obra propia propietaria — base presupuesto';
+    } else {
+      importePropReporte = parseFloat(obraObj.valorObra || obraObj.importe || obraObj.valorTotal) || 0;
+      factorMOPropReporte = obraObj.factorMOPresupuesto ? (Number(obraObj.factorMOPresupuesto) / 100) : 0;
+    }
+
     fases.unshift({
       id: 'prop_' + obraObj.id,
       obra: obraObj.nombre,
@@ -4928,13 +4945,13 @@ function generarReporteISN(o,t){
       contratista: obraObj.patron || obraObj.nombre || 'Propietaria',
       perfil: 'Propietaria',
       rp: obraObj.rp || '',
-      objeto: 'Obra propia propietaria',
+      objeto: objetoPropReporte,
       siroc: obraObj.siroc || '',
       inicia: obraObj.inicia || '',
       termina: obraObj.termina || '',
-      fmoImss: obraObj.factorMOPresupuesto ? (Number(obraObj.factorMOPresupuesto) / 100) : 0,
+      fmoImss: factorMOPropReporte,
       fcuotasImss: obraObj.fcuotas ? (Number(obraObj.fcuotas) / 100) : 0,
-      importe: obraObj.valorObra || 0,
+      importe: importePropReporte,
       moPagProp: 0,
       cuotasPagProp: 0
     });
