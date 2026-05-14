@@ -3920,8 +3920,12 @@ function buildFaseHtml(perfil, fase) {
     {k:'inf',l:'INF ($)',tip:'Infonavit'}
   ];
   var cols = [
-    {k:'vinc',l:'Vinculación'},{k:'rep_siroc',l:'Reporte SIROC'},
-    {k:'lista_trab',l:'Lista trab.'},{k:'nom_pdf',l:'Nóminas PDF'},{k:'nom_xml',l:'Nóminas XML'}
+    {k:'vinc',l:'Vinculación'},
+    {k:'rep_siroc',l:'Reporte SIROC'},
+    {k:'rep_bim_siroc',l:'Reporte Bimestral SIROC',bimestral:true},
+    {k:'lista_trab',l:'Lista trab.'},
+    {k:'nom_pdf',l:'Nóminas PDF'},
+    {k:'nom_xml',l:'Nóminas XML'}
   ];
   var colsCierre = [
     {k:'acta',l:'Acta entrega'},{k:'av_term',l:'Aviso terminación'},
@@ -3969,7 +3973,13 @@ function buildFaseHtml(perfil, fase) {
       var cuotasRow = (copVal+rcvVal+infVal) > 0 ? mxn(copVal+rcvVal+infVal) : '--';
       h += '<td class="mo-impl" style="color:#a78bfa;font-weight:600;font-size:11px">' + moImpl + '</td>';
       h += '<td class="cuotas-row" style="color:#10b981;font-weight:600;font-size:11px">' + cuotasRow + '</td>';
-      cols.forEach(function(c){ h += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>'; });
+      cols.forEach(function(c){
+        if(c.bimestral){
+          h += '<td>' + docSelectCtrlBimestralSiroc(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
+        } else {
+          h += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
+        }
+      });
       h += '</tr>';
     });
     h += '</tbody></table></div>';
@@ -4276,6 +4286,24 @@ function docSelectCtrl(key, periodo, campo, val) {
   opts.forEach(function(o){
     sel += '<option value="' + o[0] + '"' + (parseInt(val)===parseInt(o[0])?' selected':'') + '>' + o[1] + '</option>';
   });
+  return sel + '</select>';
+}
+
+function docSelectCtrlBimestralSiroc(key, periodo, campo, val) {
+  var mes = parseInt(String(periodo || '').split('-')[1], 10);
+
+  if(!mes || mes % 2 !== 0){
+    return '<select class="ctrl-sel" disabled style="opacity:.45;cursor:not-allowed"><option value="0">--</option></select>';
+  }
+
+  var opts = [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo']];
+  var esc = function(s){return s.replace(/'/g,"\'");};
+  var sel = '<select class="ctrl-sel" onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseInt(this.value))">';
+
+  opts.forEach(function(o){
+    sel += '<option value="' + o[0] + '"' + (parseInt(val)===parseInt(o[0])?' selected':'') + '>' + o[1] + '</option>';
+  });
+
   return sel + '</select>';
 }
 
