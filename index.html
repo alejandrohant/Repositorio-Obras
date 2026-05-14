@@ -5066,8 +5066,13 @@ function generarReporteISN(o,t){
       var moPag = totales.mo;
       var cuotPag = totales.cuotas;
 
-      // Aggregate subcontratistas
-      var subfases = fases.filter(function(sf){ return sf.sirocPrincipal===f.siroc && sf.id!==f.id && f.siroc; });
+      var esFilaPropietaria = esPropietariaReporte(f);
+
+      // Aggregate subcontratistas solo para contratistas, no para la fila artificial de propietaria
+      var subfases = esFilaPropietaria ? [] : fases.filter(function(sf){
+        return sf.sirocPrincipal===f.siroc && sf.id!==f.id && f.siroc;
+      });
+
       var subMoPag=0, subCuotPag=0;
       subfases.forEach(function(sf){
         var st = getCtrlTotales(sf.id);
@@ -5083,8 +5088,7 @@ function generarReporteISN(o,t){
       totalCuotEst += cuotEst;
       totalCuotPag += cuotPagTotal;
 
-      var esFilaPropietaria = esPropietariaReporte(f);
-      var cuotasPagadasPropietaria = esFilaPropietaria ? cuotPagTotal : 0;
+      var cuotasPagadasPropietaria = esFilaPropietaria ? cuotPag : 0;
       var cuotasPagadasContratistas = esFilaPropietaria ? sumarCuotasPagadasContratistasReporte() : cuotPagTotal;
 
       if(esFilaPropietaria){
