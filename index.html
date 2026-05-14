@@ -1181,8 +1181,13 @@ async function cargarDatosSupabase(){
       .map(x => x.data || x)
   ));
 
-    localStorage.setItem('fases', JSON.stringify((fases || []).map(x => x.data || x)));
-  localStorage.setItem('control', JSON.stringify((control && control.data) ? control.data : {}));
+  localStorage.setItem('fases', JSON.stringify((fases || []).map(x => x.data || x)));
+
+  if(control && control.data){
+    localStorage.setItem('control', JSON.stringify(control.data));
+  } else if(!localStorage.getItem('control')){
+    localStorage.setItem('control', JSON.stringify({}));
+  }
 
   counts();
   goHome();
@@ -2025,7 +2030,6 @@ function toggleISNPropietaria(){
   });
 
   if(!mostrar){
-    if(document.getElementById('p-isn-pagado')) document.getElementById('p-isn-pagado').value = '';
     if(document.getElementById('p-isn-pendiente')){
       document.getElementById('p-isn-pendiente').dataset.valor = 0;
       document.getElementById('p-isn-pendiente').value = '';
