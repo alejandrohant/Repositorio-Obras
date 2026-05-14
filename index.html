@@ -295,6 +295,36 @@ select.fg-sel:focus{border-color:#a78bfa}
 .ctrl-fase-panel{display:none}
 .ctrl-fase-panel.active{display:block}
 
+.ctrl-fase-card-hdr{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+  user-select:none;
+  border-bottom:2px solid #1e2d2a;
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+.ctrl-fase-card-hdr:hover h3{
+  color:#34d399;
+}
+.ctrl-fase-card-chev{
+  font-size:11px;
+  color:#64748b;
+  transition:transform 0.2s;
+  margin-top:2px;
+}
+.ctrl-fase-card-chev.open{
+  transform:rotate(180deg);
+}
+.ctrl-fase-card-body{
+  display:none;
+}
+.ctrl-fase-card-body.open{
+  display:block;
+}
+
 .ctrl-contrato-resumen{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -4294,7 +4324,7 @@ function buildFaseHtml(perfil, fase) {
 
   var h = '';
   h += '<div class="ctrl-seccion" id="ctrlfase-card-' + faseIdSafe + '" style="margin-top:12px">';
-  h += '<div class="ctrl-fase-title">';
+  h += '<div class="ctrl-fase-card-hdr" onclick="toggleCtrlFaseCard(\'' + faseIdSafe + '\')">';
   h += '<div>';
   h += '<h3>' + (fase.objeto || 'Fase') + '</h3>';
   h += '<div class="ctrl-fase-meta">';
@@ -4303,7 +4333,10 @@ function buildFaseHtml(perfil, fase) {
   h += ' · RP: ' + (fase.rp || '--');
   h += '</div>';
   h += '</div>';
+  h += '<span class="ctrl-fase-card-chev open" id="ctrlfase-chev-' + faseIdSafe + '">&#9660;</span>';
   h += '</div>';
+
+  h += '<div class="ctrl-fase-card-body open" id="ctrlfase-body-' + faseIdSafe + '">';
 
   h += '<div class="ctrl-fase-menu">';
 
@@ -4341,6 +4374,7 @@ function buildFaseHtml(perfil, fase) {
     h += '<div class="ctrl-fase-panel" data-panel="contratos">' + contratosHtml + '</div>';
   }
 
+  h += '</div>';
   h += '</div>';
 
   return h;
@@ -5102,6 +5136,18 @@ function toggleControlFasePanel(cardId, panelName, btn){
   if(btn) btn.classList.add('sel');
 }
 
+function toggleCtrlFaseCard(cardId){
+  var body = document.getElementById('ctrlfase-body-' + cardId);
+  var chev = document.getElementById('ctrlfase-chev-' + cardId);
+
+  if(!body) return;
+
+  var open = body.classList.toggle('open');
+
+  if(chev){
+    chev.classList.toggle('open', open);
+  }
+}
 function agregarPeriodoRFC(rfc, tipo) {
   var p = prompt('Ingresa el periodo a agregar (formato YYYY-MM, ej. 2026-08):');
   if(!p || p.length!==7 || p[4]!=='-') { alert('Formato inválido. Usa YYYY-MM'); return; }
