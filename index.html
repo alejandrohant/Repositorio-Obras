@@ -271,6 +271,32 @@ select.fg-sel:focus{border-color:#a78bfa}
 .ctrl-fase-panel{display:none}
 .ctrl-fase-panel.active{display:block}
 
+.ctrl-contrato-resumen{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+.ctrl-contrato-resumen div{
+  background:#0f1117;
+  border:1px solid #2d2d44;
+  border-radius:8px;
+  padding:10px 12px;
+}
+.ctrl-contrato-resumen label{
+  display:block;
+  font-size:10px;
+  color:#94a3b8;
+  font-weight:700;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.ctrl-contrato-resumen span{
+  color:#e2e8f0;
+  font-size:13px;
+  font-weight:700;
+}
+
 /* REPORTE */
 .pg-reporte{display:none;padding:32px 24px;max-width:900px;margin:0 auto}
 .pg-reporte.active{display:block}
@@ -4103,12 +4129,108 @@ function buildFaseHtml(perfil, fase) {
 
   var contratosHtml = '';
   if(!faseEsPropietaria && !soloISN){
+    var conveniosCtrl = (ctrl[key] && ctrl[key]['__convenios']) ? ctrl[key]['__convenios'] : [];
+
+    var importeOriginal = parseFloat(fase.importe || fase.sub || fase.valorObra || 0) || 0;
+    var fechaInicioContrato = fase.inicia || '';
+    var fechaTerminoContrato = fase.termina || '';
+
+    var usaSubcontrato = !fase.importe && fase.sub;
+    var legacyKeys = usaSubcontrato ? ['csub1','csub2','csub3'] : ['conv1','conv2','conv3'];
+
+    var conveniosLegacy = [];
+
+    legacyKeys.forEach(function(k, idx){
+      var imp = parseFloat(fase[k]) || 0;
+
+      if(imp){
+        conveniosLegacy.push({
+          nombre: 'Convenio previo ' + (idx + 1),
+          importe: imp
+        });
+      }
+    });
+
+    var totalConveniosLegacy = conveniosLegacy.reduce(function(acc, c){
+      return acc + (parseFloat(c.importe) || 0);
+    }, 0);
+
+    var totalConveniosCtrl = conveniosCtrl.reduce(function(acc, c){
+      return acc + (parseFloat(c.importe) || 0);
+    }, 0);
+
+    var totalConvenios = totalConveniosLegacy + totalConveniosCtrl;
+    var importeTotal = importeOriginal + totalConvenios;
+
+    var fechasConvenio = conveniosCtrl
+      .map(function(c){ return c.fechaTermino || ''; })
+      .filter(Boolean)
+      .sort();
+
+    var nuevaFechaTermino = fechasConvenio.length ? fechasConvenio[fechasConvenio.length - 1] : fechaTerminoContrato;
+
     contratosHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Contratos</h3>';
+
+    contratosHtml += '<div class="ctrl-contrato-resumen" id="contratos-resumen-' + faseIdSafe + '" '
+      + 'data-importe-original="' + importeOriginal + '" '
+      + 'data-convenios-legacy="' + totalConveniosLegacy + '" '
+      + 'data-fecha-original="' + escCtrlHTML(fechaTerminoContrato) + '">';
+
+    contratosHtml += '<div><label>Importe Contrato</label><span>' + (importeOriginal ? mxn(importeOriginal) : '--') + '</span></div>';
+    contratosHtml += '<div><label>Fecha de inicio</label><span>' + (fechaInicioContrato ? fdate(fechaInicioContrato) : '--') + '</span></div>';
+    contratosHtml += '<div><label>Fecha de término</label><span>' + (fechaTerminoContrato ? fdate(fechaTerminoContrato) : '--') + '</span></div>';
+    contratosHtml += '<div><label>Convenios</label><span id="contratos-total-conv-' + faseIdSafe + '">' + (totalConvenios ? mxn(totalConvenios) : '--') + '</span></div>';
+    contratosHtml += '<div><label>Importe Total</label><span id="contratos-importe-total-' + faseIdSafe + '">' + (importeTotal ? mxn(importeTotal) : '--') + '</span></div>';
+    contratosHtml += '<div><label>Nueva fecha de término</label><span id="contratos-nueva-fecha-' + faseIdSafe + '">' + (nuevaFechaTermino ? fdate(nuevaFechaTermino) : '--') + '</span></div>';
+    contratosHtml += '</div>';
+
+    contratosHtml += '<h4>Documentos del contrato</h4>';
     contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
+
     colsContratos.forEach(function(c){
       contratosHtml += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__contratos', c.k, getValContrato(c.k, c.fallback)) + '</td></tr>';
     });
-    contratosHtml += '</tbody></table></div></div>';
+
+    contratosHtml += '</tbody></table></div>';
+
+    if(conveniosLegacy.length){
+      contratosHtml += '<h4>Convenios previos capturados en la fase</h4>';
+      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe</th></tr></thead><tbody>';
+
+      conveniosLegacy.forEach(function(c){
+        contratosHtml += '<tr><td>' + c.nombre + '</td><td>' + mxn(c.importe) + '</td></tr>';
+      });
+
+      contratosHtml += '</tbody></table></div>';
+    }
+
+    contratosHtml += '<h4>Convenios modificatorios</h4>';
+
+    if(!conveniosCtrl.length){
+      contratosHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin convenios modificatorios agregados.</p>';
+    } else {
+      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th></tr></thead><tbody>';
+
+      conveniosCtrl.forEach(function(c, idx){
+        contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
+        contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
+
+        contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
+          + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
+          + 'placeholder="0.00"></td>';
+
+        contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+          + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
+
+        contratosHtml += '</tr>';
+      });
+
+      contratosHtml += '</tbody></table></div>';
+    }
+
+    contratosHtml += '<button class="ctrl-add-btn" onclick="agregarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',\'' + escCtrlJS(faseIdSafe) + '\')">+ Agregar convenio modificatorio</button>';
+
+    contratosHtml += '</div>';
   }
 
   var panelInicial = soloISN && debeMostrarISN ? 'isn' : 'cuotas';
@@ -4485,6 +4607,97 @@ function setCtrlVal(key, periodo, campo, val) {
   sCtrl(ctrl);
 }
 
+function escCtrlJS(s){
+  return String(s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+function escCtrlHTML(s){
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function setConvenioContratoVal(key, idx, campo, val, cardId){
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key]['__convenios']) ctrl[key]['__convenios'] = [];
+  if(!ctrl[key]['__convenios'][idx]) ctrl[key]['__convenios'][idx] = {};
+
+  ctrl[key]['__convenios'][idx][campo] = val;
+  sCtrl(ctrl);
+
+  actualizarResumenContrato(cardId);
+}
+
+function actualizarResumenContrato(cardId){
+  var box = document.getElementById('contratos-resumen-' + cardId);
+  if(!box) return;
+
+  var importeOriginal = parseFloat(box.getAttribute('data-importe-original')) || 0;
+  var conveniosLegacy = parseFloat(box.getAttribute('data-convenios-legacy')) || 0;
+  var fechaOriginal = box.getAttribute('data-fecha-original') || '';
+
+  var totalConvenios = conveniosLegacy;
+  var fechas = [];
+
+  document.querySelectorAll('[data-conv-box="' + cardId + '"]').forEach(function(row){
+    var inpImporte = row.querySelector('[data-conv-campo="importe"]');
+    var inpFecha = row.querySelector('[data-conv-campo="fechaTermino"]');
+
+    totalConvenios += parseFloat(inpImporte ? inpImporte.value : 0) || 0;
+
+    if(inpFecha && inpFecha.value){
+      fechas.push(inpFecha.value);
+    }
+  });
+
+  fechas.sort();
+
+  var nuevaFecha = fechas.length ? fechas[fechas.length - 1] : fechaOriginal;
+  var importeTotal = importeOriginal + totalConvenios;
+
+  var elConv = document.getElementById('contratos-total-conv-' + cardId);
+  var elTotal = document.getElementById('contratos-importe-total-' + cardId);
+  var elFecha = document.getElementById('contratos-nueva-fecha-' + cardId);
+
+  if(elConv) elConv.textContent = totalConvenios ? mxn(totalConvenios) : '--';
+  if(elTotal) elTotal.textContent = importeTotal ? mxn(importeTotal) : '--';
+  if(elFecha) elFecha.textContent = nuevaFecha ? fdate(nuevaFecha) : '--';
+}
+
+function agregarConvenioContrato(faseId, cardId){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key]['__convenios']) ctrl[key]['__convenios'] = [];
+
+  ctrl[key]['__convenios'].push({
+    importe: '',
+    fechaTermino: ''
+  });
+
+  sCtrl(ctrl);
+  recargarControl();
+
+  setTimeout(function(){
+    var card = document.getElementById('ctrlfase-card-' + cardId);
+    if(!card) return;
+
+    var btns = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn'));
+    var btnContratos = btns.find(function(b){
+      return b.textContent.trim() === 'Control Contratos';
+    });
+
+    if(btnContratos){
+      toggleControlFasePanel(cardId, 'contratos', btnContratos);
+    }
+  }, 80);
+}
 function actualizarFilaControl(inputEl) {
   if(!inputEl || !inputEl.closest) return;
   
