@@ -2450,9 +2450,19 @@ function irFases(obraObj,tipoOrigen){
   obraFasesActual={o:obraObj,t:tipoOrigen};
   var nombre=obraObj.nombre;
   var fases=gFases().filter(function(f){return f.obra===nombre;});
+
   document.getElementById('fases-tit').textContent='Fases — '+nombre;
   document.getElementById('fases-sub').textContent=fases.length+' fase'+(fases.length!==1?'s':'')+' registrada'+(fases.length!==1?'s':'');
   document.getElementById('fases-bk').onclick=function(){show('pg-ficha');};
+
+  var btnNueva = document.querySelector('.pg-fases .nbtn');
+  if(btnNueva){
+    btnNueva.textContent = '+ Nueva Fase';
+    btnNueva.onclick = function(){
+      abrirNuevaFase();
+    };
+  }
+
   renderFasesList(fases);
   show('pg-fases');
 }
