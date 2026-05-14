@@ -4959,6 +4959,30 @@ function generarReporteISN(o,t){
   var perfiles = gPrf();
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
+  function esPropietariaReporte(f){
+    return (
+      String(f.id || '').indexOf('prop_') === 0 ||
+      String(f.perfil || '').toLowerCase().trim() === 'propietaria' ||
+      (
+        obraObj.rfc &&
+        String(f.rfc || '').trim().toUpperCase() === String(obraObj.rfc || '').trim().toUpperCase()
+      )
+    );
+  }
+
+  function sumarCuotasPagadasContratistasReporte(){
+    var total = 0;
+
+    fases.forEach(function(ff){
+      if(esPropietariaReporte(ff)) return;
+
+      var t = getCtrlTotales(ff.id);
+      total += parseFloat(t.cuotas) || 0;
+    });
+
+    return total;
+  }
+
   // Build HTML
   var baseLabel = 'Contratos / fases';
   var baseCuotasObra = null;
@@ -5018,13 +5042,22 @@ function generarReporteISN(o,t){
     h += '<h3>' + ctr.nombre + '</h3>';
     h += '<div class="rpt-rfc">RP: ' + ((fasesCtrl[0] && fasesCtrl[0].rp) || prf.rp || '--') + '</div>';
 
-    // Tabla de contratos del contratista
-    h += '<table class="rpt-tbl"><thead><tr>'
-      + '<th>Contrato / Objeto</th><th>SIROC</th><th>MO Estimada</th><th>MO Pagada</th><th>% MO</th>'
-      + '<th>Cuotas Estimadas</th><th>Cuotas Pagadas</th><th>% Cuotas</th>'
-      + '</tr></thead><tbody>';
+    var esTarjetaPropietaria = String(ctr.perfil || '').toLowerCase().trim() === 'propietaria';
 
-    var totalMoEst=0,totalMoPag=0,totalCuotEst=0,totalCuotPag=0;
+    // Tabla de contratos del contratista / propietaria
+    h += '<table class="rpt-tbl"><thead><tr>';
+
+    if(esTarjetaPropietaria){
+      h += '<th>No. Licencia</th><th>SIROC</th><th>MO Estimada</th><th>MO Pagada</th><th>% MO</th>'
+        + '<th>Cuotas Estimadas</th><th>Cuotas pagadas por propietaria</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
+    } else {
+      h += '<th>Contrato / Objeto</th><th>SIROC</th><th>MO Estimada</th><th>MO Pagada</th><th>% MO</th>'
+        + '<th>Cuotas Estimadas</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
+    }
+
+    h += '</tr></thead><tbody>';
+
+    var totalMoEst=0,totalMoPag=0,totalCuotEst=0,totalCuotPag=0,totalCuotPagContratistasDisplay=0;
 
     fasesCtrl.forEach(function(f){
       var totales = getCtrlTotales(f.id);
@@ -5050,34 +5083,70 @@ function generarReporteISN(o,t){
       totalCuotEst += cuotEst;
       totalCuotPag += cuotPagTotal;
 
-      var pctMO = moEst>0 ? moPagTotal/moEst : null;
-      var pctCuot = cuotEst>0 ? cuotPagTotal/cuotEst : null;
-      var hayRiesgo = (moEst>0 && moPagTotal<moEst*0.5) || (cuotEst>0 && cuotPagTotal<cuotEst*0.5);
+      var esFilaPropietaria = esPropietariaReporte(f);
+      var cuotasPagadasPropietaria = esFilaPropietaria ? cuotPagTotal : 0;
+      var cuotasPagadasContratistas = esFilaPropietaria ? sumarCuotasPagadasContratistasReporte() : cuotPagTotal;
 
-      h += '<tr class="'+(hayRiesgo?'rpt-warn':'')+'">'
-        + '<td>' + f.objeto + '</td>'
-        + '<td style="font-family:monospace;font-size:11px">' + (f.siroc||'--') + '</td>'
+      if(esFilaPropietaria){
+        totalCuotPagContratistasDisplay = cuotasPagadasContratistas;
+      }
+
+      var cuotPagParaPct = esFilaPropietaria
+        ? cuotasPagadasPropietaria + cuotasPagadasContratistas
+        : cuotPagTotal;
+
+      var pctMO = moEst>0 ? moPagTotal/moEst : null;
+      var pctCuot = cuotEst>0 ? cuotPagParaPct/cuotEst : null;
+      var hayRiesgo = (moEst>0 && moPagTotal<moEst*0.5) || (cuotEst>0 && cuotPagParaPct<cuotEst*0.5);
+
+      h += '<tr class="'+(hayRiesgo?'rpt-warn':'')+'">';
+
+      if(esFilaPropietaria){
+        h += '<td>' + (obraObj.licencia || '--') + '</td>';
+      } else {
+        h += '<td>' + f.objeto + '</td>';
+      }
+
+      h += '<td style="font-family:monospace;font-size:11px">' + (f.siroc||'--') + '</td>'
         + '<td>' + rptMxn(moEst>0?moEst:null) + '</td>'
         + '<td>' + rptMxn(moPagTotal>0?moPagTotal:null) + '</td>'
         + '<td>' + pctTag(pctMO) + '</td>'
-        + '<td>' + rptMxn(cuotEst>0?cuotEst:null) + '</td>'
-        + '<td>' + rptMxn(cuotPagTotal>0?cuotPagTotal:null) + '</td>'
-        + '<td>' + pctTag(pctCuot) + '</td>'
+        + '<td>' + rptMxn(cuotEst>0?cuotEst:null) + '</td>';
+
+      if(esFilaPropietaria){
+        h += '<td>' + rptMxn(cuotasPagadasPropietaria>0?cuotasPagadasPropietaria:null) + '</td>'
+          + '<td>' + rptMxn(cuotasPagadasContratistas>0?cuotasPagadasContratistas:null) + '</td>';
+      } else {
+        h += '<td>' + rptMxn(cuotPagTotal>0?cuotPagTotal:null) + '</td>';
+      }
+
+      h += '<td>' + pctTag(pctCuot) + '</td>'
         + '</tr>';
 
     });
 
     // Total del contratista
     var pctMOTot = totalMoEst>0 ? totalMoPag/totalMoEst : null;
-    var pctCuotTot = totalCuotEst>0 ? totalCuotPag/totalCuotEst : null;
+    var totalCuotPagParaPct = esTarjetaPropietaria
+      ? totalCuotPag + totalCuotPagContratistasDisplay
+      : totalCuotPag;
+    var pctCuotTot = totalCuotEst>0 ? totalCuotPagParaPct/totalCuotEst : null;
+
     h += '<tr class="rpt-tot">'
       + '<td colspan="2">TOTAL</td>'
       + '<td>' + rptMxn(totalMoEst>0?totalMoEst:null) + '</td>'
       + '<td>' + rptMxn(totalMoPag>0?totalMoPag:null) + '</td>'
       + '<td>' + pctTag(pctMOTot) + '</td>'
-      + '<td>' + rptMxn(totalCuotEst>0?totalCuotEst:null) + '</td>'
-      + '<td>' + rptMxn(totalCuotPag>0?totalCuotPag:null) + '</td>'
-      + '<td>' + pctTag(pctCuotTot) + '</td>'
+      + '<td>' + rptMxn(totalCuotEst>0?totalCuotEst:null) + '</td>';
+
+    if(esTarjetaPropietaria){
+      h += '<td>' + rptMxn(totalCuotPag>0?totalCuotPag:null) + '</td>'
+        + '<td>' + rptMxn(totalCuotPagContratistasDisplay>0?totalCuotPagContratistasDisplay:null) + '</td>';
+    } else {
+      h += '<td>' + rptMxn(totalCuotPag>0?totalCuotPag:null) + '</td>';
+    }
+
+    h += '<td>' + pctTag(pctCuotTot) + '</td>'
       + '</tr>';
     h += '</tbody></table>';
 
