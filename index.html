@@ -1300,15 +1300,13 @@ function counts(){var p=gP(),c=gC();document.getElementById('cnt-p').textContent
 var ta='';
 function irLista(t){ta=t;var lista=t==='p'?gP():gC();document.getElementById('ltit').textContent=t==='p'?'Obras Propietaria':'Obras Contratista';document.getElementById('lsub').textContent=lista.length+' obra'+(lista.length!==1?'s':'')+' registrada'+(lista.length!==1?'s':'');var h='';if(!lista.length){h='<div class="empty"><p>Sin obras registradas.</p></div>';}else{lista.forEach(function(o){var n2=t==='p'?o.patron:o.contratista;var lb=t==='p'?'Propietaria':'Contratista';h+='<div class="ocard" data-id="'+o.id+'"><div class="oacts"><button class="bedit" data-id="'+o.id+'">Editar</button><button class="bdel" data-id="'+o.id+'">Eliminar</button></div><div class="onom">'+o.nombre+'</div><div class="odet"><div class="ofil"><span class="olab">RFC:</span><span>'+o.rfc+'</span></div><div class="ofil"><span class="olab">'+lb+':</span><span>'+n2+'</span></div><div class="ofil"><span class="olab">Vigencia:</span><span>'+fdate(o.inicia)+' - '+fdate(o.termina)+'</span></div></div></div>';});}var ol=document.getElementById('olist');ol.innerHTML=h;ol.onclick=function(e){var card=e.target.closest('.ocard');if(!card)return;var id=card.getAttribute('data-id');if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditar(id);}else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDel(id);}else{irFicha(id);}};show('pg-lista');}
 function sumarISNPagadoControlFasesObra(nombreObra){
-  var ctrl = gCtrl ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
+  var ctrl = (typeof gCtrl === 'function') ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
 
   var obra = gP().concat(gC()).find(function(o){
     return String(o.nombre || '').trim() === String(nombreObra || '').trim();
   }) || {};
 
   var pagadoPor = String(obra.isnPagadoPor || '').toLowerCase().trim();
-  var total = 0;
-  var keysSumadas = {};
 
   function sumarDataISN(data){
     data = data || {};
@@ -1328,10 +1326,9 @@ function sumarISNPagadoControlFasesObra(nombreObra){
     return subtotal;
   }
 
-  function sumarKeyControl(k){
-    if(!k || keysSumadas[k]) return;
-    keysSumadas[k] = true;
-    total += sumarDataISN(ctrl[k] || {});
+  function valorKeyControl(k){
+    if(!k || !ctrl[k]) return 0;
+    return sumarDataISN(ctrl[k]);
   }
 
   function esFasePropietaria(f){
@@ -1348,32 +1345,36 @@ function sumarISNPagadoControlFasesObra(nombreObra){
   });
 
   if(pagadoPor === 'propietaria'){
-    sumarKeyControl('isn_prop_' + (obra.id || obra.nombre || 'obra'));
+    var keyPrincipal = 'isn_prop_' + (obra.id || obra.nombre || 'obra');
 
-    // Compatibilidad con capturas anteriores del bloque duplicado
-    sumarKeyControl('isn_fase_prop_' + (obra.id || ''));
-    sumarKeyControl('isn_fase_prop_' + (obra.nombre || ''));
+    if(Object.prototype.hasOwnProperty.call(ctrl, keyPrincipal)){
+      return valorKeyControl(keyPrincipal);
+    }
+
+    var totalLegacy = 0;
 
     fasesObra.forEach(function(f){
       if(esFasePropietaria(f)){
-        sumarKeyControl('isn_fase_' + f.id);
+        totalLegacy += valorKeyControl('isn_fase_' + f.id);
       }
     });
 
-    return total;
+    return totalLegacy;
   }
 
   if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
+    var totalContratistas = 0;
+
     fasesObra.forEach(function(f){
       if(!esFasePropietaria(f)){
-        sumarKeyControl('isn_fase_' + f.id);
+        totalContratistas += valorKeyControl('isn_fase_' + f.id);
       }
     });
 
-    return total;
+    return totalContratistas;
   }
 
-  return total;
+  return 0;
 }
 
 function irFicha(id){
