@@ -3881,9 +3881,39 @@ function buildRFCHtml(perfil, fasesBase) {
 
 // Build SUA html without relying on fixed panel id
 function buildSUAHtml(perfil, fasesBase) {
-  var key = 'sua_' + perfil.rfc + '_' + (perfil.rp||'');
+  var fases = fasesBase || gFases().filter(function(f){
+    return String(f.rfc || '').trim().toUpperCase() === String(perfil.rfc || '').trim().toUpperCase();
+  });
+
+  var obraBase = {};
+  if(fases.length){
+    obraBase = gP().concat(gC()).find(function(o){
+      return String(o.nombre || '').trim() === String(fases[0].obra || '').trim();
+    }) || {};
+  }
+
+  var faseConRP = fases.find(function(f){
+    return String(f.rp || '').trim();
+  }) || {};
+
+  var faseConSubdelegacion = fases.find(function(f){
+    return String(f.subdelegacion || '').trim();
+  }) || {};
+
+  var mismoRFCObra =
+    String(obraBase.rfc || '').trim().toUpperCase() === String(perfil.rfc || '').trim().toUpperCase();
+
+  var rpControl = String(faseConRP.rp || perfil.rp || (mismoRFCObra ? obraBase.rp : '') || '').trim();
+
+  var subControl = String(
+    faseConSubdelegacion.subdelegacion ||
+    perfil.subdelegacion ||
+    (mismoRFCObra ? obraBase.subdelegacion : '') ||
+    'Cancún'
+  ).trim();
+
+  var key = 'sua_' + perfil.rfc + '_' + (rpControl || '');
   var ctrl = gCtrl();
-  var fases = fasesBase || gFases().filter(function(f){ return f.rfc === perfil.rfc; });
   var fechas = fases.map(function(f){ return f.inicia; }).filter(Boolean).sort();
   var inicio = fechas.length ? fechas[0] : new Date().toISOString().slice(0,7) + '-01';
   var fechasFin = fases.map(function(f){ return f.termina; }).filter(Boolean).sort();
@@ -3915,7 +3945,7 @@ function buildSUAHtml(perfil, fasesBase) {
   });
   h += '</tbody></table></div>';
   h += '<button class="ctrl-add-btn" onclick="agregarPeriodoRFC(\'' + perfil.rfc + '\',\'sua\')">+ Agregar periodo manual</button>';
-  return wrapCollapsible('Pagos SUA — RP: ' + (perfil.rp||'--') + ' · ' + (perfil.subdelegacion||'Cancún'), h);
+  return wrapCollapsible('Obligaciones RP — ' + (rpControl || '--') + ' · ' + (subControl || 'Cancún'), h);
 }
 
 function pctIn(v){
@@ -4086,7 +4116,7 @@ function buildFaseHtml(perfil, fase) {
       + '<div style="background:#2d1a00;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#f59e0b;font-weight:600;text-transform:uppercase;margin-bottom:2px">GPS Acumulado</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#f59e0b">' + (totalGPS>0?mxn(totalGPS):'--') + '</div></div>'
       + '</div>';
 
-    cuotasHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control de Cuotas IMSS</h3>';
+    cuotasHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control cuotas IMSS/SIROC</h3>';
 
     if(!todosPeridos.length) {
       cuotasHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin periodos generados. La fase no tiene fechas definidas.</p>';
@@ -4259,7 +4289,9 @@ function buildFaseHtml(perfil, fase) {
     contratosHtml += '</div>';
   }
 
-  var panelInicial = soloISN && debeMostrarISN ? 'isn' : 'cuotas';
+  var panelInicial = soloISN && debeMostrarISN
+    ? 'isn'
+    : ((!faseEsPropietaria && !soloISN) ? 'contratos' : 'cuotas');
 
   var h = '';
   h += '<div class="ctrl-seccion" id="ctrlfase-card-' + faseIdSafe + '" style="margin-top:12px">';
@@ -4276,8 +4308,12 @@ function buildFaseHtml(perfil, fase) {
 
   h += '<div class="ctrl-fase-menu">';
 
+  if(!faseEsPropietaria && !soloISN){
+    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'contratos' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'contratos\',this)">Control Contratos</button>';
+  }
+
   if(!soloISN){
-    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'cuotas' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cuotas\',this)">Control de Cuotas IMSS</button>';
+    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'cuotas' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cuotas\',this)">Control cuotas IMSS/SIROC</button>';
   }
 
   if(debeMostrarISN){
@@ -4286,10 +4322,6 @@ function buildFaseHtml(perfil, fase) {
 
   if(!soloISN){
     h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cierre\',this)">Control Cierre</button>';
-  }
-
-  if(!faseEsPropietaria && !soloISN){
-    h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'contratos\',this)">Control Contratos</button>';
   }
 
   h += '</div>';
