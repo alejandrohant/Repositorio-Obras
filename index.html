@@ -1312,32 +1312,45 @@ function sumarISNPagadoControlFasesObra(nombreObra){
     return total;
   }
 
+  function esFasePropietaria(f){
+    return String(f.id || '').indexOf('prop_') === 0 ||
+      String(f.perfil || '').toLowerCase() === 'propietaria' ||
+      String(f.origen || '').toLowerCase() === 'propietaria';
+  }
+
   var fases = gFases().filter(function(f){
     return (f.obra || '') === (nombreObra || '');
   });
 
+  if(String(obra.construye || '') === '1'){
+    fases.unshift({
+      id: 'prop_' + (obra.id || ''),
+      obra: obra.nombre || '',
+      rfc: obra.rfc || '',
+      perfil: 'Propietaria',
+      origen: 'Propietaria',
+      siroc: obra.siroc || '',
+      inicia: obra.inicia || '',
+      termina: obra.termina || ''
+    });
+  }
+
+  if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
+    fases = fases.filter(function(f){
+      return !esFasePropietaria(f);
+    });
+  }else if(pagadoPor === 'propietaria'){
+    fases = fases.filter(function(f){
+      return esFasePropietaria(f);
+    });
+  }else{
+    fases = [];
+  }
+
   var total = 0;
 
   fases.forEach(function(f){
-    var data = ctrl['isn_fase_' + f.id] || {};
-
-    if(pagadoPor === 'contratistas' || pagadoPor === 'contratista'){
-      var esPropietaria =
-        String(f.id || '').indexOf('prop_') === 0 ||
-        String(f.perfil || '').toLowerCase() === 'propietaria' ||
-        String(f.origen || '').toLowerCase() === 'propietaria';
-
-      if(!esPropietaria){
-        total += sumarDataISN(data);
-      }
-    }
-
-    if(pagadoPor === 'propietaria'){
-      var suma = sumarDataISN(data);
-      if(suma > 0){
-        total += suma;
-      }
-    }
+    total += sumarDataISN(ctrl['isn_fase_' + f.id] || {});
   });
 
   return total;
