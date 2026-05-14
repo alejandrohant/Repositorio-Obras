@@ -937,7 +937,9 @@ select.fg-sel:focus{border-color:#a78bfa}
 <div class="fg fp"><label>Factor ISN (%)</label><input type="number" step="0.01" id="p-fisn" value="4.00" oninput="calcMODOF()"></div>
 <div class="fg fp"><label>ISN ESTIMADO ($)</label><input id="p-iest" readonly></div>
 
-        <div class="fg fp"><label>Subdelegación</label><input id="p-subdelegacion"></div>
+<div class="fg full fp"><label>Ubicación</label><input id="p-ubic"></div>
+
+<div class="fg fp"><label>Subdelegación</label><input id="p-subdelegacion"></div>
 
 <div class="fg fp"><label>Formato de Alta Patronal (ARP)</label><select id="p-arp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
 
@@ -2993,13 +2995,18 @@ function abrirEditarFase(id){
     });
   }
 
-  document.getElementById('fa-corp1').value=f.corp1||0;
-  document.getElementById('fa-corp2').value=f.corp2||0;
-  document.getElementById('fa-corp-res').value=f.corpRes||0;
-  document.getElementById('fa-corp-pago').value=f.corpPago||0;
-  document.getElementById('fa-corp-avdic').value=f.corpAvdic||0;
-  document.getElementById('fa-corp-oficio').value=f.corpOficio||0;
-  document.getElementById('fa-corp-dictamen').value=f.corpDictamen||0;
+  function setFaseCampo(idCampo, valor){
+    var el = document.getElementById(idCampo);
+    if(el) el.value = valor || 0;
+  }
+
+  setFaseCampo('fa-corp1', f.corp1);
+  setFaseCampo('fa-corp2', f.corp2);
+  setFaseCampo('fa-corp-res', f.corpRes);
+  setFaseCampo('fa-corp-pago', f.corpPago);
+  setFaseCampo('fa-corp-avdic', f.corpAvdic);
+  setFaseCampo('fa-corp-oficio', f.corpOficio);
+  setFaseCampo('fa-corp-dictamen', f.corpDictamen);
 
   var docs7keys=['en-obra','explosi','planos','balxls','balpdf','declanu','listtrab','nompdf','nomxml','fact','estim'];
   var docs7props=['docEnObra','docExplosion','docPlanos','docBalxls','docBalpdf','docDeclanu','docListtrab','docNompdf','docNomxml','docFact','docEstim'];
@@ -3123,6 +3130,20 @@ async function guardarFase(){
   var rfc=document.getElementById('fa-rfc').value;
   var obra=document.getElementById('fa-obra').value;
   if(!objeto||!rfc||!obra){alert('Objeto, Obra y Contratista son obligatorios.');return;}
+    var faseAnterior = eFaseId ? (gFases().find(function(x){return x.id===eFaseId;}) || {}) : {};
+
+  function valFase(idCampo, fallback){
+    var el = document.getElementById(idCampo);
+    if(el) return el.value;
+    return fallback || '';
+  }
+
+  function intFase(idCampo, fallback){
+    var el = document.getElementById(idCampo);
+    if(el) return parseInt(el.value) || 0;
+    return parseInt(fallback) || 0;
+  }
+
   var f={
     id:eFaseId||'fa_'+Date.now(),
     origen:document.getElementById('fa-origen').value,
@@ -3168,30 +3189,30 @@ async function guardarFase(){
     fmoIsn:pctIn(document.getElementById('fa-fmo-isn').value),
     fisn:pctIn(document.getElementById('fa-fisn').value),
     isnEst:(num(document.getElementById('fa-importe').value) * pctIn(document.getElementById('fa-fmo-isn').value) * pctIn(document.getElementById('fa-fisn').value)),
-    docContrato:parseInt(document.getElementById('fa-doc-contrato').value)||0,
-    docFirmado:parseInt(document.getElementById('fa-doc-firmado').value)||0,
-    docSiroc:parseInt(document.getElementById('fa-doc-siroc').value)||0,
-    docSirocVig:parseInt(document.getElementById('fa-doc-sirocvig').value)||0,
-    docActa:parseInt(document.getElementById('fa-doc-acta').value)||0,
-    docAvterm:parseInt(document.getElementById('fa-doc-avterm').value)||0,
-    corp1:parseInt(document.getElementById('fa-corp1').value)||0,
-    corp2:parseInt(document.getElementById('fa-corp2').value)||0,
-    corpRes:parseInt(document.getElementById('fa-corp-res').value)||0,
-    corpPago:parseInt(document.getElementById('fa-corp-pago').value)||0,
-    corpAvdic:parseInt(document.getElementById('fa-corp-avdic').value)||0,
-    corpOficio:parseInt(document.getElementById('fa-corp-oficio').value)||0,
-    corpDictamen:parseInt(document.getElementById('fa-corp-dictamen').value)||0,
-    docEnObra:parseInt(document.getElementById('fa-en-obra').value)||0,
-    docExplosion:parseInt(document.getElementById('fa-explosi').value)||0,
-    docPlanos:parseInt(document.getElementById('fa-planos').value)||0,
-    docBalxls:parseInt(document.getElementById('fa-balxls').value)||0,
-    docBalpdf:parseInt(document.getElementById('fa-balpdf').value)||0,
-    docDeclanu:parseInt(document.getElementById('fa-declanu').value)||0,
-    docListtrab:parseInt(document.getElementById('fa-listtrab').value)||0,
-    docNompdf:parseInt(document.getElementById('fa-nompdf').value)||0,
-    docNomxml:parseInt(document.getElementById('fa-nomxml').value)||0,
-    docFact:parseInt(document.getElementById('fa-fact').value)||0,
-    docEstim:parseInt(document.getElementById('fa-estim').value)||0
+    docContrato:intFase('fa-doc-contrato', faseAnterior.docContrato),
+    docFirmado:intFase('fa-doc-firmado', faseAnterior.docFirmado),
+    docSiroc:intFase('fa-doc-siroc', faseAnterior.docSiroc),
+    docSirocVig:intFase('fa-doc-sirocvig', faseAnterior.docSirocVig),
+    docActa:intFase('fa-doc-acta', faseAnterior.docActa),
+    docAvterm:intFase('fa-doc-avterm', faseAnterior.docAvterm),
+    corp1:intFase('fa-corp1', faseAnterior.corp1),
+    corp2:intFase('fa-corp2', faseAnterior.corp2),
+    corpRes:intFase('fa-corp-res', faseAnterior.corpRes),
+    corpPago:intFase('fa-corp-pago', faseAnterior.corpPago),
+    corpAvdic:intFase('fa-corp-avdic', faseAnterior.corpAvdic),
+    corpOficio:intFase('fa-corp-oficio', faseAnterior.corpOficio),
+    corpDictamen:intFase('fa-corp-dictamen', faseAnterior.corpDictamen),
+    docEnObra:intFase('fa-en-obra', faseAnterior.docEnObra),
+    docExplosion:intFase('fa-explosi', faseAnterior.docExplosion),
+    docPlanos:intFase('fa-planos', faseAnterior.docPlanos),
+    docBalxls:intFase('fa-balxls', faseAnterior.docBalxls),
+    docBalpdf:intFase('fa-balpdf', faseAnterior.docBalpdf),
+    docDeclanu:intFase('fa-declanu', faseAnterior.docDeclanu),
+    docListtrab:intFase('fa-listtrab', faseAnterior.docListtrab),
+    docNompdf:intFase('fa-nompdf', faseAnterior.docNompdf),
+    docNomxml:intFase('fa-nomxml', faseAnterior.docNomxml),
+    docFact:intFase('fa-fact', faseAnterior.docFact),
+    docEstim:intFase('fa-estim', faseAnterior.docEstim)
   };
   // rfcOrigen from obra
   var todas=gP().concat(gC());
