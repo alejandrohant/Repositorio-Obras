@@ -2731,19 +2731,29 @@ function irFichaFase(id){
   var contIMSSctr=moEstCtr*(f.fcuotasImss||0);
   var contIMSSsub=moEstSub*(f.fcuotasImss||0);
   // Grupo 1: Identificación
-  var g1='<div class="fase-grid">'
-    +campoFase('Origen',f.origen)
-    +campoFase('Obra',f.obra)
-    +campoFase('RFC Contratista','<span class="mono">'+f.rfc+'</span>')
-    +campoFase('Contratista',f.contratista)
-    +campoFase('Perfil',f.perfil)
-    +campoFase('RP',f.rp)
-    +campoFase('SIROC Principal','<span class="mono">'+f.sirocPrincipal+'</span>')
-    +(f.sirocSub?campoFase('SIROC Sub','<span class="mono" style="color:#a78bfa">'+f.sirocSub+'</span> <span style="font-size:10px;color:#64748b">(folio para subcontratistas)</span>'):'')
-    +campoFase('SIROC Contratista','<span class="mono">'+f.siroc+'</span>')
-    +campoFase('Objeto / Fase',f.objeto,'full')
-    +campoFase('Ubicación',f.ubicacion,'full')
-    +'</div>';
+  var esSubcontratista = String(f.perfil || '').toLowerCase().trim() === 'subcontratista';
+  var lblPersona = esSubcontratista ? 'Subcontratista' : 'Contratista';
+  var lblRFC = esSubcontratista ? 'RFC Subcontratista' : 'RFC Contratista';
+  var lblSIROC = esSubcontratista ? 'SIROC Subcontratista' : 'SIROC Contratista';
+
+  var g1=''
+    +'<div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Datos de la obra</span><span class="sg-chev">&#9660;</span></div>'
+    +'<div class="sub-group-body"><div class="fase-grid">'
+      +campoFase('Obra',f.obra)
+      +campoFase('SIROC Principal','<span class="mono">'+f.sirocPrincipal+'</span>')
+      +campoFase('Ubicación',f.ubicacion,'full')
+    +'</div></div>'
+
+    +'<div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Datos del '+lblPersona.toLowerCase()+'</span><span class="sg-chev">&#9660;</span></div>'
+    +'<div class="sub-group-body"><div class="fase-grid">'
+      +campoFase('Perfil',f.perfil)
+      +campoFase(lblRFC,'<span class="mono">'+f.rfc+'</span>')
+      +campoFase(lblPersona,f.contratista)
+      +campoFase('RP',f.rp)
+      +campoFase(lblSIROC,'<span class="mono">'+f.siroc+'</span>')
+      +(f.sirocSub?campoFase('SIROC Sub','<span class="mono" style="color:#a78bfa">'+f.sirocSub+'</span> <span style="font-size:10px;color:#64748b">(folio para subcontratistas)</span>'):'')
+      +campoFase('Objeto / Fase',f.objeto,'full')
+    +'</div></div>';
   // Grupo 2: Importes
   var importeBase=Number(f.importe||f.sub||f.valorObra||0);
   var totalConveniosCtrl=ctrlConvenios.reduce(function(acc,c){return acc+(parseFloat(c.importe)||0);},0);
