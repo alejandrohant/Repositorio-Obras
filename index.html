@@ -2652,15 +2652,47 @@ function irFichaFase(id){
   var acum=calcAcumulado(f);
   var acumSub=calcAcumSub(f);
   var hasSub=acumSub>0;
-  var hasConv=(f.conv1||f.conv2||f.conv3);
-  var hasCorp=(f.corp1>0&&f.corp1!==4)||(f.corp2>0&&f.corp2!==4);
+  var hasConv=(f.conv1||f.conv2||f.conv3||ctrlConvenios.length);
+  var hasCorp=(valCtrlCierre('corp1')>0&&valCtrlCierre('corp1')!==4)||(valCtrlCierre('corp2')>0&&valCtrlCierre('corp2')!==4);
   var moEstProp=calcMoEstProp(f);
   var moEstCtr=calcMoEstCtr(f);
   var moEstSub=calcMoEstSub(f);
   // Calculate MO pagada and cuotas pagadas from Control mensual
   var ctrl=gCtrl();
   var keyFase='fase_'+f.id;
-  var periodosFase=gCtrl()[keyFase]||{};
+  var periodosFase=ctrl[keyFase]||{};
+  var ctrlFase=periodosFase;
+  var ctrlContratos=ctrlFase.__contratos||{};
+  var ctrlCierre=ctrlFase.__cierre||{};
+  var ctrlConvenios=Array.isArray(ctrlFase.__convenios)?ctrlFase.__convenios:[];
+
+  function valCtrlContrato(campo){
+    if(ctrlContratos && ctrlContratos[campo] !== undefined && ctrlContratos[campo] !== null && ctrlContratos[campo] !== ''){
+      return ctrlContratos[campo];
+    }
+    return 0;
+  }
+
+  function valCtrlCierre(campo){
+    if(ctrlCierre && ctrlCierre[campo] !== undefined && ctrlCierre[campo] !== null && ctrlCierre[campo] !== ''){
+      return ctrlCierre[campo];
+    }
+    return 0;
+  }
+
+  function valCtrlPeriodo(campo){
+    var ultimo=0;
+    Object.keys(periodosFase).sort().forEach(function(p){
+      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+      var row=periodosFase[p]||{};
+      var v=row[campo];
+      if(v!==undefined && v!==null && v!=='' && parseInt(v)!==0){
+        ultimo=v;
+      }
+    });
+    return ultimo||0;
+  }
+
   var totalGPS=0,totalCOP=0,totalRCV=0,totalINF=0;
   Object.keys(periodosFase).forEach(function(p){
     if(p==='__extra'||p==='__cierre')return;
@@ -2711,36 +2743,33 @@ function irFichaFase(id){
     +campoFase('Ubicacion',f.ubicacion,'full')
     +'</div>';
   // Grupo 2: Importes
+  var importeBase=Number(f.importe||f.sub||f.valorObra||0);
+  var totalConveniosCtrl=ctrlConvenios.reduce(function(acc,c){return acc+(parseFloat(c.importe)||0);},0);
+  var importeTotalCtrl=importeBase+totalConveniosCtrl;
+  var fechasConvenioCtrl=ctrlConvenios.map(function(c){return c.fechaTermino||'';}).filter(Boolean).sort();
+  var nuevaFechaTerminoCtrl=fechasConvenioCtrl.length?fechasConvenioCtrl[fechasConvenioCtrl.length-1]:'';
+
   var convHtml='';
-  if(hasConv){
+  if(ctrlConvenios.length){
     convHtml='<div class="sub-group-body"><div class="fase-grid">'
-      +campoFase('Convenio 1',f.conv1!=null?mxn(f.conv1):null)
-      +(f.conv2!=null?campoFase('Convenio 2',mxn(f.conv2)):'')
-      +(f.conv3!=null?campoFase('Convenio 3',mxn(f.conv3)):'')
-      +campoFase('No. Convenios',f.nConv>0?f.nConv:null)
+      +ctrlConvenios.map(function(c,idx){
+        return campoFase('Convenio modificatorio '+(idx+1),(parseFloat(c.importe)||0)?mxn(parseFloat(c.importe)||0):null)
+          +campoFase('Nueva fecha término '+(idx+1),c.fechaTermino?fdate(c.fechaTermino):null);
+      }).join('')
       +'</div></div>';
   }
-  var subHtml='';
-  if(hasSub){
-    subHtml='<div class="sub-group-body"><div class="fase-grid">'
-      +campoFase('Subcontrato',mxn(f.sub))
-      +(f.csub1?campoFase('Conv. Sub 1',mxn(f.csub1)):'')
-      +(f.csub2?campoFase('Conv. Sub 2',mxn(f.csub2)):'')
-      +(f.csub3?campoFase('Conv. Sub 3',mxn(f.csub3)):'')
-      +campoFase('Acumulado Subcontrato',mxn(acumSub))
-      +'</div></div>';
-  }
+
   var g2='<div class="fase-grid">'
-    +campoFase('Valor Obra Propietaria',f.valorObra?mxn(f.valorObra):null)
-    +campoFase('Importe Contrato',f.importe?mxn(f.importe):null)
-    +campoFase('Acumulado (incl. convenios)',acum>0?mxn(acum):null)
+    +campoFase('Importe base',importeBase?mxn(importeBase):null)
+    +campoFase('Convenios capturados en Control',totalConveniosCtrl?mxn(totalConveniosCtrl):null)
+    +campoFase('Importe total actualizado',importeTotalCtrl?mxn(importeTotalCtrl):null)
+    +campoFase('Nueva fecha de término',nuevaFechaTerminoCtrl?fdate(nuevaFechaTerminoCtrl):null)
     +'</div>'
-    +(hasConv?'<div style="margin-top:8px"><div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Convenios Modificatorios</span><span class="sg-chev">&#9660;</span></div>'+convHtml+'</div>':'')
-    +(hasSub?'<div style="margin-top:8px"><div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Subcontrato</span><span class="sg-chev">&#9660;</span></div>'+subHtml+'</div>':'');
+    +(ctrlConvenios.length?'<div style="margin-top:8px"><div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Convenios Modificatorios</span><span class="sg-chev">&#9660;</span></div>'+convHtml+'</div>':'');
   // Grupo 3: Documentos
   var docs3=[
-    ['Contrato',f.docContrato],['Contrato firmado',f.docFirmado],['Acuse SIROC',f.docSiroc],
-    ['SIROC vigente',f.docSirocVig],['Acta entrega-recepcion',f.docActa],['Aviso de Terminacion',f.docAvterm]
+    ['Contrato',valCtrlContrato('docContrato')],['Contrato firmado',valCtrlContrato('docFirmado')],['Acuse SIROC',valCtrlContrato('docSiroc')],
+    ['SIROC vigente',valCtrlContrato('docSirocVig')],['Explosión de insumos',valCtrlContrato('docExplosion')],['Planos de construcción',valCtrlContrato('docPlanos')]
   ];
   var g3='<div class="fase-doc-grid">'+docs3.map(function(d){
     return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
@@ -2873,13 +2902,15 @@ function irFichaFase(id){
     +'<div style="display:none"><div class="fase-grid">'
     +pagosISNDetalle
     +'</div></div></div>';
-  // Grupo 6: CORP (solo si aplica)
+  // Grupo 6: CORP / Cierre (solo si aplica)
   var g6='';
   if(hasCorp){
     var docs6=[
-      ['CORP 01',f.corp1],['CORP 02',f.corp2],['Resolucion correccion patronal',f.corpRes],
-      ['Comprobante pago diferencias',f.corpPago],['Aviso dictamen',f.corpAvdic],
-      ['Oficio de conclusion',f.corpOficio],['Dictamen sin salvedades',f.corpDictamen]
+      ['Acta entrega-recepción',valCtrlCierre('acta')],['Aviso terminación SIROC',valCtrlCierre('av_term')],
+      ['CORP 01',valCtrlCierre('corp1')],['CORP 02',valCtrlCierre('corp2')],
+      ['Pago de diferencias antes de Oficio conclusión',valCtrlCierre('pago_dif')],
+      ['Oficio de conclusión',valCtrlCierre('oficio')],['Aviso de dictamen',valCtrlCierre('dictamen')],
+      ['Dictamen sin salvedades',valCtrlCierre('dictamen_sin_salvedades')]
     ];
     g6='<div class="fase-doc-grid">'+docs6.map(function(d){
       return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
@@ -2887,10 +2918,9 @@ function irFichaFase(id){
   }
   // Grupo 7: Documentacion contratista
   var docs7=[
-    ['En obra',f.docEnObra],['Explosion de insumos',f.docExplosion],['Planos de construccion',f.docPlanos],
-    ['Balanza CC Excel',f.docBalxls],['Balanza CC PDF',f.docBalpdf],['Declaracion anual',f.docDeclanu],
-    ['Lista de trabajadores',f.docListtrab],['Nominas PDF',f.docNompdf],['Nominas XML',f.docNomxml],
-    ['Facturacion',f.docFact],['Estimaciones',f.docEstim]
+    ['Vinculación trabajadores',valCtrlPeriodo('vinc')],['Reporte SIROC',valCtrlPeriodo('rep_siroc')],
+    ['Reporte Bimestral SIROC',valCtrlPeriodo('rep_bim_siroc')],['Lista de trabajadores',valCtrlPeriodo('lista_trab')],
+    ['Nóminas PDF',valCtrlPeriodo('nom_pdf')],['Nóminas XML',valCtrlPeriodo('nom_xml')]
   ];
   var g7='<div class="fase-doc-grid">'+docs7.map(function(d){
     return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
