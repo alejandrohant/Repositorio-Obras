@@ -2730,7 +2730,7 @@ function irFichaFase(id){
   var contIMSSprop=moEstProp*(f.fcuotasImss||0);
   var contIMSSctr=moEstCtr*(f.fcuotasImss||0);
   var contIMSSsub=moEstSub*(f.fcuotasImss||0);
-  // Grupo 1: Identificacion
+  // Grupo 1: Identificación
   var g1='<div class="fase-grid">'
     +campoFase('Origen',f.origen)
     +campoFase('Obra',f.obra)
@@ -2741,12 +2741,8 @@ function irFichaFase(id){
     +campoFase('SIROC Principal','<span class="mono">'+f.sirocPrincipal+'</span>')
     +(f.sirocSub?campoFase('SIROC Sub','<span class="mono" style="color:#a78bfa">'+f.sirocSub+'</span> <span style="font-size:10px;color:#64748b">(folio para subcontratistas)</span>'):'')
     +campoFase('SIROC Contratista','<span class="mono">'+f.siroc+'</span>')
-    +campoFase('Tipo Contrato',f.tipoCto)
-    +campoFase('Aplica SIROC',f.aplicaSiroc===1?'Si':'No')
-    +campoFase('Inicio',fdate(f.inicia))
-    +campoFase('Termino',fdate(f.termina)+' '+faseVigTag(f))
-    +campoFase('Comprobacion',f.cumplimiento,'full')
-    +campoFase('Ubicacion',f.ubicacion,'full')
+    +campoFase('Objeto / Fase',f.objeto,'full')
+    +campoFase('Ubicación',f.ubicacion,'full')
     +'</div>';
   // Grupo 2: Importes
   var importeBase=Number(f.importe||f.sub||f.valorObra||0);
@@ -2772,14 +2768,27 @@ function irFichaFase(id){
     +campoFase('Nueva fecha de término',nuevaFechaTerminoCtrl?fdate(nuevaFechaTerminoCtrl):null)
     +'</div>'
     +(ctrlConvenios.length?'<div style="margin-top:8px"><div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Convenios Modificatorios</span><span class="sg-chev">&#9660;</span></div>'+convHtml+'</div>':'');
-  // Grupo 3: Documentos
+  // Grupo 3: Contrato / Vigencia
   var docs3=[
     ['Contrato',valCtrlContrato('docContrato')],['Contrato firmado',valCtrlContrato('docFirmado')],['Acuse SIROC',valCtrlContrato('docSiroc')],
     ['SIROC vigente',valCtrlContrato('docSirocVig')],['Explosión de insumos',valCtrlContrato('docExplosion')],['Planos de construcción',valCtrlContrato('docPlanos')]
   ];
-  var g3='<div class="fase-doc-grid">'+docs3.map(function(d){
-    return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
-  }).join('')+'</div>';
+
+  var g3='<div class="fase-grid">'
+    +campoFase('Tipo contrato',f.tipoCto)
+    +campoFase('Aplica SIROC',f.aplicaSiroc===1?'Sí':'No')
+    +campoFase('Inicio',fdate(f.inicia))
+    +campoFase('Término',fdate(f.termina)+' '+faseVigTag(f))
+    +campoFase('Comprobación',f.cumplimiento,'full')
+    +'</div>'
+    +'<div style="margin-top:12px">'
+      +'<div class="sub-group-hdr open" onclick="toggleSG(this)"><span>Documentos del contrato</span><span class="sg-chev">&#9660;</span></div>'
+      +'<div class="sub-group-body"><div class="fase-doc-grid">'
+        +docs3.map(function(d){
+          return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
+        }).join('')
+      +'</div></div>'
+    +'</div>';
   // Grupo 4: IMSS
   var contIMSSctrl=cuotasPagadasCtrl||0;
   var contIMSSctrEst=contIMSSctr||0;
@@ -2908,20 +2917,18 @@ function irFichaFase(id){
     +'<div style="display:none"><div class="fase-grid">'
     +pagosISNDetalle
     +'</div></div></div>';
-  // Grupo 6: CORP / Cierre (solo si aplica)
-  var g6='';
-  if(hasCorp){
-    var docs6=[
-      ['Acta entrega-recepción',valCtrlCierre('acta')],['Aviso terminación SIROC',valCtrlCierre('av_term')],
-      ['CORP 01',valCtrlCierre('corp1')],['CORP 02',valCtrlCierre('corp2')],
-      ['Pago de diferencias antes de Oficio conclusión',valCtrlCierre('pago_dif')],
-      ['Oficio de conclusión',valCtrlCierre('oficio')],['Aviso de dictamen',valCtrlCierre('dictamen')],
-      ['Dictamen sin salvedades',valCtrlCierre('dictamen_sin_salvedades')]
-    ];
-    g6='<div class="fase-doc-grid">'+docs6.map(function(d){
-      return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
-    }).join('')+'</div>';
-  }
+  // Grupo 6: Cierre / Corrección Patronal
+  var docs6=[
+    ['Acta entrega-recepción',valCtrlCierre('acta')],['Aviso terminación SIROC',valCtrlCierre('av_term')],
+    ['CORP 01',valCtrlCierre('corp1')],['CORP 02',valCtrlCierre('corp2')],
+    ['Pago de diferencias antes de Oficio conclusión',valCtrlCierre('pago_dif')],
+    ['Oficio de conclusión',valCtrlCierre('oficio')],['Aviso de dictamen',valCtrlCierre('dictamen')],
+    ['Dictamen sin salvedades',valCtrlCierre('dictamen_sin_salvedades')]
+  ];
+
+  var g6='<div class="fase-doc-grid">'+docs6.map(function(d){
+    return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
+  }).join('')+'</div>';
   // Grupo 7: Documentacion contratista
   var docs7=[
     ['Vinculación trabajadores',valCtrlPeriodo('vinc')],['Reporte SIROC',valCtrlPeriodo('rep_siroc')],
@@ -2931,13 +2938,13 @@ function irFichaFase(id){
   var g7='<div class="fase-doc-grid">'+docs7.map(function(d){
     return '<div class="fase-doc-item"><span class="fase-doc-lbl">'+d[0]+'</span>'+docTag(d[1])+'</div>';
   }).join('')+'</div>';
-  var secs=grup('Identificacion',g1,false)
-    +grup('Importes',g2,false)
-    +grup('Documentos del Contrato',g3,false)
+  var secs=grup('Identificación',g1,false)
+    +grup('Contrato / Vigencia',g3,false)
+    +grup('Importes y Convenios',g2,false)
     +grup('IMSS',g4,false)
     +grup('ISN',g5,false)
-    +(hasCorp?grup('CORP / Correccion Patronal',g6,false):'')
-    +grup('Documentacion del Contratista',g7,false);
+    +grup('Cierre / Corrección Patronal',g6,false)
+    +grup('Cumplimiento Mensual del Contratista',g7,false);
   document.getElementById('fase-fsecs').innerHTML=secs;
   show('pg-fase-ficha');
 }
