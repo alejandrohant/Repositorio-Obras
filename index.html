@@ -251,6 +251,8 @@ select.fg-sel:focus{border-color:#a78bfa}
 .ctrl-est-card{background:#0f1117;border:1px solid #2d2d44;border-radius:9px;padding:10px 12px}
 .ctrl-est-card label{display:block;font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px}
 .ctrl-est-card span{display:block;font-size:14px;color:#e2e8f0;font-weight:800}
+.ctrl-anticipo-val{width:180px !important;min-width:180px !important;text-align:left !important}
+.ctrl-anticipo-num{width:180px !important;min-width:180px !important;text-align:right !important}
 .ctrl-warn{background:#2d1a00;border:2px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;color:#f59e0b}
 .ctrl-warn-icon{font-size:18px}
 .ctrl-seccion{background:#1e1e2e;border-radius:12px;padding:16px 18px;margin-bottom:16px;overflow-x:auto}
@@ -5171,15 +5173,15 @@ function buildControlEstimaciones(key, fase){
   h += '<h4>Anticipo</h4>';
   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
 
-  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel" style="width:120px" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
+  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel ctrl-anticipo-val" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
     + '<option value="0"' + (String(ant.tiene || '0') === '0' ? ' selected' : '') + '>--</option>'
     + '<option value="1"' + (String(ant.tiene || '0') === '1' ? ' selected' : '') + '>Sí</option>'
     + '<option value="2"' + (String(ant.tiene || '0') === '2' ? ' selected' : '') + '>No</option>'
     + '</select></td></tr>';
 
-  h += '<tr><td>% anticipo</td><td><input class="ctrl-inp" type="number" step="0.01" value="' + escCtrlHTML(ant.porcentaje || '') + '" oninput="setAnticipoPctAuto(\'' + escCtrlJS(key) + '\',this.value,' + importeContrato + ')" placeholder="30"></td></tr>';
-  h += '<tr><td>Importe anticipo</td><td><input class="ctrl-inp" id="anticipo-importe-' + escCtrlHTML(key) + '" type="number" step="0.01" value="' + escCtrlHTML(ant.importe || '') + '" oninput="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'importe\',numCtrl(this.value))" placeholder="0.00"></td></tr>';
-  h += '<tr><td>Fecha pago anticipo</td><td><input class="ctrl-inp-wide" type="date" value="' + escCtrlHTML(ant.fechaPago || '') + '" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'fechaPago\',this.value)"></td></tr>';
+  h += '<tr><td>% anticipo</td><td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(ant.porcentaje || '') + '" oninput="setAnticipoPctAuto(\'' + escCtrlJS(key) + '\',this.value,' + importeContrato + ')" placeholder="30"></td></tr>';
+  h += '<tr><td>Importe anticipo</td><td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '" type="number" step="0.01" value="' + escCtrlHTML(ant.importe || '') + '" oninput="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'importe\',numCtrl(this.value))" placeholder="0.00"></td></tr>';
+  h += '<tr><td>Fecha pago anticipo</td><td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(ant.fechaPago || '') + '" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'fechaPago\',this.value)"></td></tr>';
 
   h += '</tbody></table></div>';
 
