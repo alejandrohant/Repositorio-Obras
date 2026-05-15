@@ -2847,27 +2847,49 @@ function irFichaFase(id){
   var contCuotSub = contIMSSsub>0 && cuotSubShow  ? contIMSSsub-(parseFloat(cuotSubShow)||0) : null;
   function contTag(v){ if(v===null)return '--'; return '<span style="font-weight:700;color:'+(v>0?'#f87171':'#10b981')+'">'+(v<=0?'&#10003; ':'')+mxn(v)+'</span>'; }
   function moPagTag(v,fromCtrl){ if(!v)return null; return (fromCtrl?'<span class="num" style="color:#10b981">':'<span class="num">')+mxn(parseFloat(v))+'</span>'; }
+  var imssCols = '';
+
+  if(esProp_f){
+    imssCols =
+      '<div style="margin-top:8px"><div class="fase-grid">'
+        +'<div class="fase-campo"><label>Propietaria</label></div>'
+        +'<div></div>'
+        +campoFase('MO estimada',moEstProp>0?mxn(moEstProp):null)
+        +campoFase('MO pagada',moPagTag(moPagPropShow, esProp_f&&moPagadaCtrl))
+        +campoFase('Cuotas estimadas',contIMSSprop>0?mxn(contIMSSprop):null)
+        +campoFase('Cuotas pagadas',moPagTag(cuotPropShow, esProp_f&&cuotasPagadasCtrl))
+      +'</div></div>';
+  }else if(esSub_f){
+    imssCols =
+      '<div style="margin-top:8px"><div class="fase-grid">'
+        +'<div class="fase-campo"><label>Subcontratista</label></div>'
+        +'<div></div>'
+        +campoFase('MO estimada',moEstSub>0?mxn(moEstSub):null)
+        +campoFase('MO pagada',moPagTag(moPagSubShow, moPagadaCtrl))
+        +campoFase('Cuotas estimadas',contIMSSsub>0?mxn(contIMSSsub):null)
+        +campoFase('Cuotas pagadas',moPagTag(cuotSubShow, cuotasPagadasCtrl))
+      +'</div></div>';
+  }else{
+    imssCols =
+      '<div style="margin-top:8px"><div class="fase-grid">'
+        +'<div class="fase-campo"><label>Contratista</label></div>'
+        +'<div class="fase-campo"><label>Subcontratista</label></div>'
+        +campoFase('MO estimada',moEstCtr>0?mxn(moEstCtr):null)
+        +campoFase('MO estimada',moEstSub>0?mxn(moEstSub):null)
+        +campoFase('MO pagada',moPagTag(moPagCtrShow, moPagadaCtrl))
+        +campoFase('MO pagada',moPagTag(moPagSubShow, moPagadaSubCtrl))
+        +campoFase('Cuotas estimadas',contIMSSctr>0?mxn(contIMSSctr):null)
+        +campoFase('Cuotas estimadas',contIMSSsub>0?mxn(contIMSSsub):null)
+        +campoFase('Cuotas pagadas',moPagTag(cuotCtrShow, cuotasPagadasCtrl))
+        +campoFase('Cuotas pagadas',moPagTag(cuotSubShow, cuotasPagadasSubCtrl))
+      +'</div></div>';
+  }
+
   var g4='<div class="fase-grid">'
     +campoFase('Factor MO IMSS',f.fmoImss?pct(f.fmoImss):null)
     +campoFase('Factor Cuotas IMSS',f.fcuotasImss?pct(f.fcuotasImss):null)
     +'</div>'
-    +'<div style="margin-top:8px"><div class="fase-grid cols3">'
-    +(esSub_f?'':('<div class="fase-campo"><label>Propietaria</label></div>'))
-    +(esSub_f?'':('<div class="fase-campo"><label>Contratista</label></div>'))
-    +(esProp_f?'':('<div class="fase-campo"><label>Subcontratista</label></div>'))
-    +(esSub_f?'':campoFase('MO estimada',moEstProp>0?mxn(moEstProp):null))
-    +(esSub_f?'':campoFase('MO estimada',moEstCtr>0?mxn(moEstCtr):null))
-    +(esProp_f?'':campoFase('MO estimada',moEstSub>0?mxn(moEstSub):null))
-    +(esSub_f?'':campoFase('MO pagada',moPagTag(moPagPropShow, esProp_f&&moPagadaCtrl)))
-    +(esSub_f?'':campoFase('MO pagada',moPagTag(moPagCtrShow, !esSub_f&&!esProp_f&&moPagadaCtrl)))
-    +(esProp_f?'':campoFase('MO pagada',moPagTag(moPagSubShow, esSub_f?moPagadaCtrl:moPagadaSubCtrl)))
-    +(esSub_f?'':campoFase('Cuotas estimadas',contIMSSprop>0?mxn(contIMSSprop):null))
-    +(esSub_f?'':campoFase('Cuotas estimadas',contIMSSctr>0?mxn(contIMSSctr):null))
-    +(esProp_f?'':campoFase('Cuotas estimadas',contIMSSsub>0?mxn(contIMSSsub):null))
-    +(esSub_f?'':campoFase('Cuotas pagadas',moPagTag(cuotPropShow, esProp_f&&cuotasPagadasCtrl)))
-    +(esSub_f?'':campoFase('Cuotas pagadas',moPagTag(cuotCtrShow, !esSub_f&&!esProp_f&&cuotasPagadasCtrl)))
-    +(esProp_f?'':campoFase('Cuotas pagadas',moPagTag(cuotSubShow, esSub_f?cuotasPagadasCtrl:cuotasPagadasSubCtrl)))
-    +'</div></div>'
+    +imssCols
     // Bloque de contingencias llamativo
     +(function(){
       var contMO   = esSub_f ? contMOSub   : (esProp_f ? contMOProp   : contMOCtr);
