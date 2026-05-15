@@ -5047,15 +5047,30 @@ function setEstimacionVal(key, idx, campo, val){
 
   ctrl[key].__estimaciones[idx][campo] = val;
 
-  if(campo === 'importe'){
-    var ant = ctrl[key].__anticipo || {};
-    var pctAnt = numCtrl(ant.porcentaje);
-    if(pctAnt > 1) pctAnt = pctAnt / 100;
+  if(campo === 'subtotal'){
+  var ant = ctrl[key].__anticipo || {};
+  var pctAnt = numCtrl(ant.porcentaje);
+  if(pctAnt > 1) pctAnt = pctAnt / 100;
 
-    if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
-      ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
-    }
+  if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
+    ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
   }
+
+  var subtotal = numCtrl(val);
+  var ivaActual = numCtrl(ctrl[key].__estimaciones[idx].iva);
+
+  if(subtotal > 0 && !ivaActual){
+    ctrl[key].__estimaciones[idx].iva = subtotal * 0.16;
+    ctrl[key].__estimaciones[idx].total = subtotal + (subtotal * 0.16);
+  }else{
+    ctrl[key].__estimaciones[idx].total = subtotal + ivaActual;
+  }
+}
+
+if(campo === 'iva'){
+  ctrl[key].__estimaciones[idx].total =
+    numCtrl(ctrl[key].__estimaciones[idx].subtotal) + numCtrl(val);
+}
 
   sCtrl(ctrl);
 }
@@ -5091,11 +5106,11 @@ function agregarEstimacionControl(faseId){
   numero: ctrl[key].__estimaciones.length + 1,
   folio: '',
   periodo: '',
-  importe: '',
+  subtotal: '',
   amortizacion: '',
   retencion: '',
   iva: '',
-  totalPagado: '',
+  total: '',
   fechaPago: '',
   estatus: '0'
 });
@@ -5178,12 +5193,17 @@ function buildControlEstimaciones(key, fase){
 
   var estimadoAcum = 0;
   var amortizadoAcum = 0;
-  var totalPagadoAcum = 0;
+  var subtotalPagadoAcum = 0;
+  var totalConIvaAcum = 0;
 
   estimaciones.forEach(function(e){
-    estimadoAcum += numCtrl(e.importe);
+    var subtotalEstimacion = numCtrl(e.subtotal || e.importe);
+    var totalEstimacion = numCtrl(e.total || e.totalPagado);
+
+    estimadoAcum += subtotalEstimacion;
     amortizadoAcum += numCtrl(e.amortizacion);
-    totalPagadoAcum += numCtrl(e.totalPagado);
+    subtotalPagadoAcum += subtotalEstimacion;
+    totalConIvaAcum += totalEstimacion;
   });
 
   var saldoAnticipo = Math.max(0, importeAnticipo - amortizadoAcum);
