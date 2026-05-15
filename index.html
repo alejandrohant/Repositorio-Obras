@@ -1063,11 +1063,12 @@ select.fg-sel:focus{border-color:#a78bfa}
     <h3 style="color:#a78bfa">Reportes</h3>
 
     <div style="display:grid;gap:10px;margin-top:16px">
-      <button class="nbtn" id="btn-rpt-cuotas-m2">Reporte cuotas IMSS — m² licencia</button>
-      <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
-      <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
-      <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
-    </div>
+  <button class="nbtn" id="btn-rpt-cuotas-m2">Reporte cuotas IMSS — m² licencia</button>
+  <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
+  <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
+  <button class="nbtn" id="btn-rpt-obligaciones">Reporte obligaciones RFC/RP</button>
+  <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
+</div>
   </div>
 </div>
 <div class="cov" id="modal-estimados">
@@ -1391,6 +1392,12 @@ function irFicha(id){
 
   var btnRptM2 = document.getElementById('btn-rpt-cuotas-m2');
   var btnRptPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
+  var btnRptObligaciones = document.getElementById('btn-rpt-obligaciones');
+
+  if(btnRptObligaciones){
+  btnRptObligaciones.style.display = 'none';
+  btnRptObligaciones.onclick = null;
+  }
 
   if(btnRptM2){
     btnRptM2.textContent = t === 'p' ? 'Reporte cuotas IMSS — m² licencia' : 'Reporte cuotas IMSS';
@@ -5786,6 +5793,212 @@ function factorCuotasReporteFase(f){
   return factor;
 }
 
+function estadoDocReporte(v){
+  v = parseInt(v) || 0;
+
+  if(v === 1) return 'Presentado';
+  if(v === 2) return 'No presentado';
+  if(v === 3) return 'Erróneo';
+  if(v === 4) return 'No aplica';
+
+  return 'Sin capturar';
+}
+
+function esObservacionReporte(v){
+  v = parseInt(v) || 0;
+  return v !== 1 && v !== 4;
+}
+
+function periodosObligacionesReporte(perfil, fases){
+  var fechas = fases.map(function(f){ return f.inicia; }).filter(Boolean).sort();
+  var inicio = fechas.length ? fechas[0] : new Date().toISOString().slice(0,7) + '-01';
+
+  var fechasFin = fases.map(function(f){ return f.termina; }).filter(Boolean).sort();
+  var ultimaFin = fechasFin.length ? fechasFin[fechasFin.length - 1] : null;
+
+  var hoy = new Date();
+  var finDefault = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+  var finBase = ultimaFin || (finDefault.getFullYear() + '-' + String(finDefault.getMonth() + 1).padStart(2,'0') + '-01');
+
+  var extraKeyRFC = 'rfc_extra_' + perfil.rfc;
+  var extraKeySUA = 'sua_extra_' + perfil.rfc;
+  var ctrl = gCtrl();
+
+  var extraRFC = (ctrl[extraKeyRFC] && ctrl[extraKeyRFC]['__extra']) ? ctrl[extraKeyRFC]['__extra'] : [];
+  var extraSUA = (ctrl[extraKeySUA] && ctrl[extraKeySUA]['__extra']) ? ctrl[extraKeySUA]['__extra'] : [];
+
+  return mesesEntre(inicio.slice(0,7) + '-01', finBase.slice(0,7) + '-01')
+    .concat(extraRFC)
+    .concat(extraSUA)
+    .filter(function(p,i,a){ return a.indexOf(p) === i; })
+    .sort();
+}
+
+function generarReporteObligacionesRFCRPFase(f){
+  var perfil = gPrf().find(function(p){
+    return String(p.rfc || '').trim().toUpperCase() === String(f.rfc || '').trim().toUpperCase();
+  }) || {
+    nombre: f.contratista || '',
+    rfc: f.rfc || '',
+    rp: f.rp || ''
+  };
+
+  var fasesObraPerfil = gFases().filter(function(x){
+    return String(x.obra || '').trim() === String(f.obra || '').trim()
+      && String(x.rfc || '').trim().toUpperCase() === String(f.rfc || '').trim().toUpperCase();
+  });
+
+  if(!fasesObraPerfil.length){
+    fasesObraPerfil = [f];
+  }
+
+  var faseConRP = fasesObraPerfil.find(function(x){
+    return String(x.rp || '').trim();
+  }) || f;
+
+  var rpControl = String(faseConRP.rp || perfil.rp || '').trim();
+  var keyRFC = 'rfc_' + perfil.rfc;
+  var keySUA = 'sua_' + perfil.rfc + '_' + rpControl;
+  var ctrl = gCtrl();
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var periodos = periodosObligacionesReporte(perfil, fasesObraPerfil);
+
+  var colsRFC = [
+    {k:'iva_fmt',l:'IVA Formato'},{k:'iva_acu',l:'IVA Acuse'},{k:'iva_det',l:'IVA Detalle'},{k:'iva_pag',l:'IVA Pago'},
+    {k:'isr_fmt',l:'ISR Formato'},{k:'isr_acu',l:'ISR Acuse'},{k:'isr_det',l:'ISR Detalle'},{k:'isr_pag',l:'ISR Pago'},
+    {k:'isrr_fmt',l:'ISR-Ret Formato'},{k:'isrr_acu',l:'ISR-Ret Acuse'},{k:'isrr_det',l:'ISR-Ret Detalle'},{k:'isrr_pag',l:'ISR-Ret Pago'},
+    {k:'diot_env',l:'DIOT Envío'},{k:'diot_ace',l:'DIOT Aceptación'},{k:'diot_arc',l:'DIOT Archivo'},
+    {k:'op_imss',l:'Opinión IMSS'},{k:'op_inf',l:'Opinión Infonavit'},{k:'op_sat',l:'Opinión SAT'},
+    {k:'icsoe',l:'ICSOE'},{k:'sisub',l:'SISUB'}
+  ];
+
+  var colsRP = [
+    {k:'sua_arc',l:'Archivo .SUA'},
+    {k:'sua_comp',l:'Comprobante pago'},
+    {k:'sipare',l:'SIPARE'},
+    {k:'resumen',l:'Resumen liquidación'},
+    {k:'ced_men',l:'Cédula mensual'},
+    {k:'ced_bim',l:'Cédula bimestral'},
+    {k:'cfdi_imss',l:'CFDI IMSS'},
+    {k:'cfdi_inf',l:'CFDI Infonavit'}
+  ];
+
+  var filasRFC = '';
+  var filasRP = '';
+  var totalRFC = 0;
+  var totalRP = 0;
+  var sinCaptura = 0;
+  var noPresentado = 0;
+  var erroneo = 0;
+
+  function contar(v){
+    v = parseInt(v) || 0;
+    if(v === 0) sinCaptura++;
+    if(v === 2) noPresentado++;
+    if(v === 3) erroneo++;
+  }
+
+  periodos.forEach(function(p){
+    colsRFC.forEach(function(c){
+      var v = getCtrlVal(ctrl, keyRFC, p, c.k);
+      if(esObservacionReporte(v)){
+        contar(v);
+        totalRFC++;
+        filasRFC += '<tr class="' + (parseInt(v) === 3 ? 'rpt-warn' : '') + '">'
+          + '<td>' + periodoLabel(p) + '</td>'
+          + '<td>' + c.l + '</td>'
+          + '<td>' + estadoDocReporte(v) + '</td>'
+          + '</tr>';
+      }
+    });
+
+    colsRP.forEach(function(c){
+      var v = getCtrlVal(ctrl, keySUA, p, c.k);
+      if(esObservacionReporte(v)){
+        contar(v);
+        totalRP++;
+        filasRP += '<tr class="' + (parseInt(v) === 3 ? 'rpt-warn' : '') + '">'
+          + '<td>' + periodoLabel(p) + '</td>'
+          + '<td>' + c.l + '</td>'
+          + '<td>' + estadoDocReporte(v) + '</td>'
+          + '</tr>';
+      }
+    });
+  });
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">RFC/RP</div>'
+    + '<div class="rpt-title"><h1>Reporte obligaciones RFC/RP</h1><p>Origen: Control · Reporte por contratista dentro de la obra</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (f.obra || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Contratista / Subcontratista</label><span>' + (perfil.nombre || f.contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (perfil.rfc || f.rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RP</label><span style="font-family:monospace">' + (rpControl || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Consultado desde fase</label><span>' + (f.objeto || '--') + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Observaciones RFC</label><span>' + totalRFC + '</span></div>'
+    + '<div class="rpt-total-item"><label>Observaciones RP</label><span>' + totalRP + '</span></div>'
+    + '<div class="rpt-total-item"><label>Sin capturar</label><span class="' + (sinCaptura > 0 ? 'warn' : '') + '">' + sinCaptura + '</span></div>'
+    + '<div class="rpt-total-item"><label>No presentado</label><span class="' + (noPresentado > 0 ? 'warn' : '') + '">' + noPresentado + '</span></div>'
+    + '<div class="rpt-total-item"><label>Erróneo</label><span class="' + (erroneo > 0 ? 'warn' : '') + '">' + erroneo + '</span></div>'
+    + '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Obligaciones RFC con observación</h3>';
+
+  if(filasRFC){
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Periodo</th>'
+      + '<th>Obligación</th>'
+      + '<th>Estado</th>'
+      + '</tr></thead><tbody>'
+      + filasRFC
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#22c55e;font-weight:700">Sin observaciones RFC.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Obligaciones RP con observación</h3>';
+
+  if(filasRP){
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Periodo</th>'
+      + '<th>Obligación</th>'
+      + '<th>Estado</th>'
+      + '</tr></thead><tbody>'
+      + filasRP
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#22c55e;font-weight:700">Sin observaciones RP.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">'
+    + '<h3>Criterio del reporte</h3>'
+    + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
+    + 'Este reporte no pertenece al SIROC de la fase. Se consulta desde la fase, pero corresponde al RFC/RP del contratista o subcontratista dentro de la obra. Las obligaciones presentadas o marcadas como no aplica no se muestran para reducir el tamaño del reporte.'
+    + '</p>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+  document.getElementById('rpt-bk').onclick = function(){
+    show('pg-fases');
+  };
+
+  show('pg-reporte');
+}
 function abrirReportesFase(faseId){
   var f = gFases().find(function(x){
     return x.id === faseId;
@@ -5798,6 +6011,7 @@ function abrirReportesFase(faseId){
   var btnCuotas = document.getElementById('btn-rpt-cuotas-m2');
   var btnPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
   var btnISN = document.getElementById('btn-rpt-isn');
+  var btnObligaciones = document.getElementById('btn-rpt-obligaciones');
 
   if(btnCuotas){
     btnCuotas.style.display = '';
@@ -5826,8 +6040,16 @@ function abrirReportesFase(faseId){
       generarReporteISNFase(f);
     };
   }
-}
 
+  if(btnObligaciones){
+    btnObligaciones.style.display = '';
+    btnObligaciones.textContent = 'Reporte obligaciones RFC/RP';
+    btnObligaciones.onclick = function(){
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporteObligacionesRFCRPFase(f);
+    };
+  }
+}
 function generarReporteCuotasFase(f){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   var fases = fasesReporteDesdeFase(f);
