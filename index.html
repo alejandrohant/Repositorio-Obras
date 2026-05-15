@@ -5065,16 +5065,17 @@ function agregarEstimacionControl(faseId){
   if(!Array.isArray(ctrl[key].__estimaciones)) ctrl[key].__estimaciones = [];
 
   ctrl[key].__estimaciones.push({
-    numero: ctrl[key].__estimaciones.length + 1,
-    periodo: '',
-    importe: '',
-    amortizacion: '',
-    retencion: '',
-    iva: '',
-    totalPagado: '',
-    fechaPago: '',
-    estatus: '0'
-  });
+  numero: ctrl[key].__estimaciones.length + 1,
+  folio: '',
+  periodo: '',
+  importe: '',
+  amortizacion: '',
+  retencion: '',
+  iva: '',
+  totalPagado: '',
+  fechaPago: '',
+  estatus: '0'
+});
 
   sCtrl(ctrl);
   recargarControl();
@@ -5202,14 +5203,15 @@ function buildControlEstimaciones(key, fase){
     h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin estimaciones agregadas.</p>';
   } else {
     h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
-    h += '<th>No.</th><th>Acción</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th>';
+    h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th>';
     h += '</tr></thead><tbody>';
 
     estimaciones.forEach(function(e, idx){
       h += '<tr>';
       h += '<td>' + inputEstimacion(key, idx, 'numero', e.numero || (idx + 1), 'number') + '</td>';
       h += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarEstimacionControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button></td>';
-      h += '<td>' + inputEstimacion(key, idx, 'periodo', e.periodo || '', 'text', '120px') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'folio', e.folio || '', 'text', '130px') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'periodo', e.periodo || '', 'date', '130px') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'importe', e.importe || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'amortizacion', e.amortizacion || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'retencion', e.retencion || '', 'number') + '</td>';
