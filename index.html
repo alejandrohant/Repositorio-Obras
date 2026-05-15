@@ -2954,21 +2954,28 @@ function irFichaFase(id){
       }
     });
   }
-  var g5='<div class="fase-grid">'
-    +campoFase('Factor MO ISN',f.fmoIsn?pct(f.fmoIsn):null)
-    +campoFase('Factor ISN',f.fisn?pct(f.fisn):null)
-    +campoFase('ISN est. contrato',f.isnEst?mxn(f.isnEst):null)
-    +campoFase('ISN est. convenios',f.isnConv?mxn(f.isnConv):null)
-    +campoFase('Total ISN estimado',isnTotEst>0?mxn(isnTotEst):null)
-    +campoFase('Total ISN pagado','<span class="num">'+mxn(totalISNPagadoDesdeControl)+'</span>')
-    +(isnTotEst>0?campoFase('Contingencia ISN','<span style="color:#f87171;font-weight:600">'+mxn(contingenciaISN)+'</span>','full'):'')
-    +campoFase('Aviso de Inicio de Obra',docTag(ctrlISN.avisoInicioObra))
-    +campoFase('Constancia No Adeudo ISN',docTag(ctrlISN.constanciaNoAdeudoISN))
-    +'</div>'
-    +'<div style="margin-top:8px"><div class="sub-group-hdr" onclick="toggleSG(this)"><span>Pagos ISN detalle</span><span class="sg-chev">&#9660;</span></div>'
-    +'<div style="display:none"><div class="fase-grid">'
-    +pagosISNDetalle
-    +'</div></div></div>';
+  var obraISNFase = obraBaseDeFase(f);
+  var isnPagadoPorPropietaria = debeMostrarControlISN(obraISNFase, 'propietaria');
+
+  var g5 = isnPagadoPorPropietaria
+    ? '<div style="background:#0f2d1a;border:1.5px solid #10b981;border-radius:10px;padding:14px 16px;color:#10b981;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;text-align:center">'
+        +'✓ ISN PAGADO POR PROPIETARIA'
+      +'</div>'
+    : '<div class="fase-grid">'
+        +campoFase('Factor MO ISN',f.fmoIsn?pct(f.fmoIsn):null)
+        +campoFase('Factor ISN',f.fisn?pct(f.fisn):null)
+        +campoFase('ISN est. contrato',f.isnEst?mxn(f.isnEst):null)
+        +campoFase('ISN est. convenios',f.isnConv?mxn(f.isnConv):null)
+        +campoFase('Total ISN estimado',isnTotEst>0?mxn(isnTotEst):null)
+        +campoFase('Total ISN pagado','<span class="num">'+mxn(totalISNPagadoDesdeControl)+'</span>')
+        +(isnTotEst>0?campoFase('Contingencia ISN','<span style="color:#f87171;font-weight:600">'+mxn(contingenciaISN)+'</span>','full'):'')
+        +campoFase('Aviso de Inicio de Obra',docTag(ctrlISN.avisoInicioObra))
+        +campoFase('Constancia No Adeudo ISN',docTag(ctrlISN.constanciaNoAdeudoISN))
+      +'</div>'
+      +'<div style="margin-top:8px"><div class="sub-group-hdr" onclick="toggleSG(this)"><span>Pagos ISN detalle</span><span class="sg-chev">&#9660;</span></div>'
+      +'<div style="display:none"><div class="fase-grid">'
+      +pagosISNDetalle
+      +'</div></div></div>';
   // Grupo 6: Cierre / Corrección Patronal
   var docs6=[
     ['Acta entrega-recepción',valCtrlCierre('acta')],['Aviso terminación SIROC',valCtrlCierre('av_term')],
