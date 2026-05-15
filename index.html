@@ -825,7 +825,7 @@ select.fg-sel:focus{border-color:#a78bfa}
           <div class="fg"><label>Contrato</label><select class="fg-sel" id="fa-doc-contrato"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Contrato firmado</label><select class="fg-sel" id="fa-doc-firmado"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Acuse SIROC</label><select class="fg-sel" id="fa-doc-siroc"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>SIROC vigente</label><select class="fg-sel" id="fa-doc-sirocvig"><option value="0">--</option><option value="1">Si</option><option value="2">No</option><option value="4">No aplica</option></select></div>
+          <div class="fg"><label>Presupuesto</label><select class="fg-sel" id="fa-doc-presupuesto"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Explosion de insumos</label><select class="fg-sel" id="fa-explosi"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
           <div class="fg"><label>Planos de construccion</label><select class="fg-sel" id="fa-planos"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
         </div>
@@ -2681,9 +2681,23 @@ function irFichaFase(id){
   var moEstSub=calcMoEstSub(f);
   // Calculate MO pagada and cuotas pagadas from Control mensual
 
-  function valCtrlContrato(campo){
+    function valCtrlContrato(campo){
     if(ctrlContratos && ctrlContratos[campo] !== undefined && ctrlContratos[campo] !== null && ctrlContratos[campo] !== ''){
       return ctrlContratos[campo];
+    }
+
+    if(campo === 'docPresupuesto'){
+      if(ctrlContratos && ctrlContratos.docSirocVig !== undefined && ctrlContratos.docSirocVig !== null && ctrlContratos.docSirocVig !== ''){
+        return ctrlContratos.docSirocVig;
+      }
+
+      if(f && f.docPresupuesto !== undefined && f.docPresupuesto !== null && f.docPresupuesto !== ''){
+        return f.docPresupuesto;
+      }
+
+      if(f && f.docSirocVig !== undefined && f.docSirocVig !== null && f.docSirocVig !== ''){
+        return f.docSirocVig;
+      }
     }
 
     if(f && f[campo] !== undefined && f[campo] !== null && f[campo] !== ''){
@@ -2799,7 +2813,7 @@ function irFichaFase(id){
     ['Contrato',valCtrlContrato('docContrato')],
     ['Contrato firmado',valCtrlContrato('docFirmado')],
     ['Acuse SIROC',valCtrlContrato('docSiroc')],
-    ['SIROC vigente',valCtrlContrato('docSirocVig')],
+    ['Presupuesto',valCtrlContrato('docPresupuesto')],
     ['Explosión de insumos',valCtrlContrato('docExplosion')],
     ['Planos de construcción',valCtrlContrato('docPlanos')]
   ];
@@ -3147,10 +3161,24 @@ function abrirEditarFase(id){
     document.getElementById('fa-csub3').value=f.csub3||'';
   }
 
-  var docFields=['contrato','firmado','siroc','sirocvig','acta','avterm'];
-  docFields.forEach(function(k){
-    var el=document.getElementById('fa-doc-'+k);
-    if(el)el.value=f['doc'+k.charAt(0).toUpperCase()+k.slice(1)]||0;
+  var docFields=[
+    ['contrato','docContrato'],
+    ['firmado','docFirmado'],
+    ['siroc','docSiroc'],
+    ['presupuesto','docPresupuesto'],
+    ['acta','docActa'],
+    ['avterm','docAvterm']
+  ];
+
+  docFields.forEach(function(d){
+    var el=document.getElementById('fa-doc-'+d[0]);
+    if(!el)return;
+
+    if(d[1]==='docPresupuesto'){
+      el.value = f.docPresupuesto || f.docSirocVig || 0;
+    }else{
+      el.value = f[d[1]] || 0;
+    }
   });
 
   document.getElementById('fa-fmo-imss').value=pctOut(f.fmoImss);
@@ -3376,7 +3404,7 @@ async function guardarFase(){
     docContrato:intFase('fa-doc-contrato', faseAnterior.docContrato),
     docFirmado:intFase('fa-doc-firmado', faseAnterior.docFirmado),
     docSiroc:intFase('fa-doc-siroc', faseAnterior.docSiroc),
-    docSirocVig:intFase('fa-doc-sirocvig', faseAnterior.docSirocVig),
+    docPresupuesto:intFase('fa-doc-presupuesto', faseAnterior.docPresupuesto != null ? faseAnterior.docPresupuesto : faseAnterior.docSirocVig),
     docActa:intFase('fa-doc-acta', faseAnterior.docActa),
     docAvterm:intFase('fa-doc-avterm', faseAnterior.docAvterm),
     corp1:intFase('fa-corp1', faseAnterior.corp1),
@@ -4214,7 +4242,7 @@ function buildFaseHtml(perfil, fase) {
     {k:'docContrato',l:'Contrato',fallback:fase.docContrato},
     {k:'docFirmado',l:'Contrato firmado',fallback:fase.docFirmado},
     {k:'docSiroc',l:'Acuse SIROC',fallback:fase.docSiroc},
-    {k:'docSirocVig',l:'SIROC vigente',fallback:fase.docSirocVig},
+    {k:'docPresupuesto',l:'Presupuesto',fallback:(fase.docPresupuesto != null ? fase.docPresupuesto : fase.docSirocVig)},
     {k:'docExplosion',l:'Explosión de insumos',fallback:fase.docExplosion},
     {k:'docPlanos',l:'Planos de construcción',fallback:fase.docPlanos}
   ];
@@ -4223,6 +4251,11 @@ function buildFaseHtml(perfil, fase) {
     if(ctrl[key] && ctrl[key]['__contratos'] && ctrl[key]['__contratos'][campo] != null){
       return ctrl[key]['__contratos'][campo];
     }
+
+    if(campo === 'docPresupuesto' && ctrl[key] && ctrl[key]['__contratos'] && ctrl[key]['__contratos'].docSirocVig != null){
+      return ctrl[key]['__contratos'].docSirocVig;
+    }
+
     return fallback || 0;
   }
 
