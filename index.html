@@ -4966,7 +4966,204 @@ function escCtrlHTML(s){
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#039;');
 }
+function numCtrl(v){
+  if(v === null || v === undefined || v === '') return 0;
+  return parseFloat(String(v).replace(/,/g,'')) || 0;
+}
 
+function setAnticipoVal(key, campo, val){
+  var ctrl = gCtrl();
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key].__anticipo) ctrl[key].__anticipo = {};
+  ctrl[key].__anticipo[campo] = val;
+  sCtrl(ctrl);
+}
+
+function setEstimacionVal(key, idx, campo, val){
+  var ctrl = gCtrl();
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!Array.isArray(ctrl[key].__estimaciones)) ctrl[key].__estimaciones = [];
+  if(!ctrl[key].__estimaciones[idx]) ctrl[key].__estimaciones[idx] = {};
+
+  ctrl[key].__estimaciones[idx][campo] = val;
+
+  if(campo === 'importe'){
+    var ant = ctrl[key].__anticipo || {};
+    var pctAnt = numCtrl(ant.porcentaje);
+    if(pctAnt > 1) pctAnt = pctAnt / 100;
+
+    if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
+      ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
+    }
+  }
+
+  sCtrl(ctrl);
+}
+
+function agregarEstimacionControl(faseId){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!Array.isArray(ctrl[key].__estimaciones)) ctrl[key].__estimaciones = [];
+
+  ctrl[key].__estimaciones.push({
+    numero: ctrl[key].__estimaciones.length + 1,
+    periodo: '',
+    importe: '',
+    amortizacion: '',
+    retencion: '',
+    iva: '',
+    totalPagado: '',
+    fechaPago: '',
+    estatus: '0'
+  });
+
+  sCtrl(ctrl);
+  recargarControl();
+}
+
+function eliminarEstimacionControl(faseId, idx){
+  if(!confirm('¿Eliminar esta estimación?')) return;
+
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key] || !Array.isArray(ctrl[key].__estimaciones)) return;
+
+  ctrl[key].__estimaciones.splice(idx, 1);
+
+  ctrl[key].__estimaciones.forEach(function(e, i){
+    e.numero = i + 1;
+  });
+
+  sCtrl(ctrl);
+  recargarControl();
+}
+
+function inputEstimacion(key, idx, campo, val, tipo, ancho){
+  tipo = tipo || 'number';
+  ancho = ancho || '';
+
+  var cls = tipo === 'text' || tipo === 'date' ? 'ctrl-inp-wide' : 'ctrl-inp';
+  var step = tipo === 'number' ? ' step="0.01"' : '';
+  var style = ancho ? ' style="width:' + ancho + ';text-align:left"' : '';
+  var valor = escCtrlHTML(val || '');
+  var parser = tipo === 'number' ? 'numCtrl(this.value)' : 'this.value';
+
+  return '<input class="' + cls + '" type="' + tipo + '"' + step + style + ' value="' + valor + '" '
+    + 'oninput="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')" '
+    + 'onchange="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')">';
+}
+
+function selectEstimacion(key, idx, val){
+  var opts = [['0','--'],['1','Presentada'],['2','Pendiente'],['3','Errónea'],['4','Pagada']];
+  var h = '<select class="ctrl-sel" onchange="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'estatus\',this.value)">';
+
+  opts.forEach(function(o){
+    h += '<option value="' + o[0] + '"' + (String(val || '0') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+  });
+
+  h += '</select>';
+  return h;
+}
+
+function buildControlEstimaciones(key, fase){
+  var ctrl = gCtrl();
+  var data = ctrl[key] || {};
+  var ant = data.__anticipo || {};
+  var estimaciones = Array.isArray(data.__estimaciones) ? data.__estimaciones : [];
+
+  var importeBase = numCtrl(fase.importe || fase.sub || fase.valorObra || 0);
+  var convenios = Array.isArray(data.__convenios) ? data.__convenios : [];
+  var totalConvenios = convenios.reduce(function(acc, c){
+    return acc + numCtrl(c.importe);
+  }, 0);
+
+  var importeContrato = importeBase + totalConvenios;
+
+  var pctAnt = numCtrl(ant.porcentaje);
+  if(pctAnt > 1) pctAnt = pctAnt / 100;
+
+  var importeAnticipo = numCtrl(ant.importe) || (importeContrato * pctAnt);
+
+  var estimadoAcum = 0;
+  var amortizadoAcum = 0;
+  var totalPagadoAcum = 0;
+
+  estimaciones.forEach(function(e){
+    estimadoAcum += numCtrl(e.importe);
+    amortizadoAcum += numCtrl(e.amortizacion);
+    totalPagadoAcum += numCtrl(e.totalPagado);
+  });
+
+  var saldoAnticipo = Math.max(0, importeAnticipo - amortizadoAcum);
+  var saldoEstimar = Math.max(0, importeContrato - estimadoAcum);
+  var avance = importeContrato > 0 ? (estimadoAcum / importeContrato) * 100 : 0;
+
+  var h = '';
+
+  h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Anticipo / Estimaciones</h3>';
+
+  h += '<h4>Anticipo</h4>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
+
+  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
+    + '<option value="0"' + (String(ant.tiene || '0') === '0' ? ' selected' : '') + '>--</option>'
+    + '<option value="1"' + (String(ant.tiene || '0') === '1' ? ' selected' : '') + '>Sí</option>'
+    + '<option value="2"' + (String(ant.tiene || '0') === '2' ? ' selected' : '') + '>No</option>'
+    + '</select></td></tr>';
+
+  h += '<tr><td>% anticipo</td><td><input class="ctrl-inp" type="number" step="0.01" value="' + escCtrlHTML(ant.porcentaje || '') + '" oninput="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'porcentaje\',numCtrl(this.value))" onchange="recargarControl()" placeholder="30"></td></tr>';
+  h += '<tr><td>Importe anticipo</td><td><input class="ctrl-inp" type="number" step="0.01" value="' + escCtrlHTML(ant.importe || '') + '" oninput="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'importe\',numCtrl(this.value))" onchange="recargarControl()" placeholder="0.00"></td></tr>';
+  h += '<tr><td>Fecha pago anticipo</td><td><input class="ctrl-inp-wide" type="date" value="' + escCtrlHTML(ant.fechaPago || '') + '" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'fechaPago\',this.value)"></td></tr>';
+
+  h += '</tbody></table></div>';
+
+  h += '<h4>Resumen automático</h4>';
+  h += '<div class="ctrl-est-resumen">';
+  h += '<div class="ctrl-est-card"><label>Importe contratado</label><span>' + (importeContrato ? mxn(importeContrato) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Estimado acumulado</label><span>' + (estimadoAcum ? mxn(estimadoAcum) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Anticipo amortizado</label><span>' + (amortizadoAcum ? mxn(amortizadoAcum) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Saldo anticipo</label><span>' + (importeAnticipo ? mxn(saldoAnticipo) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Saldo por estimar</label><span>' + (importeContrato ? mxn(saldoEstimar) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Avance financiero</label><span>' + (importeContrato ? avance.toFixed(2) + '%' : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Total pagado</label><span>' + (totalPagadoAcum ? mxn(totalPagadoAcum) : '--') + '</span></div>';
+  h += '</div>';
+
+  h += '<h4>Estimaciones</h4>';
+
+  if(!estimaciones.length){
+    h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin estimaciones agregadas.</p>';
+  } else {
+    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
+    h += '<th>No.</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th><th>Acción</th>';
+    h += '</tr></thead><tbody>';
+
+    estimaciones.forEach(function(e, idx){
+      h += '<tr>';
+      h += '<td>' + inputEstimacion(key, idx, 'numero', e.numero || (idx + 1), 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'periodo', e.periodo || '', 'text', '120px') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'importe', e.importe || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'amortizacion', e.amortizacion || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'retencion', e.retencion || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'iva', e.iva || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'totalPagado', e.totalPagado || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'fechaPago', e.fechaPago || '', 'date', '130px') + '</td>';
+      h += '<td>' + selectEstimacion(key, idx, e.estatus || '0') + '</td>';
+      h += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarEstimacionControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button></td>';
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+  }
+
+  h += '<button class="ctrl-add-btn" onclick="agregarEstimacionControl(\'' + escCtrlJS(fase.id) + '\')">+ Agregar estimación</button>';
+  h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">Actualizar resumen</button>';
+  h += '</div>';
+
+  return h;
+}
 function setConvenioContratoVal(key, idx, campo, val, cardId){
   var ctrl = gCtrl();
 
