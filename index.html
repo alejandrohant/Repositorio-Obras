@@ -5034,7 +5034,27 @@ function setEstimacionVal(key, idx, campo, val){
 
   sCtrl(ctrl);
 }
+function faseIdSafeCtrl(faseId){
+  return String(faseId || 'fase').replace(/[^a-zA-Z0-9_-]/g,'_');
+}
 
+function abrirPanelEstimacionesControl(faseId){
+  var faseIdSafe = faseIdSafeCtrl(faseId);
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+  if(!card) return;
+
+  var body = document.getElementById('ctrlfase-body-' + faseIdSafe);
+  var chev = document.getElementById('ctrlfase-chev-' + faseIdSafe);
+
+  if(body) body.classList.add('open');
+  if(chev) chev.classList.add('open');
+
+  var btn = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn')).find(function(b){
+    return String(b.getAttribute('onclick') || '').indexOf("'estimaciones'") >= 0;
+  });
+
+  toggleControlFasePanel(faseIdSafe, 'estimaciones', btn || null);
+}
 function agregarEstimacionControl(faseId){
   var key = 'fase_' + faseId;
   var ctrl = gCtrl();
@@ -5056,6 +5076,10 @@ function agregarEstimacionControl(faseId){
 
   sCtrl(ctrl);
   recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
 }
 
 function eliminarEstimacionControl(faseId, idx){
@@ -5074,6 +5098,10 @@ function eliminarEstimacionControl(faseId, idx){
 
   sCtrl(ctrl);
   recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
 }
 
 function inputEstimacion(key, idx, campo, val, tipo, ancho){
@@ -5143,7 +5171,7 @@ function buildControlEstimaciones(key, fase){
   h += '<h4>Anticipo</h4>';
   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
 
-  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
+  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel" style="width:120px" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
     + '<option value="0"' + (String(ant.tiene || '0') === '0' ? ' selected' : '') + '>--</option>'
     + '<option value="1"' + (String(ant.tiene || '0') === '1' ? ' selected' : '') + '>Sí</option>'
     + '<option value="2"' + (String(ant.tiene || '0') === '2' ? ' selected' : '') + '>No</option>'
@@ -5172,12 +5200,13 @@ function buildControlEstimaciones(key, fase){
     h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin estimaciones agregadas.</p>';
   } else {
     h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
-    h += '<th>No.</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th><th>Acción</th>';
+    h += '<th>No.</th><th>Acción</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th>';
     h += '</tr></thead><tbody>';
 
     estimaciones.forEach(function(e, idx){
       h += '<tr>';
       h += '<td>' + inputEstimacion(key, idx, 'numero', e.numero || (idx + 1), 'number') + '</td>';
+      h += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarEstimacionControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button></td>';
       h += '<td>' + inputEstimacion(key, idx, 'periodo', e.periodo || '', 'text', '120px') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'importe', e.importe || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'amortizacion', e.amortizacion || '', 'number') + '</td>';
@@ -5186,7 +5215,6 @@ function buildControlEstimaciones(key, fase){
       h += '<td>' + inputEstimacion(key, idx, 'totalPagado', e.totalPagado || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'fechaPago', e.fechaPago || '', 'date', '130px') + '</td>';
       h += '<td>' + selectEstimacion(key, idx, e.estatus || '0') + '</td>';
-      h += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarEstimacionControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button></td>';
       h += '</tr>';
     });
 
