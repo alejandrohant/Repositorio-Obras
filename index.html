@@ -361,11 +361,11 @@ select.fg-sel:focus{border-color:#a78bfa}
   .rpt-header { background:#1a1a2e !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 .rpt-header{background:#1a1a2e;border-radius:12px;padding:24px 28px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center}
-.rpt-logo{width:48px;height:48px;background:#a78bfa;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
-.rpt-title{flex:1;margin-left:16px}
-.rpt-title h1{font-size:20px;font-weight:700;color:#e2e8f0;margin-bottom:2px}
-.rpt-title p{font-size:12px;color:#94a3b8}
-.rpt-fecha{font-size:11px;color:#64748b;text-align:right}
+.rpt-logo{width:64px;height:64px;background:#a78bfa;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;text-align:center;line-height:1.05;letter-spacing:-0.5px}
+.rpt-title{flex:1;margin-left:20px;min-width:0}
+.rpt-title h1{font-size:20px;font-weight:700;color:#e2e8f0;margin-bottom:4px;line-height:1.2}
+.rpt-title p{font-size:12px;color:#94a3b8;line-height:1.35}
+.rpt-fecha{font-size:11px;color:#64748b;text-align:right;min-width:130px;line-height:1.35}
 .rpt-obra{background:#1e1e2e;border-radius:12px;padding:20px 24px;margin-bottom:20px}
 .rpt-obra h2{font-size:16px;font-weight:700;color:#a78bfa;margin-bottom:12px}
 .rpt-obra-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
@@ -5929,8 +5929,8 @@ function generarReporteObligacionesRFCRPFase(f){
   var h = '';
 
   h += '<div class="rpt-header">'
-    + '<div class="rpt-logo">RFC/RP</div>'
-    + '<div class="rpt-title"><h1>Reporte obligaciones RFC/RP</h1><p>Origen: Control · Reporte por contratista dentro de la obra</p></div>'
+    + '<div class="rpt-logo">RFC<br>RP</div>'
+    + '<div class="rpt-title"><h1>Reporte obligaciones RFC/RP</h1><p>Origen: Control · Reporte por contratista/subcontratista dentro de la obra</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
