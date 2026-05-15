@@ -2652,12 +2652,8 @@ function irFichaFase(id){
   var acum=calcAcumulado(f);
   var acumSub=calcAcumSub(f);
   var hasSub=acumSub>0;
-  var hasConv=(f.conv1||f.conv2||f.conv3||ctrlConvenios.length);
-  var hasCorp=(valCtrlCierre('corp1')>0&&valCtrlCierre('corp1')!==4)||(valCtrlCierre('corp2')>0&&valCtrlCierre('corp2')!==4);
-  var moEstProp=calcMoEstProp(f);
-  var moEstCtr=calcMoEstCtr(f);
-  var moEstSub=calcMoEstSub(f);
-  // Calculate MO pagada and cuotas pagadas from Control mensual
+
+  // Datos capturados en Control de esta fase/subfase
   var ctrl=gCtrl();
   var keyFase='fase_'+f.id;
   var periodosFase=ctrl[keyFase]||{};
@@ -2665,6 +2661,14 @@ function irFichaFase(id){
   var ctrlContratos=ctrlFase.__contratos||{};
   var ctrlCierre=ctrlFase.__cierre||{};
   var ctrlConvenios=Array.isArray(ctrlFase.__convenios)?ctrlFase.__convenios:[];
+
+  var hasConv=(f.conv1||f.conv2||f.conv3||ctrlConvenios.length);
+  var hasCorp=(valCtrlCierre('corp1')>0&&valCtrlCierre('corp1')!==4)||(valCtrlCierre('corp2')>0&&valCtrlCierre('corp2')!==4);
+
+  var moEstProp=calcMoEstProp(f);
+  var moEstCtr=calcMoEstCtr(f);
+  var moEstSub=calcMoEstSub(f);
+  // Calculate MO pagada and cuotas pagadas from Control mensual
 
   function valCtrlContrato(campo){
     if(ctrlContratos && ctrlContratos[campo] !== undefined && ctrlContratos[campo] !== null && ctrlContratos[campo] !== ''){
@@ -2695,7 +2699,8 @@ function irFichaFase(id){
 
   var totalGPS=0,totalCOP=0,totalRCV=0,totalINF=0;
   Object.keys(periodosFase).forEach(function(p){
-    if(p==='__extra'||p==='__cierre')return;
+    if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+    if(!periodosFase[p] || typeof periodosFase[p] !== 'object')return;
     totalGPS+=parseFloat(periodosFase[p].gps)||0;
     totalCOP+=parseFloat(periodosFase[p].cop)||0;
     totalRCV+=parseFloat(periodosFase[p].rcv)||0;
@@ -2710,7 +2715,8 @@ function irFichaFase(id){
     var keySf='fase_'+sf.id;
     var pSf=gCtrl()[keySf]||{};
     Object.keys(pSf).forEach(function(p){
-      if(p==='__extra'||p==='__cierre')return;
+      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+      if(!pSf[p] || typeof pSf[p] !== 'object')return;
       subGPS+=parseFloat(pSf[p].gps)||0;
       subCOP+=parseFloat(pSf[p].cop)||0;
       subRCV+=parseFloat(pSf[p].rcv)||0;
