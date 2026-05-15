@@ -5237,7 +5237,8 @@ function buildControlEstimaciones(key, fase){
   h += '<div class="ctrl-est-card"><label>Saldo anticipo</label><span>' + (importeAnticipo ? mxn(saldoAnticipo) : '--') + '</span></div>';
   h += '<div class="ctrl-est-card"><label>Saldo por estimar</label><span>' + (importeContrato ? mxn(saldoEstimar) : '--') + '</span></div>';
   h += '<div class="ctrl-est-card"><label>Avance financiero</label><span>' + (importeContrato ? avance.toFixed(2) + '%' : '--') + '</span></div>';
-  h += '<div class="ctrl-est-card"><label>Total pagado</label><span>' + (totalPagadoAcum ? mxn(totalPagadoAcum) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Subtotal pagado sin IVA</label><span>' + (subtotalPagadoAcum ? mxn(subtotalPagadoAcum) : '--') + '</span></div>';
+h += '<div class="ctrl-est-card"><label>Total pagado con IVA</label><span>' + (totalConIvaAcum ? mxn(totalConIvaAcum) : '--') + '</span></div>';
   h += '</div>';
 
   h += '<h4>Estimaciones</h4>';
@@ -5246,7 +5247,7 @@ function buildControlEstimaciones(key, fase){
     h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin estimaciones agregadas.</p>';
   } else {
     h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
-    h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Importe estimado</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total pagado</th><th>Fecha pago</th><th>Estatus</th>';
+    h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Subtotal sin IVA</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total con IVA</th><th>Fecha pago</th><th>Estatus</th>';
     h += '</tr></thead><tbody>';
 
     estimaciones.forEach(function(e, idx){
@@ -5255,11 +5256,11 @@ function buildControlEstimaciones(key, fase){
       h += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarEstimacionControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button></td>';
       h += '<td>' + inputEstimacion(key, idx, 'folio', e.folio || '', 'text', '130px') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'periodo', e.periodo || '', 'date', '130px') + '</td>';
-      h += '<td>' + inputEstimacion(key, idx, 'importe', e.importe || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'subtotal', e.subtotal || e.importe || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'amortizacion', e.amortizacion || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'retencion', e.retencion || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'iva', e.iva || '', 'number') + '</td>';
-      h += '<td>' + inputEstimacion(key, idx, 'totalPagado', e.totalPagado || '', 'number') + '</td>';
+      h += '<td>' + inputEstimacion(key, idx, 'total', e.total || e.totalPagado || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'fechaPago', e.fechaPago || '', 'date', '130px') + '</td>';
       h += '<td>' + selectEstimacion(key, idx, e.estatus || '0') + '</td>';
       h += '</tr>';
