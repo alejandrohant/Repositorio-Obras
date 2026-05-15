@@ -163,6 +163,11 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .est-no{color:#f87171}
 .est-err{color:#f59e0b}
 .est-na{color:#64748b}
+.doc-upload{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.doc-file{background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:7px 10px;color:#94a3b8;font-size:11px;max-width:220px}
+.doc-view{background:#1e2a3a;border:1px solid #60a5fa;border-radius:7px;padding:6px 10px;color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer}
+.doc-view:hover{background:#263957}
+.doc-none{color:#64748b;font-size:11px;font-weight:600}
 /* FASES */
 .pg-fases{display:none;padding:32px 24px;max-width:1100px;margin:0 auto}
 .pg-fases.active{display:block}
@@ -926,8 +931,8 @@ select.fg-sel:focus{border-color:#a78bfa}
   <input type="date" id="prf-vrepse" readonly style="background:#161622;color:#64748b">
   <div id="prf-repse-warn" class="fase-tag fase-tag-venc" style="display:none;margin-top:6px">REPSE vencido</div>
 </div>
-    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
+    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-sat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"><button type="button" class="doc-view" id="prf-ver-sat" onclick="verArchivoPerfil('acuseSAT')" style="display:none">Ver archivo</button><span class="doc-none" id="prf-name-sat">Sin archivo</span></div></div>
+    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-arep" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"><button type="button" class="doc-view" id="prf-ver-arep" onclick="verArchivoPerfil('acuseREPSE')" style="display:none">Ver archivo</button><span class="doc-none" id="prf-name-arep">Sin archivo</span></div></div>
     <div class="fg" id="wrap-prf-acta">
   <label>ACTA CONSTITUTIVA</label>
   <select id="prf-acta" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
@@ -2184,6 +2189,118 @@ function estLabel(v){
 
   return '<span class="est-na">--</span>';
 }
+function perfilDocMeta(campo){
+  var mapa = {
+    acuseSAT:{input:'prf-file-sat',ver:'prf-ver-sat',name:'prf-name-sat'},
+    acuseREPSE:{input:'prf-file-arep',ver:'prf-ver-arep',name:'prf-name-arep'}
+  };
+  return mapa[campo] || null;
+}
+
+function perfilDocCampos(){
+  return ['acuseSAT','acuseREPSE'];
+}
+
+function nombreArchivoRuta(ruta){
+  if(!ruta) return '';
+  var partes = String(ruta).split('/');
+  return partes[partes.length - 1] || ruta;
+}
+
+function limpiarInputsArchivosPerfil(){
+  perfilDocCampos().forEach(function(campo){
+    var m = perfilDocMeta(campo);
+    if(!m) return;
+
+    var inp = document.getElementById(m.input);
+    var ver = document.getElementById(m.ver);
+    var name = document.getElementById(m.name);
+
+    if(inp) inp.value = '';
+    if(ver) ver.style.display = 'none';
+    if(name) name.textContent = 'Sin archivo';
+  });
+}
+
+function pintarArchivosPerfil(archivos){
+  archivos = archivos || {};
+
+  perfilDocCampos().forEach(function(campo){
+    var m = perfilDocMeta(campo);
+    if(!m) return;
+
+    var ruta = archivos[campo] || '';
+    var ver = document.getElementById(m.ver);
+    var name = document.getElementById(m.name);
+
+    if(ver) ver.style.display = ruta ? 'inline-block' : 'none';
+    if(name) name.textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  });
+}
+
+async function subirArchivoPerfilCampo(campo, perfilId, archivosActuales){
+  archivosActuales = archivosActuales || {};
+
+  var m = perfilDocMeta(campo);
+  if(!m) return archivosActuales[campo] || '';
+
+  var input = document.getElementById(m.input);
+
+  if(!input || !input.files || !input.files[0]){
+    return archivosActuales[campo] || '';
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+  var ruta = currentUser.id + '/perfiles/' + perfilId + '/' + campo + '_' + Date.now() + '_' + limpio;
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de perfil:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    return archivosActuales[campo] || '';
+  }
+
+  return ruta;
+}
+
+async function verRutaDocumentoPerfil(ruta){
+  if(!ruta){
+    alert('Este documento todavía no tiene archivo.');
+    return;
+  }
+
+  var firmado = await supabaseClient.storage
+    .from('documentos')
+    .createSignedUrl(ruta, 600);
+
+  if(firmado.error){
+    console.error('Error abriendo archivo:', firmado.error);
+    alert('No se pudo abrir el archivo.');
+    return;
+  }
+
+  window.open(firmado.data.signedUrl, '_blank');
+}
+
+async function verArchivoPerfil(campo){
+  if(!eIdPrf){
+    alert('Primero guarda el perfil.');
+    return;
+  }
+
+  var p = gPrf().find(function(x){
+    return x.id === eIdPrf;
+  });
+
+  var ruta = p && p.archivos ? p.archivos[campo] : '';
+
+  await verRutaDocumentoPerfil(ruta);
+}
 function renderPerfiles(lista){
   var h='';
   if(!lista.length){h='<div class="empty"><p>Sin perfiles.</p></div>';}
@@ -2253,6 +2370,7 @@ function abrirNuevoPerfil(){
   document.getElementById('prf-vrepse').value = '';
   document.getElementById('prf-repse-warn').style.display = 'none';
   document.getElementById('prf-idfisica').value = '0';
+  limpiarInputsArchivosPerfil();
   togglePersonaFisicaPorRFC();
   document.getElementById('modal-prf').classList.add('open');
 }
@@ -2333,6 +2451,7 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-poder').value=p.poderRL||0;
   document.getElementById('prf-idrl').value=p.idRL||0;
   document.getElementById('prf-csatrl').value=p.constSATRL||0;
+  pintarArchivosPerfil(p.archivos || {});
   document.getElementById('prf-dom').value=p.domicilio||'';
   document.getElementById('prf-cp').value=p.cp||'';
   document.getElementById('prf-estado').value=p.estado||'';
@@ -2342,9 +2461,21 @@ function abrirEditarPerfil(id){
 async function guardarPerfil(e){
   e.preventDefault();
 
-  var tipo = document.getElementById('prf-tipo').value;
-  var o = {
-    id: eIdPrf || 'prf_' + Date.now(),
+var tipo = document.getElementById('prf-tipo').value;
+var perfilId = eIdPrf || 'prf_' + Date.now();
+var previo = eIdPrf ? gPrf().find(function(x){ return x.id === eIdPrf; }) : null;
+var archivosPrevios = previo && previo.archivos ? previo.archivos : {};
+var archivosPerfil = Object.assign({}, archivosPrevios);
+
+  if(currentUser){
+  for(var ai = 0; ai < perfilDocCampos().length; ai++){
+    var campoArchivo = perfilDocCampos()[ai];
+    archivosPerfil[campoArchivo] = await subirArchivoPerfilCampo(campoArchivo, perfilId, archivosPerfil);
+  }
+}
+
+var o = {
+  id: perfilId,
     rfc: document.getElementById('prf-rfc').value.trim().toUpperCase(),
     nombre: document.getElementById('prf-nom').value.trim(),
     tipo: tipo,
@@ -2363,7 +2494,7 @@ async function guardarPerfil(e){
     domicilio: document.getElementById('prf-dom').value.trim(),
     cp: document.getElementById('prf-cp').value.trim(),
     estado: document.getElementById('prf-estado').value.trim(),
-    archivos: {}
+    archivos: archivosPerfil    
   };
 
   if(!o.rfc || !o.nombre || !o.tipo){
