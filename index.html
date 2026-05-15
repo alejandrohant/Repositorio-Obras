@@ -5195,6 +5195,7 @@ function buildControlEstimaciones(key, fase){
   var amortizadoAcum = 0;
   var subtotalPagadoAcum = 0;
   var totalConIvaAcum = 0;
+  var fondoGarantiaAcum = 0;
 
   estimaciones.forEach(function(e){
     var subtotalEstimacion = numCtrl(e.subtotal || e.importe);
@@ -5204,6 +5205,7 @@ function buildControlEstimaciones(key, fase){
     amortizadoAcum += numCtrl(e.amortizacion);
     subtotalPagadoAcum += subtotalEstimacion;
     totalConIvaAcum += totalEstimacion;
+    fondoGarantiaAcum += numCtrl(e.retencion);
   });
 
   var saldoAnticipo = Math.max(0, importeAnticipo - amortizadoAcum);
@@ -5239,6 +5241,7 @@ function buildControlEstimaciones(key, fase){
   h += '<div class="ctrl-est-card"><label>Avance financiero</label><span>' + (importeContrato ? avance.toFixed(2) + '%' : '--') + '</span></div>';
   h += '<div class="ctrl-est-card"><label>Subtotal pagado sin IVA</label><span>' + (subtotalPagadoAcum ? mxn(subtotalPagadoAcum) : '--') + '</span></div>';
   h += '<div class="ctrl-est-card"><label>Total pagado con IVA</label><span>' + (totalConIvaAcum ? mxn(totalConIvaAcum) : '--') + '</span></div>';
+  h += '<div class="ctrl-est-card"><label>Fondo de garantía</label><span>' + (fondoGarantiaAcum ? mxn(fondoGarantiaAcum) : '--') + '</span></div>';
   h += '</div>';
 
   h += '<h4>Estimaciones</h4>';
