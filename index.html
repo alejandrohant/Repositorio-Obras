@@ -2727,19 +2727,40 @@ function renderFasesList(fases){
     else{irFichaFase(id);}
   };
 }
+function totalConveniosControlFase(faseId){
+  var ctrl = gCtrl();
+  var data = ctrl['fase_' + faseId] || {};
+  var convenios = Array.isArray(data.__convenios) ? data.__convenios : [];
+
+  return convenios.reduce(function(acc, c){
+    return acc + (parseFloat(c.importe) || 0);
+  }, 0);
+}
+
 function calcAcumulado(f){
   var base=f.importe||0;
-  return base+(f.conv1||0)+(f.conv2||0)+(f.conv3||0);
+  return base+(f.conv1||0)+(f.conv2||0)+(f.conv3||0)+totalConveniosControlFase(f.id);
 }
+
 function calcAcumSub(f){
-  return (f.sub||0)+(f.csub1||0)+(f.csub2||0)+(f.csub3||0);
+  return (f.sub||0)+(f.csub1||0)+(f.csub2||0)+(f.csub3||0)+totalConveniosControlFase(f.id);
 }
+
 function calcIsnTotal(f){
   return (f.isnP1||0)+(f.isnP2||0)+(f.isnP3||0)+(f.isnP4||0)+(f.isnP5||0)+(f.isnPconv||0);
 }
+
 function calcMoEstProp(f){return (f.valorObra||calcAcumulado(f))*(f.fmoImss||0);}
 function calcMoEstCtr(f){return calcAcumulado(f)*(f.fmoImss||0);}
 function calcMoEstSub(f){return calcAcumSub(f)*(f.fmoImss||0);}
+
+function calcIsnEstActualizado(f){
+  return calcAcumulado(f)*(f.fmoIsn||0)*(f.fisn||0);
+}
+
+function calcIsnConvControl(f){
+  return totalConveniosControlFase(f.id)*(f.fmoIsn||0)*(f.fisn||0);
+}
 function grup(tit,body,openByDefault){
   var uid='gc'+Math.random().toString(36).slice(2);
   var openCls=openByDefault?' open':'';
@@ -2881,7 +2902,9 @@ function irFichaFase(id){
   });
   var moPagadaSubCtrl=subGPS>0?subGPS/0.01:null;
   var cuotasPagadasSubCtrl=subCOP+subRCV+subINF>0?subCOP+subRCV+subINF:null;
-  var isnTotEst=(f.isnEst||0)+(f.isnConv||0);
+  var isnEstActualizado = calcIsnEstActualizado(f);
+var isnConvControl = calcIsnConvControl(f);
+var isnTotEst = isnEstActualizado || ((f.isnEst||0)+(f.isnConv||0));
   var isnTotPag=calcIsnTotal(f);
   var contIMSSprop=moEstProp*(f.fcuotasImss||0);
   var contIMSSctr=moEstCtr*(f.fcuotasImss||0);
@@ -3104,8 +3127,8 @@ function irFichaFase(id){
     : '<div class="fase-grid">'
         +campoFase('Factor MO ISN',f.fmoIsn?pct(f.fmoIsn):null)
         +campoFase('Factor ISN',f.fisn?pct(f.fisn):null)
-        +campoFase('ISN est. contrato',f.isnEst?mxn(f.isnEst):null)
-        +campoFase('ISN est. convenios',f.isnConv?mxn(f.isnConv):null)
+        +campoFase('ISN est. contrato actualizado',isnTotEst>0?mxn(isnTotEst):null)
+        +campoFase('ISN est. convenios',isnConvControl>0?mxn(isnConvControl):null)
         +campoFase('Total ISN estimado',isnTotEst>0?mxn(isnTotEst):null)
         +campoFase('Total ISN pagado','<span class="num">'+mxn(totalISNPagadoDesdeControl)+'</span>')
         +(isnTotEst>0?campoFase('Contingencia ISN','<span style="color:#f87171;font-weight:600">'+mxn(contingenciaISN)+'</span>','full'):'')
