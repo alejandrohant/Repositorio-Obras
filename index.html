@@ -2841,7 +2841,7 @@ function irFichaFase(id){
   function valCtrlPeriodo(campo){
     var ultimo=0;
     Object.keys(periodosFase).sort().forEach(function(p){
-      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios'||p==='__anticipo'||p==='__estimaciones')return;
       var row=periodosFase[p]||{};
       var v=row[campo];
       if(v!==undefined && v!==null && v!=='' && parseInt(v)!==0){
@@ -2853,7 +2853,7 @@ function irFichaFase(id){
 
   var totalGPS=0,totalCOP=0,totalRCV=0,totalINF=0;
   Object.keys(periodosFase).forEach(function(p){
-    if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+    if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios'||p==='__anticipo'||p==='__estimaciones')return;
     if(!periodosFase[p] || typeof periodosFase[p] !== 'object')return;
     totalGPS+=parseFloat(periodosFase[p].gps)||0;
     totalCOP+=parseFloat(periodosFase[p].cop)||0;
@@ -2869,7 +2869,7 @@ function irFichaFase(id){
     var keySf='fase_'+sf.id;
     var pSf=gCtrl()[keySf]||{};
     Object.keys(pSf).forEach(function(p){
-      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios')return;
+      if(p==='__extra'||p==='__cierre'||p==='__contratos'||p==='__convenios'||p==='__anticipo'||p==='__estimaciones')return;
       if(!pSf[p] || typeof pSf[p] !== 'object')return;
       subGPS+=parseFloat(pSf[p].gps)||0;
       subCOP+=parseFloat(pSf[p].cop)||0;
@@ -4611,6 +4611,10 @@ function buildFaseHtml(perfil, fase) {
   }
 
   if(!soloISN){
+    h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'estimaciones\',this)">Control Anticipo / Estimaciones</button>';
+  }
+
+  if(!soloISN){
     h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cierre\',this)">Control Cierre</button>';
   }
 
@@ -4622,6 +4626,10 @@ function buildFaseHtml(perfil, fase) {
 
   if(debeMostrarISN){
     h += '<div class="ctrl-fase-panel ' + (panelInicial === 'isn' ? 'active' : '') + '" data-panel="isn">' + isnHtml + '</div>';
+  }
+
+  if(!soloISN){
+    h += '<div class="ctrl-fase-panel" data-panel="estimaciones">' + estimacionesHtml + '</div>';
   }
 
   if(!soloISN){
@@ -5527,7 +5535,7 @@ function getCtrlTotales(faseId){
   var inf = 0;
 
   Object.keys(data).forEach(function(periodo){
-    if(periodo === '__extra' || periodo === '__cierre') return;
+    if(periodo === '__extra' || periodo === '__cierre' || periodo === '__contratos' || periodo === '__convenios' || periodo === '__anticipo' || periodo === '__estimaciones') return;
 
     var row = data[periodo] || {};
 
