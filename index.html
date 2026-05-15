@@ -786,35 +786,13 @@ select.fg-sel:focus{border-color:#a78bfa}
         <h4>Importes</h4>
         <div class="fgrid">
           <div class="fg fp" id="fa-valor-obra-wrap">
-  <label>VALOR OBRA PROPIETARIA ($)</label>
-  <input id="fa-valor-obra">
-</div>
-          <div class="fg"><label>Importe Contrato ($)</label><input type="number" step="0.01" id="fa-importe" oninput="calcISNFase()"></div>
-        </div>
-        <div class="fase-toggle-row"><input type="checkbox" id="fa-chk-conv" onchange="toggleConvenios()"><label for="fa-chk-conv">Tiene convenio(s) modificatorio(s)</label></div>
-        <div id="fa-convenios-wrap" style="display:none">
-          <div class="fgrid">
-            <div class="fg"><label>Convenio 1 ($)</label><input type="number" step="0.01" id="fa-conv1"></div>
-            <div class="fg"><label>Convenio 2 ($)</label><input type="number" step="0.01" id="fa-conv2"></div>
-            <div class="fg"><label>Convenio 3 ($)</label><input type="number" step="0.01" id="fa-conv3"></div>
-            <div class="fg"><label>No. de convenios</label>
-              <select class="fg-sel" id="fa-n-conv">
-                <option value="0">Sin convenios</option>
-                <option value="1">1 convenio</option>
-                <option value="2">2 convenios</option>
-                <option value="3">3 convenios</option>
-                <option value="4">4 o más convenios</option>
-              </select>
-            </div>
+            <label>VALOR OBRA PROPIETARIA ($)</label>
+            <input id="fa-valor-obra">
           </div>
-        </div>
-        <div class="fase-toggle-row"><input type="checkbox" id="fa-chk-sub" onchange="toggleSubcontrato()"><label for="fa-chk-sub">Tiene subcontrato</label></div>
-        <div id="fa-sub-wrap" style="display:none">
-          <div class="fgrid">
-            <div class="fg"><label>Subcontrato ($)</label><input type="number" step="0.01" id="fa-sub"></div>
-            <div class="fg"><label>Convenio Sub 1 ($)</label><input type="number" step="0.01" id="fa-csub1"></div>
-            <div class="fg"><label>Convenio Sub 2 ($)</label><input type="number" step="0.01" id="fa-csub2"></div>
-            <div class="fg"><label>Convenio Sub 3 ($)</label><input type="number" step="0.01" id="fa-csub3"></div>
+
+          <div class="fg">
+            <label>Importe Contrato ($)</label>
+            <input type="number" step="0.01" id="fa-importe" oninput="calcISNFase();calcIMSSFase()">
           </div>
         </div>
       </div>
@@ -3143,23 +3121,9 @@ function abrirEditarFase(id){
   document.getElementById('fa-valor-obra').value=f.valorObra||'';
   document.getElementById('fa-importe').value=f.importe||'';
 
-  if(f.conv1||f.conv2||f.conv3||f.nConv>0){
-    document.getElementById('fa-chk-conv').checked=true;
-    toggleConvenios();
-    document.getElementById('fa-conv1').value=f.conv1||'';
-    document.getElementById('fa-conv2').value=f.conv2||'';
-    document.getElementById('fa-conv3').value=f.conv3||'';
-    document.getElementById('fa-n-conv').value=f.nConv||0;
-  }
-
-  if(f.sub||f.csub1||f.csub2||f.csub3){
-    document.getElementById('fa-chk-sub').checked=true;
-    toggleSubcontrato();
-    document.getElementById('fa-sub').value=f.sub||'';
-    document.getElementById('fa-csub1').value=f.csub1||'';
-    document.getElementById('fa-csub2').value=f.csub2||'';
-    document.getElementById('fa-csub3').value=f.csub3||'';
-  }
+  // Convenios y subcontratos ya no se editan aquí.
+  // Convenios: se capturan en Control.
+  // Subcontratos: se capturan creando una Subfase.
 
   var docFields=[
     ['contrato','docContrato'],
@@ -3239,8 +3203,8 @@ function resetFaseForm(){
     else el.value='';
   });
   document.getElementById('fa-fcuotas-imss').value='0.354';
-  document.getElementById('fa-convenios-wrap').style.display='none';
-  document.getElementById('fa-sub-wrap').style.display='none';
+  if(document.getElementById('fa-convenios-wrap')) document.getElementById('fa-convenios-wrap').style.display='none';
+  if(document.getElementById('fa-sub-wrap')) document.getElementById('fa-sub-wrap').style.display='none';
   // Reset label and siroc-sub visibility
   var lbl=document.getElementById('fa-siroc-principal-lbl');
   if(lbl)lbl.innerHTML='SIROC Principal (de la obra)';
@@ -3329,12 +3293,17 @@ function onFaseRFCChange(){
   }
 }
 function toggleConvenios(){
-  var chk=document.getElementById('fa-chk-conv').checked;
-  document.getElementById('fa-convenios-wrap').style.display=chk?'block':'none';
+  var chk=document.getElementById('fa-chk-conv');
+  var wrap=document.getElementById('fa-convenios-wrap');
+  if(!chk || !wrap) return;
+  wrap.style.display=chk.checked?'block':'none';
 }
+
 function toggleSubcontrato(){
-  var chk=document.getElementById('fa-chk-sub').checked;
-  document.getElementById('fa-sub-wrap').style.display=chk?'block':'none';
+  var chk=document.getElementById('fa-chk-sub');
+  var wrap=document.getElementById('fa-sub-wrap');
+  if(!chk || !wrap) return;
+  wrap.style.display=chk.checked?'block':'none';
 }
 function cerrarFase(){document.getElementById('modal-fase').classList.remove('open');}
 async function guardarFase(){
@@ -3382,14 +3351,17 @@ async function guardarFase(){
     cumplimiento:document.getElementById('fa-cumplimiento').value,
     valorObra:num(document.getElementById('fa-valor-obra').value),
     importe:num(document.getElementById('fa-importe').value),
-    conv1:num(document.getElementById('fa-conv1').value),
-    conv2:num(document.getElementById('fa-conv2').value),
-    conv3:num(document.getElementById('fa-conv3').value),
-    nConv:parseInt(document.getElementById('fa-n-conv').value)||0,
-    sub:num(document.getElementById('fa-sub').value),
-    csub1:num(document.getElementById('fa-csub1').value),
-    csub2:num(document.getElementById('fa-csub2').value),
-    csub3:num(document.getElementById('fa-csub3').value),
+
+    // Datos legacy: ya no se capturan en el modal, pero se conservan para registros antiguos.
+    conv1:faseAnterior.conv1 != null ? faseAnterior.conv1 : null,
+    conv2:faseAnterior.conv2 != null ? faseAnterior.conv2 : null,
+    conv3:faseAnterior.conv3 != null ? faseAnterior.conv3 : null,
+    nConv:faseAnterior.nConv != null ? faseAnterior.nConv : 0,
+    sub:faseAnterior.sub != null ? faseAnterior.sub : null,
+    csub1:faseAnterior.csub1 != null ? faseAnterior.csub1 : null,
+    csub2:faseAnterior.csub2 != null ? faseAnterior.csub2 : null,
+    csub3:faseAnterior.csub3 != null ? faseAnterior.csub3 : null,
+
     fmoImss:pctIn(document.getElementById('fa-fmo-imss').value),
   fcuotasImss:pctIn(document.getElementById('fa-fcuotas-imss').value)||0.354,
     moPagProp:num(document.getElementById('fa-mo-pag-prop').value),
