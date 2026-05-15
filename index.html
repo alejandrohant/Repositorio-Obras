@@ -2685,6 +2685,11 @@ function irFichaFase(id){
     if(ctrlContratos && ctrlContratos[campo] !== undefined && ctrlContratos[campo] !== null && ctrlContratos[campo] !== ''){
       return ctrlContratos[campo];
     }
+
+    if(f && f[campo] !== undefined && f[campo] !== null && f[campo] !== ''){
+      return f[campo];
+    }
+
     return 0;
   }
 
