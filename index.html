@@ -4456,6 +4456,8 @@ function buildFaseHtml(perfil, fase) {
 
   var isnHtml = debeMostrarISN ? buildControlISN(keyISN, fase) : '';
 
+  var estimacionesHtml = !soloISN ? buildControlEstimaciones(key, fase) : '';
+
   var cierreHtml = '';
   if(!soloISN){
     cierreHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Cierre</h3>';
