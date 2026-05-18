@@ -1083,6 +1083,7 @@ select.fg-sel:focus{border-color:#a78bfa}
   <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
   <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
   <button class="nbtn" id="btn-rpt-obligaciones">Reporte obligaciones RFC/RP</button>
+  <button class="nbtn" id="btn-rpt-expediente">Reporte expediente general</button>
   <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
 </div>
   </div>
@@ -1409,10 +1410,16 @@ function irFicha(id){
   var btnRptM2 = document.getElementById('btn-rpt-cuotas-m2');
   var btnRptPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
   var btnRptObligaciones = document.getElementById('btn-rpt-obligaciones');
+  var btnRptExpediente = document.getElementById('btn-rpt-expediente');
 
   if(btnRptObligaciones){
   btnRptObligaciones.style.display = 'none';
   btnRptObligaciones.onclick = null;
+  }
+
+  if(btnRptExpediente){
+  btnRptExpediente.style.display = 'none';
+  btnRptExpediente.onclick = null;
   }
 
   if(btnRptM2){
@@ -6833,6 +6840,143 @@ function generarReporteObligacionesRFCRPFase(f){
 
   show('pg-reporte');
 }
+function generarReporteExpedienteGeneralFase(f){
+  var perfil = gPrf().find(function(p){
+    return String(p.rfc || '').trim().toUpperCase() === String(f.rfc || '').trim().toUpperCase();
+  });
+
+  if(!perfil){
+    alert('No encontré un perfil con el RFC ' + (f.rfc || '--') + '. Primero crea o corrige el perfil del contratista/subcontratista.');
+    return;
+  }
+
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var rfc = String(perfil.rfc || f.rfc || '').trim().toUpperCase();
+  var esPersonaFisica = rfc.length === 13;
+
+  var docs = [
+    {k:'acuseSAT',l:'Constancia de situación fiscal',v:perfil.acuseSAT},
+    {k:'acuseREPSE',l:'Acuse REPSE',v:perfil.acuseREPSE}
+  ];
+
+  if(esPersonaFisica){
+    docs.push({k:'idPersonaFisica',l:'Identificación persona física',v:perfil.idPersonaFisica});
+  }else{
+    docs.push({k:'actaConst',l:'Acta constitutiva',v:perfil.actaConst});
+    docs.push({k:'poderRL',l:'Poder notarial del representante legal',v:perfil.poderRL});
+    docs.push({k:'idRL',l:'Identificación del representante legal',v:perfil.idRL});
+    docs.push({k:'constSATRL',l:'Constancia SAT del representante legal',v:perfil.constSATRL});
+  }
+
+  var filasObs = '';
+  var filasTodo = '';
+  var totalObs = 0;
+  var sinCaptura = 0;
+  var noPresentado = 0;
+  var erroneo = 0;
+  var repseVencido = false;
+
+  function contar(v){
+    v = parseInt(v) || 0;
+    if(v === 0) sinCaptura++;
+    if(v === 2) noPresentado++;
+    if(v === 3) erroneo++;
+  }
+
+  docs.forEach(function(d){
+    var v = parseInt(d.v) || 0;
+    var fila = '<tr class="' + (v === 3 ? 'rpt-warn' : '') + '">'
+      + '<td>' + d.l + '</td>'
+      + '<td>' + estadoDocReporte(v) + '</td>'
+      + '</tr>';
+
+    filasTodo += fila;
+
+    if(esObservacionReporte(v)){
+      contar(v);
+      totalObs++;
+      filasObs += fila;
+    }
+  });
+
+  if(perfil.vigenciaREPSE){
+    var vence = new Date(perfil.vigenciaREPSE + 'T12:00:00');
+    var hoyBase = new Date();
+    hoyBase.setHours(0,0,0,0);
+    repseVencido = vence < hoyBase;
+  }
+
+  if(repseVencido){
+    totalObs++;
+    filasObs += '<tr class="rpt-warn"><td>Vigencia REPSE</td><td>Vencido</td></tr>';
+  }
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">RO</div>'
+    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación presentada por única vez del perfil RFC</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (perfil.nombre || f.contratista || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Tipo de perfil</label><span>' + (perfil.tipo || f.perfil || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Obra consultada</label><span>' + (f.obra || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Fase consultada</label><span>' + (f.objeto || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Folio REPSE</label><span>' + (perfil.folioREPSE || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia REPSE</label><span>' + fdate(perfil.vigenciaREPSE) + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Observaciones</label><span class="' + (totalObs > 0 ? 'warn' : '') + '">' + totalObs + '</span></div>'
+    + '<div class="rpt-total-item"><label>Sin capturar</label><span class="' + (sinCaptura > 0 ? 'warn' : '') + '">' + sinCaptura + '</span></div>'
+    + '<div class="rpt-total-item"><label>No presentado</label><span class="' + (noPresentado > 0 ? 'warn' : '') + '">' + noPresentado + '</span></div>'
+    + '<div class="rpt-total-item"><label>Erróneo</label><span class="' + (erroneo > 0 ? 'warn' : '') + '">' + erroneo + '</span></div>'
+    + '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Documentación general con observación</h3>';
+
+  if(filasObs){
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Documento / dato</th>'
+      + '<th>Estado</th>'
+      + '</tr></thead><tbody>'
+      + filasObs
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#22c55e;font-weight:700">Expediente general completo.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle completo del expediente</h3>';
+  h += '<table class="rpt-tbl"><thead><tr>'
+    + '<th>Documento</th>'
+    + '<th>Estado</th>'
+    + '</tr></thead><tbody>'
+    + filasTodo
+    + '</tbody></table>';
+  h += '</div>';
+
+  h += '<div class="rpt-card">'
+    + '<h3>Criterio del reporte</h3>'
+    + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
+    + 'Este reporte corresponde al expediente general del perfil RFC. No sustituye el reporte de obligaciones RFC/RP, porque no revisa pagos periódicos ni obligaciones mensuales; revisa documentos que normalmente se presentan por única vez por empresa o persona física.'
+    + '</p>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+  document.getElementById('rpt-bk').onclick = function(){
+    irFichaFase(f.id);
+  };
+
+  show('pg-reporte');
+}
 function abrirReportesFase(faseId){
   var f = gFases().find(function(x){
     return x.id === faseId;
@@ -6846,6 +6990,7 @@ function abrirReportesFase(faseId){
   var btnPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
   var btnISN = document.getElementById('btn-rpt-isn');
   var btnObligaciones = document.getElementById('btn-rpt-obligaciones');
+  var btnExpediente = document.getElementById('btn-rpt-expediente');
 
   if(btnCuotas){
     btnCuotas.style.display = '';
@@ -6881,6 +7026,15 @@ function abrirReportesFase(faseId){
     btnObligaciones.onclick = function(){
       document.getElementById('modal-reportes').classList.remove('open');
       generarReporteObligacionesRFCRPFase(f);
+    };
+  }
+
+  if(btnExpediente){
+    btnExpediente.style.display = '';
+    btnExpediente.textContent = 'Reporte expediente general';
+    btnExpediente.onclick = function(){
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporteExpedienteGeneralFase(f);
     };
   }
 }
