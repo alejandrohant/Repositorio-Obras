@@ -6239,6 +6239,152 @@ function factorCuotasReporteFase(f){
   return factor;
 }
 
+function fechaYMD(d){
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2,'0');
+  var day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
+
+function fechaCorteIMSS(ref){
+  var d = ref ? new Date(ref) : new Date();
+
+  if(isNaN(d.getTime())){
+    d = new Date();
+  }
+
+  d.setHours(12,0,0,0);
+
+  var y = d.getFullYear();
+  var m = d.getMonth();
+  var dia = d.getDate();
+
+  if(dia >= 18){
+    return new Date(y, m, 0, 12, 0, 0);
+  }
+
+  return new Date(y, m - 1, 0, 12, 0, 0);
+}
+
+function fechaCtrlDesdeValor(v){
+  v = String(v || '').trim();
+
+  if(!v) return null;
+
+  if(/^\d{4}-\d{2}$/.test(v)){
+    var p = v.split('-');
+    return new Date(parseInt(p[0],10), parseInt(p[1],10), 0, 12, 0, 0);
+  }
+
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){
+    var d = new Date(v + 'T12:00:00');
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  return null;
+}
+
+function estimacionDentroCorte(e, corte){
+  var fecha = fechaCtrlDesdeValor(e.periodo || e.fechaPago);
+  return fecha && fecha <= corte;
+}
+
+function totalEstimadoFaseHastaCorte(faseId, corte){
+  var ctrl = gCtrl ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
+
+  var key = String(faseId || '');
+  if(key.indexOf('fase_') !== 0){
+    key = 'fase_' + key;
+  }
+
+  var data = ctrl[key] || {};
+  var estimaciones = Array.isArray(data.__estimaciones) ? data.__estimaciones : [];
+  var total = 0;
+
+  estimaciones.forEach(function(e){
+    if(estimacionDentroCorte(e, corte)){
+      total += numCtrl(e.subtotal || e.importe);
+    }
+  });
+
+  return total;
+}
+
+function getCtrlTotalesHastaCorte(faseId, corte){
+  var ctrl = gCtrl ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
+
+  var key = String(faseId || '');
+  if(key.indexOf('fase_') !== 0){
+    key = 'fase_' + key;
+  }
+
+  var data = ctrl[key] || {};
+  var gps = 0;
+  var cop = 0;
+  var rcv = 0;
+  var inf = 0;
+
+  Object.keys(data).forEach(function(periodo){
+    if(periodo === '__extra' || periodo === '__cierre' || periodo === '__contratos' || periodo === '__convenios' || periodo === '__anticipo' || periodo === '__estimaciones') return;
+
+    var fechaPeriodo = fechaCtrlDesdeValor(periodo);
+    if(!fechaPeriodo || fechaPeriodo > corte) return;
+
+    var row = data[periodo] || {};
+
+    if(typeof row === 'object'){
+      gps += parseFloat(row.gps) || 0;
+      cop += parseFloat(row.cop) || 0;
+      rcv += parseFloat(row.rcv) || 0;
+      inf += parseFloat(row.inf) || 0;
+    }
+  });
+
+  return {
+    gps: gps,
+    mo: gps > 0 ? gps / 0.01 : 0,
+    cop: cop,
+    rcv: rcv,
+    inf: inf,
+    cuotas: cop + rcv + inf
+  };
+}
+
+function factorMOIMSSFase(f){
+  var factor = parseFloat(f.fmoImss) || 0;
+
+  if(factor > 1){
+    factor = factor / 100;
+  }
+
+  return factor;
+}
+
+function contingenciaIMSSFaseCorte(f, corte){
+  corte = corte || fechaCorteIMSS();
+
+  var subtotalEstimado = totalEstimadoFaseHastaCorte(f.id, corte);
+  var moEst = subtotalEstimado * factorMOIMSSFase(f);
+  var cuotasEst = moEst * factorCuotasReporteFase(f);
+  var totales = getCtrlTotalesHastaCorte(f.id, corte);
+
+  var cuotasPag = totales.cuotas || 0;
+  var contCuotas = cuotasEst - cuotasPag;
+
+  if(contCuotas < 0){
+    contCuotas = 0;
+  }
+
+  return {
+    subtotalEstimado: subtotalEstimado,
+    moEst: moEst,
+    moPag: totales.mo || 0,
+    cuotasEst: cuotasEst,
+    cuotasPag: cuotasPag,
+    contingencia: contCuotas
+  };
+}
+
 function estadoDocReporte(v){
   v = parseInt(v) || 0;
 
@@ -6498,13 +6644,15 @@ function abrirReportesFase(faseId){
 }
 function generarReporteCuotasFase(f){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var corteIMSS = fechaCorteIMSS();
+  var corteIMSSLabel = fdate(fechaYMD(corteIMSS));
   var fases = fasesReporteDesdeFase(f);
 
   var h = '';
 
   h += '<div class="rpt-header">'
     + '<div class="rpt-logo">RO</div>'
-    + '<div class="rpt-title"><h1>Reporte de Cuotas IMSS</h1><p>Control IMSS-RCV-Infonavit por fase</p></div>'
+    + '<div class="rpt-title"><h1>Reporte de Cuotas IMSS</h1><p>Control IMSS-RCV-Infonavit por fase al corte IMSS</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
@@ -6516,18 +6664,19 @@ function generarReporteCuotasFase(f){
     + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (f.rfc || '--') + '</span></div>'
     + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (f.siroc || '--') + '</span></div>'
     + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(f.inicia) + ' — ' + fdate(f.termina) + '</span></div>'
+    + '<div class="rpt-dato"><label>Corte IMSS</label><span>' + corteIMSSLabel + '</span></div>'
     + '</div></div>';
 
   h += '<div class="rpt-card">';
-  h += '<h3>Detalle de cuotas</h3>';
+  h += '<h3>Detalle de cuotas al corte IMSS</h3>';
   h += '<table class="rpt-tbl"><thead><tr>'
     + '<th>Fase / Subfase</th>'
     + '<th>SIROC</th>'
-    + '<th>MO estimada</th>'
-    + '<th>MO pagada</th>'
+    + '<th>MO estimada al corte</th>'
+    + '<th>MO pagada al corte</th>'
     + '<th>% MO</th>'
-    + '<th>Cuotas estimadas</th>'
-    + '<th>Cuotas pagadas</th>'
+    + '<th>Cuotas estimadas al corte</th>'
+    + '<th>Cuotas pagadas al corte</th>'
     + '<th>% Cuotas</th>'
     + '<th>Contingencia</th>'
     + '</tr></thead><tbody>';
@@ -6538,15 +6687,13 @@ function generarReporteCuotasFase(f){
   var totalCuotasPag = 0;
 
   fases.forEach(function(ff){
-    var moEst = moEstimadaReporteFase(ff);
-    var factor = factorCuotasReporteFase(ff);
-    var cuotasEst = moEst * factor;
-    var totales = getCtrlTotales(ff.id);
+    var r = contingenciaIMSSFaseCorte(ff, corteIMSS);
 
-    var moPag = totales.mo || 0;
-    var cuotasPag = totales.cuotas || 0;
-    var contCuotas = cuotasEst - cuotasPag;
-    if(contCuotas < 0) contCuotas = 0;
+    var moEst = r.moEst || 0;
+    var moPag = r.moPag || 0;
+    var cuotasEst = r.cuotasEst || 0;
+    var cuotasPag = r.cuotasPag || 0;
+    var contCuotas = r.contingencia || 0;
 
     totalMoEst += moEst;
     totalMoPag += moPag;
@@ -6590,9 +6737,9 @@ function generarReporteCuotasFase(f){
   h += '</tbody></table></div>';
 
   h += '<div class="rpt-total">'
-    + '<div class="rpt-total-item"><label>Total Cuotas Estimadas</label><span>' + rptMxn(totalCuotasEst) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Total Cuotas Pagadas</label><span>' + rptMxn(totalCuotasPag) + '</span></div>'
-    + '<div class="rpt-total-item"><label>Contingencia</label><span class="' + (contingenciaTotal > 0 ? 'warn' : '') + '">' + rptMxn(contingenciaTotal) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Cuotas estimadas al corte</label><span>' + rptMxn(totalCuotasEst) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Cuotas pagadas al corte</label><span>' + rptMxn(totalCuotasPag) + '</span></div>'
+    + '<div class="rpt-total-item"><label>Contingencia IMSS</label><span class="' + (contingenciaTotal > 0 ? 'warn' : '') + '">' + rptMxn(contingenciaTotal) + '</span></div>'
     + '</div>';
 
   document.getElementById('rpt-contenido').innerHTML = h;
