@@ -4055,36 +4055,43 @@ function togglePagoISN(sel){
 }
 function buildReporteContratista(prf, fasesCtrl){
 
-  var totalImporte = 0;
+  var corteIMSS = fechaCorteIMSS();
+  var corteIMSSLabel = fdate(fechaYMD(corteIMSS));
+
+  var totalEstimadoCorte = 0;
   var totalMoEst = 0;
   var totalMoPag = 0;
   var totalCuotEst = 0;
   var totalCuotPag = 0;
+  var totalContingencia = 0;
 
   var rows = '';
 
   fasesCtrl.forEach(function(f){
 
-    var totales = getCtrlTotales(f.id);
+    var r = contingenciaIMSSFaseCorte(f, corteIMSS);
 
-    var moEst = calcMoEstCtr(f);
-    var cuotEst = moEst * (f.fcuotasImss || 0.354);
-    var moPag = totales.mo;
-    var cuotPag = totales.cuotas;
+    var estimadoCorte = r.subtotalEstimado || 0;
+    var moEst = r.moEst || 0;
+    var moPag = r.moPag || 0;
+    var cuotEst = r.cuotasEst || 0;
+    var cuotPag = r.cuotasPag || 0;
+    var contingencia = r.contingencia || 0;
 
-    totalImporte += Number(f.importe || 0);
+    totalEstimadoCorte += estimadoCorte;
     totalMoEst += moEst;
     totalMoPag += moPag;
     totalCuotEst += cuotEst;
     totalCuotPag += cuotPag;
+    totalContingencia += contingencia;
 
     var pctMO = moEst > 0 ? moPag / moEst : null;
     var pctCuot = cuotEst > 0 ? cuotPag / cuotEst : null;
-    var hayRiesgo = (moEst > 0 && moPag < moEst * 0.5) || (cuotEst > 0 && cuotPag < cuotEst * 0.5);
+    var hayRiesgo = contingencia > 0;
 
     rows += '<tr class="' + (hayRiesgo ? 'rpt-warn' : '') + '">'
       + '<td>' + (f.objeto || '--') + '</td>'
-      + '<td>' + rptMxn(f.importe || 0) + '</td>'
+      + '<td>' + rptMxn(estimadoCorte > 0 ? estimadoCorte : null) + '</td>'
       + '<td>' + rptMxn(moEst > 0 ? moEst : null) + '</td>'
       + '<td>' + rptMxn(moPag > 0 ? moPag : null) + '</td>'
       + '<td>' + pctTag(pctMO) + '</td>'
@@ -4097,17 +4104,21 @@ function buildReporteContratista(prf, fasesCtrl){
 
   var pctMOTot = totalMoEst > 0 ? totalMoPag / totalMoEst : null;
   var pctCuotTot = totalCuotEst > 0 ? totalCuotPag / totalCuotEst : null;
-  var contingencia = totalCuotEst - totalCuotPag;
+
+  if(totalContingencia < 0){
+    totalContingencia = 0;
+  }
 
   var h = '';
 
   h += '<div class="ctrl-blk" style="margin-top:22px;background:#1e1e2e;border-radius:12px;padding:20px 24px;border:0">';
-  h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:14px">REPORTE DEL CONTRATISTA</div>';
+  h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:6px">REPORTE DEL CONTRATISTA</div>';
+  h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:14px">Corte IMSS: <strong style="color:#e2e8f0">' + corteIMSSLabel + '</strong></div>';
 
   h += '<table class="rpt-tbl">';
   h += '<thead><tr>'
     + '<th>Fase</th>'
-    + '<th>Importe</th>'
+    + '<th>Estimado al corte</th>'
     + '<th>MO Estimada</th>'
     + '<th>MO Pagada</th>'
     + '<th>% MO</th>'
@@ -4120,7 +4131,7 @@ function buildReporteContratista(prf, fasesCtrl){
 
   h += '<tr class="rpt-tot">'
     + '<td>TOTAL</td>'
-    + '<td>' + rptMxn(totalImporte > 0 ? totalImporte : null) + '</td>'
+    + '<td>' + rptMxn(totalEstimadoCorte > 0 ? totalEstimadoCorte : null) + '</td>'
     + '<td>' + rptMxn(totalMoEst > 0 ? totalMoEst : null) + '</td>'
     + '<td>' + rptMxn(totalMoPag > 0 ? totalMoPag : null) + '</td>'
     + '<td>' + pctTag(pctMOTot) + '</td>'
@@ -4132,10 +4143,10 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '</tbody></table>';
 
   h += '<div class="rpt-grand">';
-  h += '<div><span>TOTAL CONTRATOS</span><b>' + rptMxn(totalImporte) + '</b></div>';
+  h += '<div><span>TOTAL ESTIMADO AL CORTE</span><b>' + rptMxn(totalEstimadoCorte) + '</b></div>';
   h += '<div><span>TOTAL CUOTAS ESTIMADAS</span><b>' + rptMxn(totalCuotEst) + '</b></div>';
   h += '<div><span>TOTAL CUOTAS PAGADAS</span><b>' + rptMxn(totalCuotPag) + '</b></div>';
-  h += '<div><span>CONTINGENCIA TOTAL</span><b class="bad">⚠ ' + rptMxn(totalCuotEst-totalCuotPag) + '</b></div>';
+  h += '<div><span>CONTINGENCIA TOTAL</span><b class="' + (totalContingencia > 0 ? 'bad' : '') + '">' + (totalContingencia > 0 ? '⚠ ' : '') + rptMxn(totalContingencia) + '</b></div>';
   h += '</div>';
 
   h += '</div>';
