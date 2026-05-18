@@ -201,7 +201,7 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .flist-card{background:#1e1e2e;border-radius:12px;padding:16px 18px;cursor:pointer;border:2px solid transparent;transition:all 0.2s;position:relative;margin-bottom:10px}
 .flist-card:hover{border-color:#10b981}
 .flist-card .flist-acts{position:absolute;top:12px;right:12px;display:flex;gap:6px}
-.flist-nom{font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:6px;padding-right:230px}
+.flist-nom{font-size:14px;font-weight:600;color:#f1f5f9;margin-bottom:6px;padding-right:150px}
 .flist-det{display:grid;gap:3px}
 .flist-row{display:flex;gap:8px;font-size:12px;align-items:center}
 .flist-lab{color:#64748b;font-weight:600;min-width:80px}
@@ -675,6 +675,7 @@ select.fg-sel:focus{border-color:#a78bfa}
     <div class="facts">
       <button class="bfe" id="fase-bedit">Editar</button>
       <button class="fase-bfases" id="fase-bctrl" style="background:#1e2a3a;border-color:#60a5fa;color:#60a5fa">Control</button>
+      <button class="fase-bfases" id="fase-brep" style="background:#1e1e3a;border-color:#a78bfa;color:#a78bfa">Reportes</button>
       <button class="fase-bfases" id="fase-bsub" style="display:none">Subfases</button>
       <button class="bfd" id="fase-bdel">Eliminar</button>
     </div>
@@ -2702,7 +2703,7 @@ function renderFasesList(fases){
     var isnTotal=calcIsnTotal(f);
     var hasCorp=f.corp1>0&&f.corp1!==4||f.corp2>0&&f.corp2!==4;
     h+='<div class="flist-card" data-id="'+f.id+'">';
-    h+='<div class="flist-acts"><button class="brep" data-id="'+f.id+'">Reportes</button><button class="bedit" data-id="'+f.id+'">Editar</button><button class="bdel" data-id="'+f.id+'">Eliminar</button></div>';
+    h+='<div class="flist-acts"><button class="bedit" data-id="'+f.id+'">Editar</button><button class="bdel" data-id="'+f.id+'">Eliminar</button></div>';
     h+='<div class="flist-nom">'+f.objeto+'</div>';
     h+='<div class="flist-det">';
     h+='<div class="flist-row"><span class="flist-lab">Contratista:</span><span>'+f.contratista+'</span></div>';
@@ -2721,8 +2722,7 @@ function renderFasesList(fases){
   el.onclick=function(e){
     var card=e.target.closest('.flist-card');if(!card)return;
     var id=card.getAttribute('data-id');
-    if(e.target.classList.contains('brep')){e.stopPropagation();abrirReportesFase(id);}
-    else if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditarFase(id);}
+    if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditarFase(id);}
     else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDelFase(id);}
     else{irFichaFase(id);}
   };
@@ -2793,8 +2793,11 @@ function irFichaFase(id){
   document.getElementById('fase-bedit').onclick=function(){abrirEditarFase(id);};
   document.getElementById('fase-bdel').onclick=function(){pedirDelFase(id);};
   document.getElementById('fase-bctrl').onclick=function(){
-  irControlContratistaDesdeFase(f);
-};
+    irControlContratistaDesdeFase(f);
+  };
+  document.getElementById('fase-brep').onclick=function(){
+    abrirReportesFase(id);
+  };
   // Subfases button — show only if this fase has a siroc that other fases use as sirocPrincipal
   var todasFases=gFases();
   var subfasesDeEsta=todasFases.filter(function(x){return x.id!==f.id && x.sirocPrincipal===f.siroc && f.siroc;});
@@ -6444,7 +6447,7 @@ function generarReporteObligacionesRFCRPFase(f){
 
   document.getElementById('rpt-contenido').innerHTML = h;
   document.getElementById('rpt-bk').onclick = function(){
-    show('pg-fases');
+    irFichaFase(f.id);
   };
 
   show('pg-reporte');
@@ -6601,7 +6604,7 @@ function generarReporteCuotasFase(f){
 
   document.getElementById('rpt-contenido').innerHTML = h;
   document.getElementById('rpt-bk').onclick = function(){
-    show('pg-fases');
+    irFichaFase(f.id);
   };
 
   show('pg-reporte');
@@ -6707,7 +6710,7 @@ function generarReporteISNFase(f){
 
   document.getElementById('rpt-contenido').innerHTML = h;
   document.getElementById('rpt-bk').onclick = function(){
-    show('pg-fases');
+    irFichaFase(f.id);
   };
 
   show('pg-reporte');
