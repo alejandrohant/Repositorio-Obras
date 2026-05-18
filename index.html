@@ -3056,39 +3056,46 @@ var isnTotEst = isnEstActualizado || ((f.isnEst||0)+(f.isnConv||0));
     +campoFase('Factor Cuotas IMSS',f.fcuotasImss?pct(f.fcuotasImss):null)
     +'</div>'
     +imssCols
-    // Bloque de contingencias llamativo
-    +(function(){
-      var contMO   = esSub_f ? contMOSub   : (esProp_f ? contMOProp   : contMOCtr);
-      var contCuot = esSub_f ? contCuotSub : (esProp_f ? contCuotProp : contCuotCtr);
-      if(contMO===null && contCuot===null) return '';
-      var hayRiesgo = (contMO!==null && contMO>0) || (contCuot!==null && contCuot>0);
-      var bg    = hayRiesgo ? '#2d0a0a' : '#0a2d1a';
-      var bord  = hayRiesgo ? '#dc2626' : '#10b981';
-      var color = hayRiesgo ? '#f87171' : '#10b981';
-      var icon  = hayRiesgo ? '&#9888;' : '&#10003;';
-      var titulo = hayRiesgo ? 'MONTO EN RIESGO' : 'CUOTAS AL CORRIENTE';
-      var html  = '<div style="margin-top:14px;background:'+bg+';border:2px solid '+bord+';border-radius:12px;padding:16px 20px">'
-        + '<div style="font-size:11px;font-weight:800;color:'+color+';text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">'+icon+' '+titulo+'</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-      if(contMO!==null){
-        var cMOColor = contMO>0 ? '#f87171' : '#10b981';
-        html += '<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px 16px">'
-          + '<div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:4px">Contingencia MO</div>'
-          + '<div style="font-size:20px;font-weight:800;color:'+cMOColor+'">'+(contMO>0?'':'&#10003; ')+mxn(contMO)+'</div>'
-          + (contMO>0?'<div style="font-size:10px;color:#f87171;margin-top:2px">Mano de obra sin reportar</div>':'<div style="font-size:10px;color:#10b981;margin-top:2px">Sin contingencia</div>')
-          + '</div>';
-      }
-      if(contCuot!==null){
-        var cCuotColor = contCuot>0 ? '#f87171' : '#10b981';
-        html += '<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px 16px">'
-          + '<div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:4px">Contingencia Cuotas</div>'
-          + '<div style="font-size:20px;font-weight:800;color:'+cCuotColor+'">'+(contCuot>0?'':'&#10003; ')+mxn(contCuot)+'</div>'
-          + (contCuot>0?'<div style="font-size:10px;color:#f87171;margin-top:2px">Cuotas sin pagar</div>':'<div style="font-size:10px;color:#10b981;margin-top:2px">Sin contingencia</div>')
-          + '</div>';
-      }
-      html += '</div></div>';
-      return html;
-    })();
+    // Bloque de balance estimado del contrato
++(function(){
+  var pendMO   = esSub_f ? contMOSub   : (esProp_f ? contMOProp   : contMOCtr);
+  var pendCuot = esSub_f ? contCuotSub : (esProp_f ? contCuotProp : contCuotCtr);
+
+  if(pendMO===null && pendCuot===null) return '';
+
+  var bg    = '#151827';
+  var bord  = '#334155';
+  var color = '#a78bfa';
+  var icon  = '&#9432;';
+  var titulo = 'BALANCE ESTIMADO DEL CONTRATO';
+
+  var html  = '<div style="margin-top:14px;background:'+bg+';border:2px solid '+bord+';border-radius:12px;padding:16px 20px">'
+    + '<div style="font-size:11px;font-weight:800;color:'+color+';text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">'+icon+' '+titulo+'</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+
+  if(pendMO!==null){
+    var pendMOShow = Math.max(0, Number(pendMO) || 0);
+
+    html += '<div style="background:rgba(0,0,0,0.25);border-radius:8px;padding:12px 16px">'
+      + '<div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:4px">MO pendiente estimada</div>'
+      + '<div style="font-size:20px;font-weight:800;color:#e2e8f0">'+mxn(pendMOShow)+'</div>'
+      + '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Pendiente contra el total estimado del contrato</div>'
+      + '</div>';
+  }
+
+  if(pendCuot!==null){
+    var pendCuotShow = Math.max(0, Number(pendCuot) || 0);
+
+    html += '<div style="background:rgba(0,0,0,0.25);border-radius:8px;padding:12px 16px">'
+      + '<div style="font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:4px">Cuotas pendientes estimadas</div>'
+      + '<div style="font-size:20px;font-weight:800;color:#e2e8f0">'+mxn(pendCuotShow)+'</div>'
+      + '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Pendiente contra cuotas estimadas totales</div>'
+      + '</div>';
+  }
+
+  html += '</div></div>';
+  return html;
+})();
   // Grupo 5: ISN
   var ctrlISNAll = JSON.parse(localStorage.getItem('control') || '{}');
   var ctrlISN = ctrlISNAll['isn_fase_' + f.id] || {};
