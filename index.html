@@ -5960,6 +5960,8 @@ function generarReporteISN(o,t){
   }
   var perfiles = gPrf();
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var corteIMSS = fechaCorteIMSS();
+  var corteIMSSLabel = fdate(fechaYMD(corteIMSS));
 
   function esPropietariaReporte(f){
     return (
@@ -5978,7 +5980,7 @@ function generarReporteISN(o,t){
     fases.forEach(function(ff){
       if(esPropietariaReporte(ff)) return;
 
-      var t = getCtrlTotales(ff.id);
+      var t = getCtrlTotalesHastaCorte(ff.id, corteIMSS);
       total += parseFloat(t.cuotas) || 0;
     });
 
@@ -5990,13 +5992,13 @@ function generarReporteISN(o,t){
   var baseCuotasObra = null;
 
   if(tipo === 'p' && baseReporte === 'm2'){
-    baseLabel = 'm² licencia';
-    baseCuotasObra = parseFloat(obraObj.cuotas) || 0;
+    baseLabel = 'm² licencia al corte IMSS';
+    baseCuotasObra = cuotasEstimadasObraHastaCorteReporte(obraObj, baseReporte, fases, corteIMSS);
   }
 
   if(tipo === 'p' && baseReporte === 'presupuesto'){
-    baseLabel = 'Presupuesto';
-    baseCuotasObra = parseFloat(obraObj.cuotasPresupuesto) || 0;
+    baseLabel = 'Presupuesto al corte IMSS';
+    baseCuotasObra = cuotasEstimadasObraHastaCorteReporte(obraObj, baseReporte, fases, corteIMSS);
   }
 
   var h = '';
@@ -6021,6 +6023,7 @@ function generarReporteISN(o,t){
     + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (obraObj.siroc||'--') + '</span></div>'
     + '<div class="rpt-dato"><label>Vigencia</label><span>' + fdate(obraObj.inicia) + ' — ' + fdate(obraObj.termina) + '</span></div>'
     + '<div class="rpt-dato"><label>Tipo de obra</label><span>' + (obraObj.tipo||obraObj.fase||'--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Corte IMSS</label><span>' + corteIMSSLabel + '</span></div>'
     + '</div></div>';
 
   // Get contratistas directos (no subcontratistas)
@@ -6050,11 +6053,11 @@ function generarReporteISN(o,t){
     h += '<table class="rpt-tbl"><thead><tr>';
 
     if(esTarjetaPropietaria){
-      h += '<th>No. Licencia</th><th>SIROC</th><th>MO Estimada</th><th>MO Pagada</th><th>% MO</th>'
-        + '<th>Cuotas Estimadas</th><th>Cuotas pagadas por propietaria</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
+      h += '<th>No. Licencia</th><th>SIROC</th><th>MO estimada al corte</th><th>MO pagada al corte</th><th>% MO</th>'
+        + '<th>Cuotas estimadas al corte</th><th>Cuotas pagadas por propietaria</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
     } else {
-      h += '<th>Contrato / Objeto</th><th>SIROC</th><th>MO Estimada</th><th>MO Pagada</th><th>% MO</th>'
-        + '<th>Cuotas Estimadas</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
+      h += '<th>Contrato / Objeto</th><th>SIROC</th><th>MO estimada al corte</th><th>MO pagada al corte</th><th>% MO</th>'
+        + '<th>Cuotas estimadas al corte</th><th>Cuotas pagadas por contratistas</th><th>% Cuotas</th>';
     }
 
     h += '</tr></thead><tbody>';
@@ -6062,11 +6065,11 @@ function generarReporteISN(o,t){
     var totalMoEst=0,totalMoPag=0,totalCuotEst=0,totalCuotPag=0,totalCuotPagContratistasDisplay=0;
 
     fasesCtrl.forEach(function(f){
-      var totales = getCtrlTotales(f.id);
-      var moEst = calcMoEstCtr(f);
-      var cuotEst = moEst * (f.fcuotasImss||0.354);
-      var moPag = totales.mo;
-      var cuotPag = totales.cuotas;
+      var rCorte = contingenciaIMSSFaseCorte(f, corteIMSS);
+      var moEst = rCorte.moEst || 0;
+      var cuotEst = rCorte.cuotasEst || 0;
+      var moPag = rCorte.moPag || 0;
+      var cuotPag = rCorte.cuotasPag || 0;
 
       var esFilaPropietaria = esPropietariaReporte(f);
 
@@ -6077,7 +6080,7 @@ function generarReporteISN(o,t){
 
       var subMoPag=0, subCuotPag=0;
       subfases.forEach(function(sf){
-        var st = getCtrlTotales(sf.id);
+        var st = getCtrlTotalesHastaCorte(sf.id, corteIMSS);
         subMoPag += st.mo;
         subCuotPag += st.cuotas;
       });
@@ -6394,6 +6397,66 @@ function contingenciaIMSSFaseCorte(f, corte){
     cuotasPag: cuotasPag,
     contingencia: contCuotas
   };
+}
+function factorCuotasObraReporte(obraObj){
+  var factor = parseFloat(obraObj.fcuotas);
+
+  if(!factor){
+    factor = 35.40;
+  }
+
+  if(factor > 1){
+    factor = factor / 100;
+  }
+
+  return factor;
+}
+
+function factorMOObraReporte(obraObj, baseReporte){
+  var factor = 0;
+
+  if(baseReporte === 'm2'){
+    var valorObra = parseFloat(obraObj.valorObra || obraObj.valorTotal || obraObj.importeMXN) || 0;
+    var moDOF = parseFloat(obraObj.moDOF) || 0;
+
+    if(valorObra > 0){
+      factor = moDOF / valorObra;
+    }
+  }
+
+  if(baseReporte === 'presupuesto'){
+    factor = parseFloat(obraObj.factorMOPresupuesto) || 0;
+
+    if(factor > 1){
+      factor = factor / 100;
+    }
+  }
+
+  return factor;
+}
+
+function totalEstimadoObraHastaCorteReporte(fases, corte){
+  var total = 0;
+
+  fases.forEach(function(f){
+    var perfil = String(f.perfil || '').toLowerCase().trim();
+
+    if(perfil === 'subcontratista'){
+      return;
+    }
+
+    total += totalEstimadoFaseHastaCorte(f.id, corte);
+  });
+
+  return total;
+}
+
+function cuotasEstimadasObraHastaCorteReporte(obraObj, baseReporte, fases, corte){
+  var estimadoCorte = totalEstimadoObraHastaCorteReporte(fases, corte);
+  var factorMO = factorMOObraReporte(obraObj, baseReporte);
+  var factorCuotas = factorCuotasObraReporte(obraObj);
+
+  return estimadoCorte * factorMO * factorCuotas;
 }
 
 function estadoDocReporte(v){
