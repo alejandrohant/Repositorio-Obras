@@ -1130,6 +1130,22 @@ function gid(x){
 }
 function show(id){document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte').forEach(function(p){p.classList.remove('active');});document.getElementById(id).classList.add('active');}
 let currentUser = null;
+let currentAppUser = null;
+let currentOwnerUserId = null;
+let currentObrasPermitidas = [];
+
+function getOwnerUserId(){
+  return currentOwnerUserId || (currentUser ? currentUser.id : null);
+}
+
+function esUsuarioDueno(){
+  return !currentAppUser || currentAppUser.rol === 'dueno';
+}
+
+function obraPermitidaPorId(obraId){
+  if(esUsuarioDueno()) return true;
+  return currentObrasPermitidas.indexOf(String(obraId || '')) >= 0;
+}
 
 async function initAuth(){
   const { data } = await supabaseClient.auth.getUser();
@@ -1155,25 +1171,66 @@ async function cargarDatosSupabase(){
   const { data: { user } } = await supabaseClient.auth.getUser();
   if(!user) return;
 
+  currentAppUser = null;
+  currentOwnerUserId = user.id;
+  currentObrasPermitidas = [];
+
+  const { data: appUser, error: eUserApp } = await supabaseClient
+    .from('usuarios_app')
+    .select('*')
+    .eq('auth_user_id', user.id)
+    .eq('activo', true)
+    .maybeSingle();
+
+  if(eUserApp){
+    console.error('Error cargando usuario_app:', eUserApp);
+    alert('No se pudo validar el rol del usuario.');
+    return;
+  }
+
+  if(appUser){
+    currentAppUser = appUser;
+    currentOwnerUserId = appUser.owner_user_id;
+  }
+
+  if(!esUsuarioDueno()){
+    const { data: permisos, error: ePermisos } = await supabaseClient
+      .from('usuario_obras')
+      .select('*')
+      .eq('owner_user_id', currentOwnerUserId)
+      .eq('auth_user_id', user.id)
+      .eq('puede_ver', true);
+
+    if(ePermisos){
+      console.error('Error cargando permisos de obras:', ePermisos);
+      alert('No se pudieron cargar las obras permitidas.');
+      return;
+    }
+
+    currentObrasPermitidas = (permisos || []).map(function(p){
+      return String(p.obra_id || '');
+    });
+  }
+
   const { data: perfiles, error: e1 } = await supabaseClient
     .from('perfiles')
     .select('*')
-    .eq('user_id', user.id);
+    .eq('user_id', currentOwnerUserId);
 
   const { data: obras, error: e2 } = await supabaseClient
     .from('obras')
     .select('*')
-    .eq('user_id', user.id);
+    .eq('user_id', currentOwnerUserId);
 
-    const { data: fases, error: e3 } = await supabaseClient
+  const { data: fases, error: e3 } = await supabaseClient
     .from('fases')
     .select('*')
-    .eq('user_id', user.id);
+    .eq('user_id', currentOwnerUserId);
 
   const { data: control, error: e4 } = await supabaseClient
     .from('control')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', currentOwnerUserId)
     .maybeSingle();
 
   if(e1 || e2 || e3 || e4){
@@ -1182,32 +1239,47 @@ async function cargarDatosSupabase(){
     return;
   }
 
+  var obrasVisibles = (obras || []).filter(function(x){
+    var obraId = String(x.obra_id || (x.data && x.data.id) || '');
+    return obraPermitidaPorId(obraId);
+  });
+
+  var nombresObrasVisibles = obrasVisibles.map(function(x){
+    return (x.data && x.data.nombre) || x.nombre || '';
+  });
+
+  var fasesVisibles = (fases || []).filter(function(x){
+    var dataFase = x.data || x;
+    if(esUsuarioDueno()) return true;
+    return nombresObrasVisibles.indexOf(dataFase.obra || '') >= 0;
+  });
+
   localStorage.setItem('perfiles', JSON.stringify((perfiles || []).map(x => x.data || x)));
 
   localStorage.setItem('op', JSON.stringify(
-    (obras || [])
+    obrasVisibles
       .filter(x => x.tipo === 'propietaria')
       .map(x => x.data || x)
   ));
 
   localStorage.setItem('oc', JSON.stringify(
-    (obras || [])
+    obrasVisibles
       .filter(x => x.tipo === 'contratista')
       .map(x => x.data || x)
   ));
 
-  localStorage.setItem('fases', JSON.stringify((fases || []).map(x => x.data || x)));
+  localStorage.setItem('fases', JSON.stringify(fasesVisibles.map(x => x.data || x)));
 
   if(control && control.data){
     localStorage.setItem('control', JSON.stringify(control.data));
-  } else if(!localStorage.getItem('control')){
+  } else {
     localStorage.setItem('control', JSON.stringify({}));
   }
 
   counts();
   goHome();
 
-  console.log('Datos cargados desde Supabase');
+  console.log('Datos cargados desde Supabase con permisos');
 }
 function renderAuthStatus(){
   var status = document.getElementById('authStatus');
@@ -1922,15 +1994,18 @@ compDomRP: document.getElementById('c-compdom-rp') ? parseInt(document.getElemen
 // 🔴 SINCRONIZAR OBRA EN SUPABASE
 try {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  var ownerId = getOwnerUserId();
 
   await supabaseClient
     .from('obras')
     .delete()
-    .eq('user_id', user.id)
+    .eq('user_id', ownerId)
     .contains('data', { id: o.id });
 
   const { error } = await supabaseClient.from('obras').insert([{
-    user_id: user.id,
+    user_id: ownerId,
+    obra_id: o.id,
+    created_by: user.id,
     nombre: o.nombre,
     tipo: eTipo === 'p' ? 'propietaria' : 'contratista',
     rfc: o.rfc || null,
@@ -1939,6 +2014,21 @@ try {
     fecha_fin: o.termina || null,
     data: o
   }]);
+
+  if(!esUsuarioDueno()){
+    await supabaseClient
+      .from('usuario_obras')
+      .upsert({
+        owner_user_id: ownerId,
+        auth_user_id: user.id,
+        obra_id: o.id,
+        puede_ver: true,
+        puede_crear: true,
+        puede_editar: true,
+        puede_borrar: true,
+        puede_reportes: true
+      }, { onConflict: 'auth_user_id,obra_id' });
+  }
 
   if(error){
     console.error('SUPABASE OBRA ERROR:', error);
@@ -2132,7 +2222,7 @@ async function hacerDel(){
     await supabaseClient
       .from('obras')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', getOwnerUserId())
       .eq('nombre', o.nombre)
       .eq('tipo', esP ? 'propietaria' : 'contratista');
 
@@ -2532,17 +2622,19 @@ var o = {
 
   try {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  var ownerId = getOwnerUserId();
 
   await supabaseClient
     .from('perfiles')
     .delete()
-    .eq('user_id', user.id)
+    .eq('user_id', ownerId)
     .contains('data', { id: o.id });
 
   const { error } = await supabaseClient
     .from('perfiles')
     .insert([{
-      user_id: user.id,
+      user_id: ownerId,
+      created_by: user.id,
       rfc: o.rfc || null,
       nombre: o.nombre || null,
       tipo: o.tipo || null,
@@ -2579,7 +2671,7 @@ function pedirDelPrf(id){
     await supabaseClient
       .from('perfiles')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', getOwnerUserId())
       .eq('rfc', perfil.rfc);
 
     console.log('Perfil eliminado en Supabase');
@@ -3597,17 +3689,21 @@ async function guardarFase(){
 
 try {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  var ownerId = getOwnerUserId();
+  var obraIdFase = obraObj ? obraObj.id : '';
 
   await supabaseClient
     .from('fases')
     .delete()
-    .eq('user_id', user.id)
+    .eq('user_id', ownerId)
     .contains('data', { id: f.id });
 
   const { error } = await supabaseClient
     .from('fases')
     .insert([{
-      user_id: user.id,
+      user_id: ownerId,
+      obra_id: obraIdFase || null,
+      created_by: user.id,
       nombre: f.objeto || null,
       rfc_contratista: f.rfc || null,
       contratista: f.contratista || null,
@@ -4762,12 +4858,14 @@ async function sincronizarControlSupabase(){
     const { data: { user } } = await supabaseClient.auth.getUser();
     if(!user) return;
 
+    var ownerId = getOwnerUserId();
     var dataControl = JSON.parse(localStorage.getItem('control') || '{}');
 
     const { error } = await supabaseClient
       .from('control')
       .upsert({
-        user_id: user.id,
+        user_id: ownerId,
+        created_by: user.id,
         data: dataControl,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' });
