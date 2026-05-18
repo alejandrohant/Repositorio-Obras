@@ -5027,37 +5027,171 @@ function numCtrl(v){
   return parseFloat(String(v).replace(/,/g,'')) || 0;
 }
 
-function setAnticipoVal(key, campo, val){
-  var ctrl = gCtrl();
-  if(!ctrl[key]) ctrl[key] = {};
-  if(!ctrl[key].__anticipo) ctrl[key].__anticipo = {};
-  ctrl[key].__anticipo[campo] = val;
-  sCtrl(ctrl);
-}
-
-function setAnticipoPctAuto(key, val, importeContrato){
+function normalizarAnticiposControl(key){
   var ctrl = gCtrl();
 
   if(!ctrl[key]) ctrl[key] = {};
-  if(!ctrl[key].__anticipo) ctrl[key].__anticipo = {};
 
-  var pctAnt = numCtrl(val);
-  var importe = numCtrl(importeContrato);
-  var pctCalc = pctAnt > 1 ? pctAnt / 100 : pctAnt;
-  var importeAnticipo = importe * pctCalc;
+  if(Array.isArray(ctrl[key].__anticipos)){
+    return;
+  }
 
-  ctrl[key].__anticipo.porcentaje = pctAnt;
+  ctrl[key].__anticipos = [];
 
-  if(importeAnticipo > 0){
-    ctrl[key].__anticipo.importe = importeAnticipo;
+  var ant = ctrl[key].__anticipo || {};
+  var tieneDatos = String(ant.tiene || '') === '1' || ant.porcentaje || ant.importe || ant.fechaPago;
 
-    var inpImporte = document.getElementById('anticipo-importe-' + key);
-    if(inpImporte){
-      inpImporte.value = importeAnticipo.toFixed(2);
-    }
+  if(tieneDatos){
+    ctrl[key].__anticipos.push({
+      numero: 1,
+      porcentaje: ant.porcentaje || '',
+      importe: ant.importe || '',
+      fechaPago: ant.fechaPago || '',
+      editando: false
+    });
   }
 
   sCtrl(ctrl);
+}
+
+function porcentajeAnticipoControl(data){
+  data = data || {};
+
+  var anticipos = Array.isArray(data.__anticipos) ? data.__anticipos : [];
+  var total = 0;
+
+  if(anticipos.length){
+    anticipos.forEach(function(a){
+      var p = numCtrl(a.porcentaje);
+      if(p > 1) p = p / 100;
+      total += p;
+    });
+
+    return total;
+  }
+
+  var ant = data.__anticipo || {};
+  var pctAnt = numCtrl(ant.porcentaje);
+
+  if(pctAnt > 1){
+    pctAnt = pctAnt / 100;
+  }
+
+  return pctAnt;
+}
+
+function setAnticipoControlVal(key, idx, campo, val, importeContrato){
+  normalizarAnticiposControl(key);
+
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!Array.isArray(ctrl[key].__anticipos)) ctrl[key].__anticipos = [];
+  if(!ctrl[key].__anticipos[idx]) ctrl[key].__anticipos[idx] = {};
+
+  var row = ctrl[key].__anticipos[idx];
+
+  if(campo === 'porcentaje'){
+    var pctAnt = numCtrl(val);
+    var importe = numCtrl(importeContrato);
+    var pctCalc = pctAnt > 1 ? pctAnt / 100 : pctAnt;
+    var importeAnticipo = importe * pctCalc;
+
+    row.porcentaje = pctAnt;
+
+    if(importeAnticipo > 0){
+      row.importe = importeAnticipo;
+
+      var inpImporte = document.getElementById('anticipo-importe-' + key + '-' + idx);
+      if(inpImporte){
+        inpImporte.value = importeAnticipo.toFixed(2);
+      }
+    }
+  }else{
+    row[campo] = val;
+  }
+
+  sCtrl(ctrl);
+}
+
+function agregarAnticipoControl(faseId){
+  var key = 'fase_' + faseId;
+
+  normalizarAnticiposControl(key);
+
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!Array.isArray(ctrl[key].__anticipos)) ctrl[key].__anticipos = [];
+
+  ctrl[key].__anticipos.push({
+    numero: ctrl[key].__anticipos.length + 1,
+    porcentaje: '',
+    importe: '',
+    fechaPago: '',
+    editando: true
+  });
+
+  sCtrl(ctrl);
+  recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
+}
+
+function guardarAnticipoControl(faseId, idx){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key] || !Array.isArray(ctrl[key].__anticipos)) return;
+
+  ctrl[key].__anticipos[idx].editando = false;
+
+  sCtrl(ctrl);
+  recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
+}
+
+function editarAnticipoControl(faseId, idx){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key] || !Array.isArray(ctrl[key].__anticipos)) return;
+
+  ctrl[key].__anticipos[idx].editando = true;
+
+  sCtrl(ctrl);
+  recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
+}
+
+function eliminarAnticipoControl(faseId, idx){
+  if(!confirm('¿Eliminar este anticipo?')) return;
+
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key] || !Array.isArray(ctrl[key].__anticipos)) return;
+
+  ctrl[key].__anticipos.splice(idx, 1);
+
+  ctrl[key].__anticipos.forEach(function(a, i){
+    a.numero = i + 1;
+  });
+
+  sCtrl(ctrl);
+  recargarControl();
+
+  setTimeout(function(){
+    abrirPanelEstimacionesControl(faseId);
+  }, 0);
 }
 
 function setEstimacionVal(key, idx, campo, val){
@@ -5069,9 +5203,7 @@ function setEstimacionVal(key, idx, campo, val){
   ctrl[key].__estimaciones[idx][campo] = val;
 
   if(campo === 'subtotal'){
-  var ant = ctrl[key].__anticipo || {};
-  var pctAnt = numCtrl(ant.porcentaje);
-  if(pctAnt > 1) pctAnt = pctAnt / 100;
+  var pctAnt = porcentajeAnticipoControl(ctrl[key]);
 
   if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
     ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
@@ -5194,9 +5326,11 @@ function selectEstimacion(key, idx, val){
 }
 
 function buildControlEstimaciones(key, fase){
+  normalizarAnticiposControl(key);
+
   var ctrl = gCtrl();
   var data = ctrl[key] || {};
-  var ant = data.__anticipo || {};
+  var anticipos = Array.isArray(data.__anticipos) ? data.__anticipos : [];
   var estimaciones = Array.isArray(data.__estimaciones) ? data.__estimaciones : [];
 
   var importeBase = numCtrl(fase.importe || fase.sub || fase.valorObra || 0);
@@ -5207,10 +5341,9 @@ function buildControlEstimaciones(key, fase){
 
   var importeContrato = importeBase + totalConvenios;
 
-  var pctAnt = numCtrl(ant.porcentaje);
-  if(pctAnt > 1) pctAnt = pctAnt / 100;
-
-  var importeAnticipo = numCtrl(ant.importe) || (importeContrato * pctAnt);
+  var importeAnticipo = anticipos.reduce(function(acc, a){
+    return acc + numCtrl(a.importe);
+  }, 0);
 
   var estimadoAcum = 0;
   var amortizadoAcum = 0;
@@ -5232,20 +5365,48 @@ function buildControlEstimaciones(key, fase){
 
   h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Anticipo / Estimaciones</h3>';
 
-  h += '<h4>Anticipo</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody>';
+    h += '<h4>Anticipos</h4>';
 
-  h += '<tr><td>Tiene anticipo</td><td><select class="ctrl-sel ctrl-anticipo-val" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'tiene\',this.value)">'
-    + '<option value="0"' + (String(ant.tiene || '0') === '0' ? ' selected' : '') + '>--</option>'
-    + '<option value="1"' + (String(ant.tiene || '0') === '1' ? ' selected' : '') + '>Sí</option>'
-    + '<option value="2"' + (String(ant.tiene || '0') === '2' ? ' selected' : '') + '>No</option>'
-    + '</select></td></tr>';
+  if(!anticipos.length){
+    h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin anticipos agregados.</p>';
+  }else{
+    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
+    h += '<th>No.</th><th>Acción</th><th>% anticipo</th><th>Importe anticipo</th><th>Fecha pago anticipo</th>';
+    h += '</tr></thead><tbody>';
 
-  h += '<tr><td>% anticipo</td><td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(ant.porcentaje || '') + '" oninput="setAnticipoPctAuto(\'' + escCtrlJS(key) + '\',this.value,' + importeContrato + ')" placeholder="30"></td></tr>';
-  h += '<tr><td>Importe anticipo</td><td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '" type="number" step="0.01" value="' + escCtrlHTML(ant.importe || '') + '" oninput="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'importe\',numCtrl(this.value))" placeholder="0.00"></td></tr>';
-  h += '<tr><td>Fecha pago anticipo</td><td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(ant.fechaPago || '') + '" onchange="setAnticipoVal(\'' + escCtrlJS(key) + '\',\'fechaPago\',this.value)"></td></tr>';
+    anticipos.forEach(function(a, idx){
+      h += '<tr>';
+      h += '<td>' + (idx + 1) + '</td>';
 
-  h += '</tbody></table></div>';
+      if(a.editando){
+        h += '<td>'
+          + '<button type="button" class="ctrl-add-btn" style="margin-top:0;padding:5px 10px" onclick="guardarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Guardar</button>'
+          + '<button type="button" class="ctrl-conv-del" style="margin-left:6px" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
+          + '</td>';
+
+        h += '<td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(a.porcentaje || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'porcentaje\',this.value,' + importeContrato + ')" placeholder="30"></td>';
+
+        h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="number" step="0.01" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
+
+        h += '<td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(a.fechaPago || '') + '" onchange="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaPago\',this.value,' + importeContrato + ')"></td>';
+      }else{
+        h += '<td>'
+          + '<button type="button" class="bedit" onclick="editarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Editar</button>'
+          + '<button type="button" class="ctrl-conv-del" style="margin-left:6px" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
+          + '</td>';
+
+        h += '<td>' + (a.porcentaje ? escCtrlHTML(a.porcentaje) + '%' : '--') + '</td>';
+        h += '<td style="color:#10b981;font-weight:700">' + (numCtrl(a.importe) ? mxn(numCtrl(a.importe)) : '--') + '</td>';
+        h += '<td>' + (a.fechaPago ? fdate(a.fechaPago) : '--') + '</td>';
+      }
+
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+  }
+
+  h += '<button class="ctrl-add-btn" onclick="agregarAnticipoControl(\'' + escCtrlJS(fase.id) + '\')">+ Agregar anticipo</button>';
 
   h += '<h4>Resumen automático</h4>';
   h += '<div class="ctrl-est-resumen">';
