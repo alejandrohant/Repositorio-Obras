@@ -1149,7 +1149,7 @@ select.fg-sel:focus{border-color:#a78bfa}
 
 <div class="mov" id="modal-doc-rfc">
   <div class="mbox" style="max-width:520px">
-    <h2 id="doc-rfc-titulo">Documento RFC</h2>
+    <h2 id="doc-rfc-titulo">Documento de control</h2>
 
     <div style="background:#0f1117;border:1px solid #2d2d44;border-radius:10px;padding:12px 14px;margin-bottom:16px">
       <div style="font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:4px">Periodo</div>
@@ -5277,6 +5277,31 @@ function abrirBloqueObligacionesRFC(){
   abrirBloqueControlPorTexto('obligaciones rfc');
 }
 
+function abrirPanelCuotasFaseActual(){
+  if(!docRFCCtx) return;
+
+  var key = String(docRFCCtx.key || '');
+  var faseId = key.replace(/^fase_/, '');
+  var faseIdSafe = String(faseId || 'fase').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+  var body = document.getElementById('ctrlfase-body-' + faseIdSafe);
+  var chev = document.getElementById('ctrlfase-chev-' + faseIdSafe);
+
+  if(body) body.classList.add('open');
+  if(chev) chev.classList.add('open');
+  if(!card) return;
+
+  card.querySelectorAll('.ctrl-fase-panel').forEach(function(panel){
+    panel.classList.toggle('active', panel.getAttribute('data-panel') === 'cuotas');
+  });
+
+  card.querySelectorAll('.ctrl-fase-btn').forEach(function(btn){
+    var texto = String(btn.textContent || '').trim().toLowerCase();
+    btn.classList.toggle('sel', texto === 'control cuotas imss/siroc');
+  });
+}
+
 function abrirBloqueDocumentoActual(){
   if(!docRFCCtx) return;
 
@@ -5284,6 +5309,8 @@ function abrirBloqueDocumentoActual(){
 
   if(key.indexOf('sua_') === 0){
     abrirBloqueControlPorTexto('obligaciones rp');
+  }else if(key.indexOf('fase_') === 0){
+    abrirPanelCuotasFaseActual();
   }else{
     abrirBloqueControlPorTexto('obligaciones rfc');
   }
@@ -5653,10 +5680,10 @@ function buildFaseHtml(perfil, fase) {
         cuotasHtml += '<td class="cuotas-row" style="color:#10b981;font-weight:600;font-size:11px">' + cuotasRow + '</td>';
 
         cols.forEach(function(c){
-          if(c.bimestral){
-            cuotasHtml += '<td>' + docSelectCtrlBimestralSiroc(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
-          } else {
+          if(c.k === 'vinc'){
             cuotasHtml += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>';
+          }else{
+            cuotasHtml += '<td>' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
           }
         });
 
@@ -6136,7 +6163,7 @@ function ctrlDocBloqueado(periodo, campo){
     return !mes || [1,5,9].indexOf(mes) === -1;
   }
 
-  if(campo === 'ced_bim' || campo === 'cfdi_inf'){
+  if(campo === 'ced_bim' || campo === 'cfdi_inf' || campo === 'rep_bim_siroc'){
     return !mes || mes % 2 !== 0;
   }
 
@@ -6225,7 +6252,7 @@ function pintarModalDocRFC(){
   var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
   var bloqueado = localStorage.getItem('control_bloqueado') === '1';
 
-  document.getElementById('doc-rfc-titulo').textContent = docRFCCtx.label || 'Documento RFC';
+  document.getElementById('doc-rfc-titulo').textContent = docRFCCtx.label || 'Documento de control';
   document.getElementById('doc-rfc-periodo').textContent = periodoLabel(docRFCCtx.periodo);
   document.getElementById('doc-rfc-estado').value = String(parseInt(estado) || 0);
   document.getElementById('doc-rfc-estado').disabled = bloqueado;
