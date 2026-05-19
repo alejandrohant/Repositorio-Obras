@@ -7261,12 +7261,6 @@ function generarReporteExpedienteGeneralObra(o){
   h += '<h3>Detalle documental del perfil de la propietaria</h3>';
 
   if(perfilPropietaria && perfilPropietaria.rfc){
-    h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;line-height:1.5">'
-      + '<strong style="color:#e2e8f0">' + (perfilPropietaria.nombre || o.patron || '--') + '</strong><br>'
-      + 'RFC: <span style="font-family:monospace">' + (perfilPropietaria.rfc || '--') + '</span><br>'
-      + 'Domicilio fiscal: ' + (perfilPropietaria.domicilio || '--')
-      + '</div>';
-
     h += '<table class="rpt-tbl"><thead><tr>'
       + '<th>Documento</th>'
       + '<th>Estado</th>'
@@ -8211,13 +8205,10 @@ function generarReporteExpedienteGeneralFase(f){
 
 
 
-  if(perfil){
-    h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;line-height:1.5">'
-      + '<strong style="color:#e2e8f0">' + (perfil.nombre || '--') + '</strong><br>'
-      + 'RFC: <span style="font-family:monospace">' + (perfil.rfc || '--') + '</span><br>'
-      + 'Domicilio fiscal: ' + (perfil.domicilio || '--')
-      + '</div>';
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle documental del perfil</h3>';
 
+  if(perfil){
     h += '<table class="rpt-tbl"><thead><tr>'
       + '<th>Documento</th>'
       + '<th>Estado</th>'
