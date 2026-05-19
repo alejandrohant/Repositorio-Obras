@@ -1847,6 +1847,11 @@ if(document.getElementById('p-fisn')){
 }
 
 document.getElementById('p-ubic').value = o.ubicacion || '';
+if(document.getElementById('p-doc-licencia-construccion')) document.getElementById('p-doc-licencia-construccion').value = o.docLicenciaConstruccion || 0;
+if(document.getElementById('p-doc-presupuesto')) document.getElementById('p-doc-presupuesto').value = o.docPresupuesto || 0;
+if(document.getElementById('p-doc-explosion-insumos')) document.getElementById('p-doc-explosion-insumos').value = o.docExplosionInsumos || 0;
+if(document.getElementById('p-doc-acuse-siroc')) document.getElementById('p-doc-acuse-siroc').value = o.docAcuseSiroc || 0;
+
 if(document.getElementById('p-subdelegacion')) document.getElementById('p-subdelegacion').value = o.subdelegacion || '';
 
 if(document.getElementById('p-cp')) document.getElementById('p-cp').value = o.cp || '';
@@ -1860,6 +1865,8 @@ if(document.getElementById('p-croquis-rp')) document.getElementById('p-croquis-r
 if(document.getElementById('p-compdom-obra')) document.getElementById('p-compdom-obra').value = o.compDomObra || 0;
 if(document.getElementById('p-compdom-rp')) document.getElementById('p-compdom-rp').value = o.compDomRP || 0;
 
+limpiarInputsArchivosObra();
+pintarArchivosObra(o.archivos || {});
 var modofReal = parseFloat(o.moDOF) || ((parseFloat(o.m2) || 0) * (parseFloat(o.costoM2) || 0));
 var cuotasReal = parseFloat(o.cuotas) || (modofReal * ((parseFloat(o.fcuotas) || 35.40) / 100));
 var isnReal = parseFloat(o.isnEst) || (modofReal * ((parseFloat(o.factorISN) || 4.00) / 100));
