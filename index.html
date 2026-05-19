@@ -8209,44 +8209,7 @@ function generarReporteExpedienteGeneralFase(f){
     + '<div class="rpt-total-item"><label>Presentado sin archivo</label><span class="' + (sinArchivo > 0 ? 'warn' : '') + '">' + sinArchivo + '</span></div>'
     + '</div>';
 
-  h += '<div class="rpt-card">';
-  h += '<h3>Documentación del perfil con observación</h3>';
 
-  if(filasPerfilObs){
-    h += '<table class="rpt-tbl"><thead><tr>'
-      + '<th>Documento / dato</th>'
-      + '<th>Estado</th>'
-      + '<th>Archivo</th>'
-      + '<th>Dato adicional</th>'
-      + '</tr></thead><tbody>'
-      + filasPerfilObs
-      + '</tbody></table>';
-  }else{
-    h += '<p style="color:#22c55e;font-weight:700">Documentación del perfil completa.</p>';
-  }
-
-  h += '</div>';
-
-  h += '<div class="rpt-card">';
-  h += '<h3>Documentación de la ' + tipoUnidad + ' con observación</h3>';
-
-  if(filasFaseObs){
-    h += '<table class="rpt-tbl"><thead><tr>'
-      + '<th>Documento / dato</th>'
-      + '<th>Estado</th>'
-      + '<th>Archivo</th>'
-      + '<th>Dato adicional</th>'
-      + '</tr></thead><tbody>'
-      + filasFaseObs
-      + '</tbody></table>';
-  }else{
-    h += '<p style="color:#22c55e;font-weight:700">Documentación de la ' + tipoUnidad + ' completa.</p>';
-  }
-
-  h += '</div>';
-
-  h += '<div class="rpt-card">';
-  h += '<h3>Detalle documental del perfil</h3>';
 
   if(perfil){
     h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;line-height:1.5">'
