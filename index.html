@@ -5949,7 +5949,10 @@ function docSelectCtrl(key, periodo, campo, val) {
     return '<select class="ctrl-sel" disabled style="opacity:.45;cursor:not-allowed"><option value="0">--</option></select>';
   }
 
-  var opts = [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo'],['4','N/A']];
+  var opts = campo === 'vinc'
+    ? [['0','--'],['1','Vinculados'],['2','No vinculados']]
+    : [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo'],['4','N/A']];
+
   var esc = function(s){return String(s || '').replace(/'/g,"\\'");};
 
   var sel = '<select class="ctrl-sel" onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseInt(this.value))">';
