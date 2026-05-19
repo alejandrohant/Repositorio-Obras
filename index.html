@@ -5250,11 +5250,34 @@ function buildReporteContratista(prf, fasesCtrl){
   return h;
 }
   
+function abrirBloqueObligacionesRFC(){
+  var bloques = document.querySelectorAll('.ctrl-collapsible');
+
+  bloques.forEach(function(bloque){
+    var titulo = bloque.querySelector('.ctrl-coll-hdr h3');
+    var body = bloque.querySelector('.ctrl-coll-body');
+    var hdr = bloque.querySelector('.ctrl-coll-hdr');
+    var chev = bloque.querySelector('.ctrl-coll-chev');
+
+    if(!titulo || !body) return;
+
+    if(titulo.textContent.trim().indexOf('OBLIGACIONES RFC') === 0){
+      body.classList.add('open');
+      if(hdr) hdr.classList.add('open');
+      if(chev) chev.classList.add('open');
+    }
+  });
+}
+
 function setFiltroObligacionesRFC(filtro){
   localStorage.setItem('ctrl_filtro_rfc', filtro || 'todos');
 
   if(typeof recargarControl === 'function'){
     recargarControl();
+
+    setTimeout(function(){
+      abrirBloqueObligacionesRFC();
+    }, 0);
   }
 }
 
