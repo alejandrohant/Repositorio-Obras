@@ -7108,6 +7108,47 @@ function generarReporteExpedienteGeneralObra(o){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   var archivos = o.archivos || {};
 
+  var perfilPropietaria = gPrf().find(function(p){
+    return String(p.rfc || '').trim().toUpperCase() === String(o.rfc || '').trim().toUpperCase();
+  }) || {};
+
+  var archivosPerfil = perfilPropietaria.archivos || {};
+
+  var docsPerfil = [
+    {k:'acuseSAT',l:'Acuse constancia SAT',v:perfilPropietaria.acuseSAT,d:''},
+    {k:'acuseREPSE',l:'Acuse REPSE',v:perfilPropietaria.acuseREPSE,d:'Folio: ' + (perfilPropietaria.folioREPSE || '--') + ' / Fecha: ' + fdate(perfilPropietaria.fechaREPSE) + ' / Vigencia: ' + fdate(perfilPropietaria.vigenciaREPSE)},
+    {k:'actaConst',l:'Acta constitutiva',v:perfilPropietaria.actaConst,d:''},
+    {k:'poderRL',l:'Poder notarial del RL',v:perfilPropietaria.poderRL,d:''},
+    {k:'idRL',l:'ID Representante Legal',v:perfilPropietaria.idRL,d:''},
+    {k:'constSATRL',l:'Constancia SAT del RL',v:perfilPropietaria.constSATRL,d:''},
+    {k:'idPersonaFisica',l:'Identificación persona física',v:perfilPropietaria.idPersonaFisica,d:''}
+  ];
+
+  var filasPerfilTodo = '';
+
+  function archivoPerfilReporte(d){
+    var v = parseInt(d.v) || 0;
+
+    if(v === 4){
+      return 'No aplica';
+    }
+
+    return archivosPerfil[d.k] ? 'Cargado' : 'Sin archivo';
+  }
+
+  docsPerfil.forEach(function(d){
+    var v = parseInt(d.v) || 0;
+    var tieneArchivo = !!archivosPerfil[d.k];
+    var observacion = esObservacionReporte(v) || (v === 1 && !tieneArchivo);
+
+    filasPerfilTodo += '<tr class="' + (observacion ? 'rpt-warn' : '') + '">'
+      + '<td>' + d.l + '</td>'
+      + '<td>' + estadoDocReporte(v) + '</td>'
+      + '<td>' + archivoPerfilReporte(d) + '</td>'
+      + '<td>' + (d.d || '--') + '</td>'
+      + '</tr>';
+  });
+
   var docs = [
     {k:'licenciaConstruccion',l:'Licencia de construcción',v:o.docLicenciaConstruccion},
     {k:'presupuesto',l:'Presupuesto',v:o.docPresupuesto},
@@ -7173,7 +7214,7 @@ function generarReporteExpedienteGeneralObra(o){
 
   h += '<div class="rpt-header">'
     + '<div class="rpt-logo">RO</div>'
-    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación general capturada en Obra Propietaria</p></div>'
+    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación del perfil de la propietaria y expediente documental de la obra</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
@@ -7217,6 +7258,30 @@ function generarReporteExpedienteGeneralObra(o){
   h += '</div>';
 
   h += '<div class="rpt-card">';
+  h += '<h3>Detalle documental del perfil de la propietaria</h3>';
+
+  if(perfilPropietaria && perfilPropietaria.rfc){
+    h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;line-height:1.5">'
+      + '<strong style="color:#e2e8f0">' + (perfilPropietaria.nombre || o.patron || '--') + '</strong><br>'
+      + 'RFC: <span style="font-family:monospace">' + (perfilPropietaria.rfc || '--') + '</span><br>'
+      + 'Domicilio fiscal: ' + (perfilPropietaria.domicilio || '--')
+      + '</div>';
+
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Documento</th>'
+      + '<th>Estado</th>'
+      + '<th>Archivo</th>'
+      + '<th>Dato adicional</th>'
+      + '</tr></thead><tbody>'
+      + filasPerfilTodo
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#f59e0b;font-weight:700">No hay perfil vinculado a este RFC de propietaria.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
   h += '<h3>Detalle completo del expediente de obra</h3>';
   h += '<table class="rpt-tbl"><thead><tr>'
     + '<th>Documento</th>'
@@ -7230,7 +7295,7 @@ function generarReporteExpedienteGeneralObra(o){
   h += '<div class="rpt-card">'
     + '<h3>Criterio del reporte</h3>'
     + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
-    + 'Este reporte corresponde al expediente general de la Obra Propietaria. Revisa los documentos capturados al crear o editar la obra, incluyendo el estado documental y si existe archivo cargado en Supabase Storage.'
+    + 'Este reporte corresponde al expediente general de la Obra Propietaria. Incluye la documentación del perfil de la propietaria, que se captura una sola vez por RFC, y la documentación específica de la obra, que se captura al crear o editar cada obra.'
     + '</p>'
     + '</div>';
 
