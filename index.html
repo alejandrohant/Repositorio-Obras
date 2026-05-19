@@ -5951,7 +5951,7 @@ function docSelectCtrl(key, periodo, campo, val) {
 
   var opts = campo === 'vinc'
     ? [['0','--'],['1','Vinculados'],['2','No vinculados']]
-    : [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo'],['4','N/A']];
+    : [['0','--'],['1','Presentado'],['2','No presentado'],['3','Erróneo'],['4','No aplica']];
 
   var esc = function(s){return String(s || '').replace(/'/g,"\\'");};
 
@@ -5971,8 +5971,9 @@ function docSelectCtrlBimestralSiroc(key, periodo, campo, val) {
     return '<select class="ctrl-sel" disabled style="opacity:.45;cursor:not-allowed"><option value="0">--</option></select>';
   }
 
-  var opts = [['0','--'],['1','Presentado'],['2','Pendiente'],['3','Erróneo']];
-  var esc = function(s){return s.replace(/'/g,"\'");};
+  var opts = [['0','--'],['1','Presentado'],['2','No presentado'],['3','Erróneo'],['4','No aplica']];
+  var esc = function(s){return String(s || '').replace(/'/g,"\\'");};
+
   var sel = '<select class="ctrl-sel" onchange="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseInt(this.value))">';
 
   opts.forEach(function(o){
@@ -5981,6 +5982,7 @@ function docSelectCtrlBimestralSiroc(key, periodo, campo, val) {
 
   return sel + '</select>';
 }
+
 
 function buildControlLicenciaSiroc(key, fase){
   var ctrl = gCtrl();
