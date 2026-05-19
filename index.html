@@ -439,6 +439,55 @@ select.fg-sel:focus{border-color:#a78bfa}
 .ctrl-fase-panel{display:none}
 .ctrl-fase-panel.active{display:block}
 
+.ctrl-doc-mini{
+  background:#0f1117;
+  border:1px solid #2d2d44;
+  border-radius:7px;
+  padding:5px 8px;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  min-width:92px;
+  width:100%;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.ctrl-doc-mini:hover{
+  border-color:#10b981;
+  color:#10b981;
+}
+
+.ctrl-doc-mini.ok{
+  background:#0f2d1a;
+  border-color:#14532d;
+  color:#22c55e;
+}
+
+.ctrl-doc-mini.no{
+  background:#2d1a1a;
+  border-color:#7f1d1d;
+  color:#f87171;
+}
+
+.ctrl-doc-mini.err{
+  background:#2d1a00;
+  border-color:#92400e;
+  color:#f59e0b;
+}
+
+.ctrl-doc-mini.na{
+  background:#111827;
+  border-color:#374151;
+  color:#64748b;
+}
+
+.ctrl-doc-mini.off{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
 .ctrl-fase-card-hdr{
   display:flex;
   align-items:flex-start;
@@ -1067,6 +1116,45 @@ select.fg-sel:focus{border-color:#a78bfa}
   </div>
   <div class="ctrl-tabs" id="ctrl-tabs"></div>
   <div id="ctrl-panels"></div>
+</div>
+
+<div class="mov" id="modal-doc-rfc">
+  <div class="mbox" style="max-width:520px">
+    <h2 id="doc-rfc-titulo">Documento RFC</h2>
+
+    <div style="background:#0f1117;border:1px solid #2d2d44;border-radius:10px;padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:4px">Periodo</div>
+      <div id="doc-rfc-periodo" style="color:#e2e8f0;font-size:14px;font-weight:700">--</div>
+    </div>
+
+    <div class="fgrid" style="grid-template-columns:1fr">
+      <div class="fg">
+        <label>Estado</label>
+        <select id="doc-rfc-estado" class="fg-sel" onchange="cambiarEstadoModalDocRFC()">
+          <option value="0">--</option>
+          <option value="1">Presentado</option>
+          <option value="2">No presentado</option>
+          <option value="3">Erróneo</option>
+          <option value="4">No aplica</option>
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Archivo</label>
+        <div class="doc-upload">
+          <input class="doc-file" type="file" id="doc-rfc-file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoModalDocRFC(this)">
+          <label class="doc-pick ctrl-file-pick" id="doc-rfc-pick" for="doc-rfc-file">Subir archivo</label>
+          <button type="button" class="doc-view" id="doc-rfc-ver" onclick="verArchivoModalDocRFC()" style="display:none">Ver archivo</button>
+          <button type="button" class="doc-del ctrl-file-del" id="doc-rfc-del" onclick="quitarArchivoModalDocRFC()" style="display:none">Quitar archivo</button>
+          <span class="doc-none" id="doc-rfc-name">Sin archivo</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="macts">
+      <button type="button" class="bcan" onclick="cerrarModalDocRFC()">Cerrar</button>
+    </div>
+  </div>
 </div>
 
 <!-- REPORTE -->
@@ -5168,7 +5256,7 @@ function buildRFCHtml(perfil, fasesBase) {
   periodos.forEach(function(p) {
     h += '<tr><td>' + periodoLabel(p) + '</td>';
     cols.forEach(function(c){
-      h += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
+      h += '<td>' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
     });
     h += '</tr>';
   });
@@ -5923,6 +6011,199 @@ function addCtrlTab(id, label, tabsEl, panelsEl, active) {
   panel.className = 'ctrl-panel' + (active ? ' active' : '');
   panel.id = 'cpanel-' + id;
   panelsEl.appendChild(panel);
+}
+
+var docRFCCtx = null;
+
+function ctrlDocBloqueado(periodo, campo){
+  var mes = parseInt(String(periodo || '').split('-')[1], 10);
+
+  if(campo === 'op_inf'){
+    return !mes || mes % 2 !== 0;
+  }
+
+  if(campo === 'icsoe' || campo === 'sisub'){
+    return !mes || [1,5,9].indexOf(mes) === -1;
+  }
+
+  return false;
+}
+
+function estadoDocRFCTexto(v){
+  v = parseInt(v) || 0;
+
+  if(v === 1) return 'Presentado';
+  if(v === 2) return 'No presentado';
+  if(v === 3) return 'Erróneo';
+  if(v === 4) return 'No aplica';
+
+  return '--';
+}
+
+function claseDocRFCEstado(v){
+  v = parseInt(v) || 0;
+
+  if(v === 1) return ' ok';
+  if(v === 2) return ' no';
+  if(v === 3) return ' err';
+  if(v === 4) return ' na';
+
+  return '';
+}
+
+function getCtrlArchivoVal(ctrl, key, periodo, campo){
+  var archivoCampo = campo + '_archivo';
+
+  return (ctrl[key] && ctrl[key][periodo] && ctrl[key][periodo][archivoCampo])
+    ? ctrl[key][periodo][archivoCampo]
+    : '';
+}
+
+function setCtrlArchivoVal(key, periodo, campo, ruta){
+  var ctrl = gCtrl();
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key][periodo]) ctrl[key][periodo] = {};
+  ctrl[key][periodo][campo + '_archivo'] = ruta || '';
+  sCtrl(ctrl);
+}
+
+function docCeldaRFC(key, periodo, campo, label, val){
+  if(ctrlDocBloqueado(periodo, campo)){
+    return '<button type="button" class="ctrl-doc-mini off" disabled>--</button>';
+  }
+
+  var ctrl = gCtrl();
+  var ruta = getCtrlArchivoVal(ctrl, key, periodo, campo);
+  var clip = ruta ? ' 📎' : '';
+  var texto = estadoDocRFCTexto(val) + clip;
+
+  return '<button type="button" class="ctrl-doc-mini' + claseDocRFCEstado(val) + '" '
+    + 'onclick="abrirModalDocRFC(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(periodo) + '\',\'' + escCtrlJS(campo) + '\',\'' + escCtrlJS(label) + '\')">'
+    + escCtrlHTML(texto)
+    + '</button>';
+}
+
+function abrirModalDocRFC(key, periodo, campo, label){
+  docRFCCtx = {
+    key:key,
+    periodo:periodo,
+    campo:campo,
+    label:label
+  };
+
+  pintarModalDocRFC();
+  document.getElementById('modal-doc-rfc').classList.add('open');
+}
+
+function cerrarModalDocRFC(){
+  docRFCCtx = null;
+  document.getElementById('modal-doc-rfc').classList.remove('open');
+
+  var input = document.getElementById('doc-rfc-file');
+  if(input) input.value = '';
+}
+
+function pintarModalDocRFC(){
+  if(!docRFCCtx) return;
+
+  var ctrl = gCtrl();
+  var estado = getCtrlVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+  var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+  var bloqueado = localStorage.getItem('control_bloqueado') === '1';
+
+  document.getElementById('doc-rfc-titulo').textContent = docRFCCtx.label || 'Documento RFC';
+  document.getElementById('doc-rfc-periodo').textContent = periodoLabel(docRFCCtx.periodo);
+  document.getElementById('doc-rfc-estado').value = String(parseInt(estado) || 0);
+  document.getElementById('doc-rfc-estado').disabled = bloqueado;
+
+  document.getElementById('doc-rfc-name').textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  document.getElementById('doc-rfc-ver').style.display = ruta ? 'inline-block' : 'none';
+  document.getElementById('doc-rfc-del').style.display = (ruta && !bloqueado) ? 'inline-block' : 'none';
+  document.getElementById('doc-rfc-pick').style.display = bloqueado ? 'none' : 'inline-block';
+}
+
+function cambiarEstadoModalDocRFC(){
+  if(!docRFCCtx) return;
+
+  var valor = parseInt(document.getElementById('doc-rfc-estado').value) || 0;
+
+  setCtrlVal(docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo, valor);
+
+  recargarControl();
+
+  setTimeout(function(){
+    pintarModalDocRFC();
+  }, 0);
+}
+
+async function subirArchivoModalDocRFC(input){
+  if(!docRFCCtx || !input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/control/' + docRFCCtx.key + '/' + docRFCCtx.periodo + '_' + docRFCCtx.campo + '_' + Date.now() + '_' + limpio;
+
+  var ctrl = gCtrl();
+  var anterior = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo RFC:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    input.value = '';
+    return;
+  }
+
+  setCtrlArchivoVal(docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo, ruta);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  input.value = '';
+
+  recargarControl();
+
+  setTimeout(function(){
+    pintarModalDocRFC();
+  }, 0);
+}
+
+async function quitarArchivoModalDocRFC(){
+  if(!docRFCCtx) return;
+
+  var ctrl = gCtrl();
+  var anterior = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+
+  setCtrlArchivoVal(docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo, '');
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  recargarControl();
+
+  setTimeout(function(){
+    pintarModalDocRFC();
+  }, 0);
+}
+
+async function verArchivoModalDocRFC(){
+  if(!docRFCCtx) return;
+
+  var ctrl = gCtrl();
+  var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+
+  await verRutaDocumentoPerfil(ruta || '');
 }
 
 function docSelectCtrl(key, periodo, campo, val) {
