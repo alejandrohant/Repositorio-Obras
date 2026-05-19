@@ -5407,6 +5407,7 @@ function buildFaseHtml(perfil, fase) {
   var cuotasAcum = totalCOP + totalRCV + totalINF;
 
   var cuotasHtml = '';
+  var licenciaSirocHtml = faseEsPropietaria && !soloISN ? buildControlLicenciaSiroc(key, fase) : '';
 
   if(vencido && !soloISN){
     cuotasHtml += '<div class="ctrl-warn"><span class="ctrl-warn-icon">&#9888;</span><span>Contrato vencido desde <strong>' + periodoLabel(fase.termina.slice(0,7)) + '</strong>. Se requiere convenio modificatorio.</span></div>';
@@ -5596,7 +5597,7 @@ function buildFaseHtml(perfil, fase) {
 
   var panelInicial = soloISN && debeMostrarISN
     ? 'isn'
-    : ((!faseEsPropietaria && !soloISN) ? 'contratos' : 'cuotas');
+    : (faseEsPropietaria && !soloISN ? 'licencia' : ((!faseEsPropietaria && !soloISN) ? 'contratos' : 'cuotas'));
 
   var h = '';
   h += '<div class="ctrl-seccion" id="ctrlfase-card-' + faseIdSafe + '" style="margin-top:12px">';
@@ -5620,6 +5621,10 @@ function buildFaseHtml(perfil, fase) {
     h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'contratos' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'contratos\',this)">Control Contratos</button>';
   }
 
+  if(faseEsPropietaria && !soloISN){
+    h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'licencia' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'licencia\',this)">Control Licencia / Incidencias SIROC</button>';
+  }
+
   if(!soloISN){
     h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'cuotas' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'cuotas\',this)">Control cuotas IMSS/SIROC</button>';
   }
@@ -5637,6 +5642,10 @@ function buildFaseHtml(perfil, fase) {
   }
 
   h += '</div>';
+
+  if(faseEsPropietaria && !soloISN){
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'licencia' ? 'active' : '') + '" data-panel="licencia">' + licenciaSirocHtml + '</div>';
+  }
 
   if(!soloISN){
     h += '<div class="ctrl-fase-panel ' + (panelInicial === 'cuotas' ? 'active' : '') + '" data-panel="cuotas">' + cuotasHtml + '</div>';
@@ -5968,6 +5977,202 @@ function docSelectCtrlBimestralSiroc(key, periodo, campo, val) {
   return sel + '</select>';
 }
 
+function buildControlLicenciaSiroc(key, fase){
+  var ctrl = gCtrl();
+  var data = (ctrl[key] && ctrl[key].__licenciaSiroc) ? ctrl[key].__licenciaSiroc : {};
+  var actualizaciones = Array.isArray(data.actualizaciones) ? data.actualizaciones : [];
+  var incidencias = Array.isArray(data.incidencias) ? data.incidencias : [];
+
+  var actualizacionesVista = actualizaciones.length ? actualizaciones : [{estado:0,archivo:''}];
+  var incidenciasVista = incidencias.length ? incidencias : [{tipo:'',archivo:''}];
+  var faseIdSafe = String(fase.id || 'fase').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+  function selActualizacion(idx, val){
+    val = parseInt(val) || 0;
+    var h = '<select class="ctrl-sel" onchange="setCtrlLicenciaVal(\'' + escCtrlJS(key) + '\',\'actualizaciones\',' + idx + ',\'estado\',parseInt(this.value)||0)">';
+    h += '<option value="0"' + (val===0?' selected':'') + '>--</option>';
+    h += '<option value="1"' + (val===1?' selected':'') + '>Presentado</option>';
+    h += '<option value="2"' + (val===2?' selected':'') + '>No presentado</option>';
+    h += '<option value="3"' + (val===3?' selected':'') + '>Erróneo</option>';
+    h += '<option value="4"' + (val===4?' selected':'') + '>No aplica</option>';
+    h += '</select>';
+    return h;
+  }
+
+  function selIncidencia(idx, val){
+    val = String(val || '');
+    var h = '<select class="ctrl-sel" onchange="setCtrlLicenciaVal(\'' + escCtrlJS(key) + '\',\'incidencias\',' + idx + ',\'tipo\',this.value)">';
+    h += '<option value=""' + (val===''?' selected':'') + '>--</option>';
+    h += '<option value="actualizacion"' + (val==='actualizacion'?' selected':'') + '>Actualización</option>';
+    h += '<option value="suspension"' + (val==='suspension'?' selected':'') + '>Suspensión</option>';
+    h += '<option value="cancelacion"' + (val==='cancelacion'?' selected':'') + '>Cancelación</option>';
+    h += '</select>';
+    return h;
+  }
+
+  function archivoCells(grupo, idx, item){
+    item = item || {};
+    var ruta = item.archivo || '';
+    var inputId = 'ctrl-file-' + faseIdSafe + '-' + grupo + '-' + idx;
+    var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+
+    var h = '';
+    h += '<td>';
+    h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ',this)">';
+    h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+    h += '<div class="doc-none" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
+    h += '</td>';
+
+    h += '<td>';
+    if(ruta){
+      h += '<button type="button" class="doc-view" onclick="verArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Ver archivo</button> ';
+      h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Quitar archivo</button>';
+    }else{
+      h += '<span class="doc-none">Sin archivo</span>';
+    }
+    h += '</td>';
+
+    return h;
+  }
+
+  var h = '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Licencia / Incidencias SIROC</h3>';
+
+  h += '<h4>Actualización licencia</h4>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+  actualizacionesVista.forEach(function(item, idx){
+    h += '<tr>';
+    h += '<td>Actualización licencia ' + (idx + 1) + '</td>';
+    h += '<td>' + selActualizacion(idx, item.estado) + '</td>';
+    h += archivoCells('actualizaciones', idx, item);
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<button type="button" class="ctrl-add-btn" onclick="agregarActualizacionLicencia(\'' + escCtrlJS(key) + '\')">+ Agregar actualización</button>';
+
+  h += '<h4>Incidencia SIROC</h4>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+  incidenciasVista.forEach(function(item, idx){
+    h += '<tr>';
+    h += '<td>Incidencia SIROC ' + (idx + 1) + '</td>';
+    h += '<td>' + selIncidencia(idx, item.tipo) + '</td>';
+    h += archivoCells('incidencias', idx, item);
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<button type="button" class="ctrl-add-btn" onclick="agregarIncidenciaSiroc(\'' + escCtrlJS(key) + '\')">+ Agregar incidencia</button>';
+
+  h += '</div>';
+  return h;
+}
+
+function asegurarControlLicenciaData(ctrl, key){
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key].__licenciaSiroc){
+    ctrl[key].__licenciaSiroc = {actualizaciones:[], incidencias:[]};
+  }
+  if(!Array.isArray(ctrl[key].__licenciaSiroc.actualizaciones)) ctrl[key].__licenciaSiroc.actualizaciones = [];
+  if(!Array.isArray(ctrl[key].__licenciaSiroc.incidencias)) ctrl[key].__licenciaSiroc.incidencias = [];
+  return ctrl[key].__licenciaSiroc;
+}
+
+function asegurarControlLicenciaItem(data, grupo, idx){
+  while(data[grupo].length <= idx){
+    data[grupo].push(grupo === 'actualizaciones' ? {estado:0,archivo:''} : {tipo:'',archivo:''});
+  }
+  return data[grupo][idx];
+}
+
+function setCtrlLicenciaVal(key, grupo, idx, campo, val){
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  var item = asegurarControlLicenciaItem(data, grupo, idx);
+  item[campo] = val;
+  sCtrl(ctrl);
+}
+
+function agregarActualizacionLicencia(key){
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  if(!data.actualizaciones.length){
+    data.actualizaciones.push({estado:0,archivo:''});
+  }
+  data.actualizaciones.push({estado:0,archivo:''});
+  sCtrl(ctrl);
+  recargarControl();
+}
+
+function agregarIncidenciaSiroc(key){
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  if(!data.incidencias.length){
+    data.incidencias.push({tipo:'',archivo:''});
+  }
+  data.incidencias.push({tipo:'',archivo:''});
+  sCtrl(ctrl);
+  recargarControl();
+}
+
+async function subirArchivoControlLicencia(key, grupo, idx, input){
+  if(!input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/control/' + key + '/' + grupo + '_' + idx + '_' + Date.now() + '_' + limpio;
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de control:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    input.value = '';
+    return;
+  }
+
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  var item = asegurarControlLicenciaItem(data, grupo, idx);
+  var anterior = item.archivo || '';
+
+  item.archivo = ruta;
+  sCtrl(ctrl);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  recargarControl();
+}
+
+async function quitarArchivoControlLicencia(key, grupo, idx){
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  var item = asegurarControlLicenciaItem(data, grupo, idx);
+  var anterior = item.archivo || '';
+
+  item.archivo = '';
+  sCtrl(ctrl);
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  recargarControl();
+}
+
+async function verArchivoControlLicencia(key, grupo, idx){
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+  var item = asegurarControlLicenciaItem(data, grupo, idx);
+  await verRutaDocumentoPerfil(item.archivo || '');
+}
 function montoInputCtrl(key, periodo, campo, val) {
   var esc = function(s){return s.replace(/'/g,"\'");};
   return '<input class="ctrl-inp" type="number" step="0.01" value="' + (val||'') + '" '
@@ -6843,7 +7048,7 @@ function aplicarBloqueoControl(){
     }
   });
 
-  pg.querySelectorAll('.ctrl-add-btn, .ctrl-conv-del, button.bedit').forEach(function(btn){
+  pg.querySelectorAll('.ctrl-add-btn, .ctrl-conv-del, button.bedit, .ctrl-file-pick, .ctrl-file-del').forEach(function(btn){
     if(btn.id === 'ctrl-edit-btn') return;
 
     if(bloqueado){
