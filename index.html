@@ -8058,91 +8058,147 @@ function generarReporteObligacionesRFCRPFase(f){
 function generarReporteExpedienteGeneralFase(f){
   var perfil = gPrf().find(function(p){
     return String(p.rfc || '').trim().toUpperCase() === String(f.rfc || '').trim().toUpperCase();
-  });
-
-  if(!perfil){
-    alert('No encontré un perfil con el RFC ' + (f.rfc || '--') + '. Primero crea o corrige el perfil del contratista/subcontratista.');
-    return;
-  }
+  }) || null;
 
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
-  var rfc = String(perfil.rfc || f.rfc || '').trim().toUpperCase();
+  var rfc = String((perfil && perfil.rfc) || f.rfc || '').trim().toUpperCase();
   var esPersonaFisica = rfc.length === 13;
+  var tipoUnidad = String(f.perfil || '').toLowerCase().trim() === 'subcontratista' ? 'subfase' : 'fase';
 
-  var docs = [
-    {k:'acuseSAT',l:'Constancia de situación fiscal',v:perfil.acuseSAT},
-    {k:'acuseREPSE',l:'Acuse REPSE',v:perfil.acuseREPSE}
-  ];
+  var archivosPerfil = perfil && perfil.archivos ? perfil.archivos : {};
+  var archivosFase = f.archivos || {};
 
-  if(esPersonaFisica){
-    docs.push({k:'idPersonaFisica',l:'Identificación persona física',v:perfil.idPersonaFisica});
-  }else{
-    docs.push({k:'actaConst',l:'Acta constitutiva',v:perfil.actaConst});
-    docs.push({k:'poderRL',l:'Poder notarial del representante legal',v:perfil.poderRL});
-    docs.push({k:'idRL',l:'Identificación del representante legal',v:perfil.idRL});
-    docs.push({k:'constSATRL',l:'Constancia SAT del representante legal',v:perfil.constSATRL});
+  var docsPerfil = [];
+
+  if(perfil){
+    docsPerfil.push({k:'acuseSAT',l:'Acuse constancia SAT',v:perfil.acuseSAT,d:''});
+    docsPerfil.push({k:'acuseREPSE',l:'Acuse REPSE',v:perfil.acuseREPSE,d:'Folio: ' + (perfil.folioREPSE || '--') + ' / Fecha: ' + fdate(perfil.fechaREPSE) + ' / Vigencia: ' + fdate(perfil.vigenciaREPSE)});
+
+    if(esPersonaFisica){
+      docsPerfil.push({k:'idPersonaFisica',l:'Identificación persona física',v:perfil.idPersonaFisica,d:''});
+    }else{
+      docsPerfil.push({k:'actaConst',l:'Acta constitutiva',v:perfil.actaConst,d:''});
+      docsPerfil.push({k:'poderRL',l:'Poder notarial del RL',v:perfil.poderRL,d:''});
+      docsPerfil.push({k:'idRL',l:'ID Representante Legal',v:perfil.idRL,d:''});
+      docsPerfil.push({k:'constSATRL',l:'Constancia SAT del RL',v:perfil.constSATRL,d:''});
+    }
   }
 
-  var filasObs = '';
-  var filasTodo = '';
+  var docsFase = [
+    {k:'contrato',l:'Contrato',v:f.docContrato,d:''},
+    {k:'contratoFirmado',l:'Contrato firmado',v:f.docFirmado,d:''},
+    {k:'acuseSiroc',l:'Acuse SIROC',v:f.docSiroc,d:'SIROC: ' + (f.siroc || '--')},
+    {k:'presupuesto',l:'Presupuesto',v:(f.docPresupuesto != null ? f.docPresupuesto : f.docSirocVig),d:''},
+    {k:'explosionInsumos',l:'Explosión de insumos',v:f.docExplosion,d:''},
+    {k:'planosConstruccion',l:'Planos de construcción',v:f.docPlanos,d:''},
+    {k:'arp',l:'Formato de Alta Patronal (ARP)',v:f.arp,d:'RP: ' + (f.rp || '--')},
+    {k:'tarjetaPatronal',l:'Tarjeta Patronal',v:f.tarjetaPatronal,d:''},
+    {k:'croquisRP',l:'Croquis ubicación domicilio RP',v:f.croquisRP,d:''},
+    {k:'compDomRP',l:'Comprobante domicilio RP',v:f.compDomRP,d:''}
+  ];
+
+  var filasPerfilObs = '';
+  var filasPerfilTodo = '';
+  var filasFaseObs = '';
+  var filasFaseTodo = '';
+
   var totalObs = 0;
   var sinCaptura = 0;
   var noPresentado = 0;
   var erroneo = 0;
-  var repseVencido = false;
+  var sinArchivo = 0;
 
-  function contar(v){
+  function contarEstado(v){
     v = parseInt(v) || 0;
     if(v === 0) sinCaptura++;
     if(v === 2) noPresentado++;
     if(v === 3) erroneo++;
   }
 
-  docs.forEach(function(d){
+  function archivoReporte(v, archivos, campo){
+    v = parseInt(v) || 0;
+    if(v === 4) return 'No aplica';
+    return archivos && archivos[campo] ? 'Cargado' : 'Sin archivo';
+  }
+
+  function filaDoc(d, archivos, esObs){
     var v = parseInt(d.v) || 0;
-    var fila = '<tr class="' + (v === 3 ? 'rpt-warn' : '') + '">'
+    var archivo = archivoReporte(v, archivos, d.k);
+    var warn = esObs ? ' class="rpt-warn"' : '';
+
+    return '<tr' + warn + '>'
       + '<td>' + d.l + '</td>'
       + '<td>' + estadoDocReporte(v) + '</td>'
+      + '<td>' + archivo + '</td>'
+      + '<td>' + (d.d || '--') + '</td>'
       + '</tr>';
+  }
 
-    filasTodo += fila;
+  function procesarDocs(docs, archivos, destino){
+    docs.forEach(function(d){
+      var v = parseInt(d.v) || 0;
+      var presentadoSinArchivo = v === 1 && !(archivos && archivos[d.k]);
+      var observacion = esObservacionReporte(v) || presentadoSinArchivo;
 
-    if(esObservacionReporte(v)){
-      contar(v);
-      totalObs++;
-      filasObs += fila;
+      destino.todo += filaDoc(d, archivos, observacion);
+
+      if(observacion){
+        totalObs++;
+        contarEstado(v);
+        if(presentadoSinArchivo) sinArchivo++;
+        destino.obs += filaDoc(d, archivos, true);
+      }
+    });
+  }
+
+  var perfilRows = {todo:'',obs:''};
+  var faseRows = {todo:'',obs:''};
+
+  if(perfil){
+    procesarDocs(docsPerfil, archivosPerfil, perfilRows);
+
+    if(perfil.vigenciaREPSE){
+      var vence = new Date(perfil.vigenciaREPSE + 'T12:00:00');
+      var hoyBase = new Date();
+      hoyBase.setHours(0,0,0,0);
+
+      if(vence < hoyBase){
+        totalObs++;
+        perfilRows.obs += '<tr class="rpt-warn"><td>Vigencia REPSE</td><td>Vencido</td><td>No aplica</td><td>' + fdate(perfil.vigenciaREPSE) + '</td></tr>';
+      }
     }
-  });
-
-  if(perfil.vigenciaREPSE){
-    var vence = new Date(perfil.vigenciaREPSE + 'T12:00:00');
-    var hoyBase = new Date();
-    hoyBase.setHours(0,0,0,0);
-    repseVencido = vence < hoyBase;
-  }
-
-  if(repseVencido){
+  }else{
     totalObs++;
-    filasObs += '<tr class="rpt-warn"><td>Vigencia REPSE</td><td>Vencido</td></tr>';
+    perfilRows.obs += '<tr class="rpt-warn"><td>Perfil del contratista/subcontratista</td><td>No localizado</td><td>No aplica</td><td>RFC: ' + (rfc || '--') + '</td></tr>';
   }
+
+  procesarDocs(docsFase, archivosFase, faseRows);
+
+  filasPerfilObs = perfilRows.obs;
+  filasPerfilTodo = perfilRows.todo;
+  filasFaseObs = faseRows.obs;
+  filasFaseTodo = faseRows.todo;
 
   var h = '';
 
   h += '<div class="rpt-header">'
     + '<div class="rpt-logo">RO</div>'
-    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación presentada por única vez del perfil RFC</p></div>'
+    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación del perfil y expediente documental de la ' + tipoUnidad + '</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
   h += '<div class="rpt-obra">'
-    + '<h2>' + (perfil.nombre || f.contratista || '--') + '</h2>'
+    + '<h2>' + (f.contratista || (perfil && perfil.nombre) || '--') + '</h2>'
     + '<div class="rpt-obra-grid">'
-    + '<div class="rpt-dato"><label>Tipo de perfil</label><span>' + (perfil.tipo || f.perfil || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Tipo de perfil</label><span>' + ((perfil && perfil.tipo) || f.perfil || '--') + '</span></div>'
     + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (rfc || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Obra consultada</label><span>' + (f.obra || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Fase consultada</label><span>' + (f.objeto || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Folio REPSE</label><span>' + (perfil.folioREPSE || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Vigencia REPSE</label><span>' + fdate(perfil.vigenciaREPSE) + '</span></div>'
+    + '<div class="rpt-dato"><label>RP</label><span style="font-family:monospace">' + (f.rp || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Obra</label><span>' + (f.obra || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>' + (tipoUnidad === 'subfase' ? 'Subfase' : 'Fase') + '</label><span>' + (f.objeto || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>SIROC</label><span>' + (f.siroc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Subdelegación</label><span>' + (f.subdelegacion || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia contrato</label><span>' + fdate(f.inicia) + ' - ' + fdate(f.termina) + '</span></div>'
+    + '<div class="rpt-dato"><label>Vigencia REPSE</label><span>' + (perfil ? fdate(perfil.vigenciaREPSE) : '--') + '</span></div>'
     + '</div></div>';
 
   h += '<div class="rpt-total">'
@@ -8150,38 +8206,85 @@ function generarReporteExpedienteGeneralFase(f){
     + '<div class="rpt-total-item"><label>Sin capturar</label><span class="' + (sinCaptura > 0 ? 'warn' : '') + '">' + sinCaptura + '</span></div>'
     + '<div class="rpt-total-item"><label>No presentado</label><span class="' + (noPresentado > 0 ? 'warn' : '') + '">' + noPresentado + '</span></div>'
     + '<div class="rpt-total-item"><label>Erróneo</label><span class="' + (erroneo > 0 ? 'warn' : '') + '">' + erroneo + '</span></div>'
+    + '<div class="rpt-total-item"><label>Presentado sin archivo</label><span class="' + (sinArchivo > 0 ? 'warn' : '') + '">' + sinArchivo + '</span></div>'
     + '</div>';
 
   h += '<div class="rpt-card">';
-  h += '<h3>Documentación general con observación</h3>';
+  h += '<h3>Documentación del perfil con observación</h3>';
 
-  if(filasObs){
+  if(filasPerfilObs){
     h += '<table class="rpt-tbl"><thead><tr>'
       + '<th>Documento / dato</th>'
       + '<th>Estado</th>'
+      + '<th>Archivo</th>'
+      + '<th>Dato adicional</th>'
       + '</tr></thead><tbody>'
-      + filasObs
+      + filasPerfilObs
       + '</tbody></table>';
   }else{
-    h += '<p style="color:#22c55e;font-weight:700">Expediente general completo.</p>';
+    h += '<p style="color:#22c55e;font-weight:700">Documentación del perfil completa.</p>';
   }
 
   h += '</div>';
 
   h += '<div class="rpt-card">';
-  h += '<h3>Detalle completo del expediente</h3>';
+  h += '<h3>Documentación de la ' + tipoUnidad + ' con observación</h3>';
+
+  if(filasFaseObs){
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Documento / dato</th>'
+      + '<th>Estado</th>'
+      + '<th>Archivo</th>'
+      + '<th>Dato adicional</th>'
+      + '</tr></thead><tbody>'
+      + filasFaseObs
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#22c55e;font-weight:700">Documentación de la ' + tipoUnidad + ' completa.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle documental del perfil</h3>';
+
+  if(perfil){
+    h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;line-height:1.5">'
+      + '<strong style="color:#e2e8f0">' + (perfil.nombre || '--') + '</strong><br>'
+      + 'RFC: <span style="font-family:monospace">' + (perfil.rfc || '--') + '</span><br>'
+      + 'Domicilio fiscal: ' + (perfil.domicilio || '--')
+      + '</div>';
+
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Documento</th>'
+      + '<th>Estado</th>'
+      + '<th>Archivo</th>'
+      + '<th>Dato adicional</th>'
+      + '</tr></thead><tbody>'
+      + filasPerfilTodo
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#f59e0b;font-weight:700">No hay perfil vinculado al RFC ' + (rfc || '--') + '.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle completo del expediente de la ' + tipoUnidad + '</h3>';
   h += '<table class="rpt-tbl"><thead><tr>'
     + '<th>Documento</th>'
     + '<th>Estado</th>'
+    + '<th>Archivo</th>'
+    + '<th>Dato adicional</th>'
     + '</tr></thead><tbody>'
-    + filasTodo
+    + filasFaseTodo
     + '</tbody></table>';
   h += '</div>';
 
   h += '<div class="rpt-card">'
     + '<h3>Criterio del reporte</h3>'
     + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
-    + 'Este reporte corresponde al expediente general del perfil RFC. No sustituye el reporte de obligaciones RFC/RP, porque no revisa pagos periódicos ni obligaciones mensuales; revisa documentos que normalmente se presentan por única vez por empresa o persona física.'
+    + 'Este reporte corresponde al expediente general de la fase/subfase. Incluye la documentación del perfil del contratista o subcontratista, que se captura una sola vez por RFC, y la documentación específica de la fase/subfase, que se captura al crear o editar esa fase/subfase.'
     + '</p>'
     + '</div>';
 
