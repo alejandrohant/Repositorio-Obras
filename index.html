@@ -286,6 +286,13 @@ select.fg-sel:focus{border-color:#a78bfa}
 }
 .ctrl-save-btn{background:#10b981;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;margin-top:12px}
 .ctrl-save-btn:hover{background:#059669}
+.ctrl-locked-field{
+  opacity:.65 !important;
+  cursor:not-allowed !important;
+  background:#10131c !important;
+  color:#94a3b8 !important;
+  border-color:#1e2d2a !important;
+}
 .periodo-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
 .pb-ok{background:#1e2d2a;color:#10b981}
 .pb-venc{background:#2d1a1a;color:#f87171}
@@ -900,7 +907,8 @@ select.fg-sel:focus{border-color:#a78bfa}
       <h2 id="ctrl-nom"></h2>
       <div class="ftipo" id="ctrl-sub"></div>
     </div>
-    <button class="ctrl-save-btn" onclick="guardarControl()">Guardar cambios</button>
+    <button class="ctrl-save-btn" id="ctrl-save-btn" onclick="guardarControl()">Guardar cambios</button>
+<button class="bfe" id="ctrl-edit-btn" onclick="editarControl()" style="display:none">Editar control</button>
   </div>
   <div class="ctrl-tabs" id="ctrl-tabs"></div>
   <div id="ctrl-panels"></div>
@@ -1128,7 +1136,19 @@ function sC(a){localStorage.setItem('oc',JSON.stringify(a));}
 function gid(x){
   return x + '_' + Date.now() + '_' + Math.random().toString(36).substring(2,8);
 }
-function show(id){document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte').forEach(function(p){p.classList.remove('active');});document.getElementById(id).classList.add('active');}
+function show(id){
+  document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte').forEach(function(p){
+    p.classList.remove('active');
+  });
+
+  document.getElementById(id).classList.add('active');
+
+  if(id === 'pg-ctrl' && typeof aplicarBloqueoControl === 'function'){
+    setTimeout(function(){
+      aplicarBloqueoControl();
+    }, 0);
+  }
+}
 let currentUser = null;
 let currentAppUser = null;
 let currentOwnerUserId = null;
@@ -5942,8 +5962,66 @@ function getCtrlTotales(faseId){
 }
 async function guardarControl() {
   await sincronizarControlSupabase();
+
+  localStorage.setItem('control_bloqueado', '1');
+
   recargarControl();
-  alert('Cambios guardados correctamente.');
+
+  setTimeout(function(){
+    aplicarBloqueoControl();
+  }, 0);
+
+  alert('Cambios guardados correctamente. El control quedó protegido contra edición accidental.');
+}
+
+function editarControl(){
+  localStorage.setItem('control_bloqueado', '0');
+  aplicarBloqueoControl();
+}
+
+function aplicarBloqueoControl(){
+  var pg = document.getElementById('pg-ctrl');
+  if(!pg) return;
+
+  var bloqueado = localStorage.getItem('control_bloqueado') === '1';
+
+  var btnGuardar = document.getElementById('ctrl-save-btn');
+  var btnEditar = document.getElementById('ctrl-edit-btn');
+
+  if(btnGuardar) btnGuardar.style.display = bloqueado ? 'none' : 'inline-block';
+  if(btnEditar) btnEditar.style.display = bloqueado ? 'inline-block' : 'none';
+
+  pg.querySelectorAll('input, select, textarea').forEach(function(el){
+    if(bloqueado){
+      if(!el.disabled){
+        el.setAttribute('data-lock-disabled', '1');
+        el.disabled = true;
+      }
+      el.classList.add('ctrl-locked-field');
+    }else{
+      if(el.getAttribute('data-lock-disabled') === '1'){
+        el.disabled = false;
+        el.removeAttribute('data-lock-disabled');
+      }
+      el.classList.remove('ctrl-locked-field');
+    }
+  });
+
+  pg.querySelectorAll('.ctrl-add-btn, .ctrl-conv-del, button.bedit').forEach(function(btn){
+    if(btn.id === 'ctrl-edit-btn') return;
+
+    if(bloqueado){
+      if(!btn.hasAttribute('data-lock-display')){
+        btn.setAttribute('data-lock-display', btn.style.display || '');
+      }
+      btn.style.display = 'none';
+    }else{
+      if(btn.hasAttribute('data-lock-display')){
+        btn.style.display = btn.getAttribute('data-lock-display');
+        btn.removeAttribute('data-lock-display');
+      }
+    }
+  });
 }
 
 
