@@ -977,11 +977,18 @@ select.fg-sel:focus{border-color:#a78bfa}
     <option value="3">Erróneo</option>
     <option value="4">No aplica</option>
   </select>
+  <div class="doc-upload">
+    <input class="doc-file" type="file" id="prf-file-acta" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('actaConst')">
+    <label class="doc-pick" for="prf-file-acta">Subir archivo</label>
+    <button type="button" class="doc-view" id="prf-ver-acta" onclick="verArchivoPerfil('actaConst')" style="display:none">Ver archivo</button>
+    <button type="button" class="doc-del" id="prf-del-acta" onclick="marcarEliminarArchivoPerfil('actaConst')" style="display:none">Quitar archivo</button>
+    <span class="doc-none" id="prf-name-acta">Sin archivo</span>
+  </div>
 </div>
-    <div class="fg" id="wrap-prf-poder"><label>Poder notarial del RL</label><select id="prf-poder" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg" id="wrap-prf-idrl"><label>ID Representante Legal</label><select id="prf-idrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg" id="wrap-prf-csatrl"><label>Constancia SAT del RL</label><select id="prf-csatrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-    <div class="fg" id="wrap-prf-idfisica" style="display:none"><label>IDENTIFICACIÓN PERSONA FÍSICA</label><select id="prf-idfisica" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
+    <div class="fg" id="wrap-prf-poder"><label>Poder notarial del RL</label><select id="prf-poder" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-poder" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('poderRL')"><label class="doc-pick" for="prf-file-poder">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-poder" onclick="verArchivoPerfil('poderRL')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-poder" onclick="marcarEliminarArchivoPerfil('poderRL')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-poder">Sin archivo</span></div></div>
+    <div class="fg" id="wrap-prf-idrl"><label>ID Representante Legal</label><select id="prf-idrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-idrl" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('idRL')"><label class="doc-pick" for="prf-file-idrl">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-idrl" onclick="verArchivoPerfil('idRL')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-idrl" onclick="marcarEliminarArchivoPerfil('idRL')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-idrl">Sin archivo</span></div></div>
+    <div class="fg" id="wrap-prf-csatrl"><label>Constancia SAT del RL</label><select id="prf-csatrl" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-csatrl" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('constSATRL')"><label class="doc-pick" for="prf-file-csatrl">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-csatrl" onclick="verArchivoPerfil('constSATRL')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-csatrl" onclick="marcarEliminarArchivoPerfil('constSATRL')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-csatrl">Sin archivo</span></div></div>
+    <div class="fg" id="wrap-prf-idfisica" style="display:none"><label>IDENTIFICACIÓN PERSONA FÍSICA</label><select id="prf-idfisica" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-idfisica" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('idPersonaFisica')"><label class="doc-pick" for="prf-file-idfisica">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-idfisica" onclick="verArchivoPerfil('idPersonaFisica')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-idfisica" onclick="marcarEliminarArchivoPerfil('idPersonaFisica')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-idfisica">Sin archivo</span></div></div>
     <div class="fg full"><label>Domicilio Fiscal</label><input id="prf-dom"></div>
     <div class="fg"><label>C.P.</label><input id="prf-cp" oninput="buscarCP()"></div>
     <div class="fg"><label>Estado</label><input id="prf-estado"></div>
@@ -2349,13 +2356,56 @@ function perfilDocMeta(campo){
       del:'prf-del-arep',
       name:'prf-name-arep',
       select:'prf-arep'
+    },
+    actaConst:{
+      input:'prf-file-acta',
+      ver:'prf-ver-acta',
+      del:'prf-del-acta',
+      name:'prf-name-acta',
+      select:'prf-acta'
+    },
+    poderRL:{
+      input:'prf-file-poder',
+      ver:'prf-ver-poder',
+      del:'prf-del-poder',
+      name:'prf-name-poder',
+      select:'prf-poder'
+    },
+    idRL:{
+      input:'prf-file-idrl',
+      ver:'prf-ver-idrl',
+      del:'prf-del-idrl',
+      name:'prf-name-idrl',
+      select:'prf-idrl'
+    },
+    constSATRL:{
+      input:'prf-file-csatrl',
+      ver:'prf-ver-csatrl',
+      del:'prf-del-csatrl',
+      name:'prf-name-csatrl',
+      select:'prf-csatrl'
+    },
+    idPersonaFisica:{
+      input:'prf-file-idfisica',
+      ver:'prf-ver-idfisica',
+      del:'prf-del-idfisica',
+      name:'prf-name-idfisica',
+      select:'prf-idfisica'
     }
   };
   return mapa[campo] || null;
 }
 
 function perfilDocCampos(){
-  return ['acuseSAT','acuseREPSE'];
+  return [
+    'acuseSAT',
+    'acuseREPSE',
+    'actaConst',
+    'poderRL',
+    'idRL',
+    'constSATRL',
+    'idPersonaFisica'
+  ];
 }
 
 function nombreArchivoRuta(ruta){
@@ -2555,12 +2605,17 @@ function irFichaPerfil(id){
   document.getElementById('prf-bfd').onclick=function(){pedirDelPrf(id);};
   var docs=[
     {lbl:'Acuse constancia SAT',v:p.acuseSAT},
-    {lbl:'Acuse REPSE',v:p.acuseREPSE},
-    {lbl:'Acta constitutiva',v:p.actaConst},
-    {lbl:'Poder notarial del RL',v:p.poderRL},
-    {lbl:'ID Representante Legal',v:p.idRL},
-    {lbl:'Constancia SAT del RL',v:p.constSATRL},
+    {lbl:'Acuse REPSE',v:p.acuseREPSE}
   ];
+
+  if((p.rfc || '').length === 13){
+    docs.push({lbl:'Identificación persona física',v:p.idPersonaFisica});
+  }else{
+    docs.push({lbl:'Acta constitutiva',v:p.actaConst});
+    docs.push({lbl:'Poder notarial del RL',v:p.poderRL});
+    docs.push({lbl:'ID Representante Legal',v:p.idRL});
+    docs.push({lbl:'Constancia SAT del RL',v:p.constSATRL});
+  }
   var docsH='';
   docs.forEach(function(d){docsH+='<div class="campo"><label>'+d.lbl+'</label>'+estLabel(d.v)+'</div>';});
   var h='<div class="sec"><h3>Identificación</h3>'
@@ -2693,10 +2748,27 @@ var previo = eIdPrf ? gPrf().find(function(x){ return x.id === eIdPrf; }) : null
 var archivosPrevios = previo && previo.archivos ? previo.archivos : {};
 var archivosPerfil = Object.assign({}, archivosPrevios);
 
+var rfcPerfilActual = document.getElementById('prf-rfc').value.trim().toUpperCase();
+var esPersonaFisicaPerfil = rfcPerfilActual.length === 13;
+
 var estadoDocsPerfil = {
   acuseSAT: parseInt(document.getElementById('prf-sat').value) || 0,
-  acuseREPSE: parseInt(document.getElementById('prf-arep').value) || 0
+  acuseREPSE: parseInt(document.getElementById('prf-arep').value) || 0,
+  actaConst: parseInt(document.getElementById('prf-acta').value) || 0,
+  poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
+  idRL: parseInt(document.getElementById('prf-idrl').value) || 0,
+  constSATRL: parseInt(document.getElementById('prf-csatrl').value) || 0,
+  idPersonaFisica: parseInt(document.getElementById('prf-idfisica').value) || 0
 };
+
+if(esPersonaFisicaPerfil){
+  estadoDocsPerfil.actaConst = 4;
+  estadoDocsPerfil.poderRL = 4;
+  estadoDocsPerfil.idRL = 4;
+  estadoDocsPerfil.constSATRL = 4;
+}else{
+  estadoDocsPerfil.idPersonaFisica = 4;
+}
 
 if(currentUser){
   for(var ai = 0; ai < perfilDocCampos().length; ai++){
@@ -2733,12 +2805,12 @@ var o = {
     fechaREPSE: document.getElementById('prf-frepse').value,
     vigenciaREPSE: document.getElementById('prf-vrepse').value,
     acuseSAT: estadoDocsPerfil.acuseSAT,
-    idPersonaFisica: parseInt(document.getElementById('prf-idfisica').value)||0,
+    idPersonaFisica: estadoDocsPerfil.idPersonaFisica,
     acuseREPSE: estadoDocsPerfil.acuseREPSE,
-    actaConst: parseInt(document.getElementById('prf-acta').value) || 0,
-    poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
-    idRL: parseInt(document.getElementById('prf-idrl').value) || 0,
-    constSATRL: parseInt(document.getElementById('prf-csatrl').value) || 0,
+    actaConst: estadoDocsPerfil.actaConst,
+    poderRL: estadoDocsPerfil.poderRL,
+    idRL: estadoDocsPerfil.idRL,
+    constSATRL: estadoDocsPerfil.constSATRL,
     domicilio: document.getElementById('prf-dom').value.trim(),
     cp: document.getElementById('prf-cp').value.trim(),
     estado: document.getElementById('prf-estado').value.trim(),
