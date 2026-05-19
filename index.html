@@ -5261,7 +5261,9 @@ function abrirBloqueObligacionesRFC(){
 
     if(!titulo || !body) return;
 
-    if(titulo.textContent.trim().indexOf('OBLIGACIONES RFC') === 0){
+    var textoTitulo = String(titulo.textContent || '').trim().toLowerCase();
+
+    if(textoTitulo.indexOf('obligaciones rfc') === 0){
       body.classList.add('open');
       if(hdr) hdr.classList.add('open');
       if(chev) chev.classList.add('open');
@@ -5277,7 +5279,7 @@ function setFiltroObligacionesRFC(filtro){
 
     setTimeout(function(){
       abrirBloqueObligacionesRFC();
-    }, 0);
+    }, 50);
   }
 }
 
