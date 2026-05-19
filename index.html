@@ -5253,8 +5253,7 @@ function agregarAnticipoControl(faseId){
     numero: ctrl[key].__anticipos.length + 1,
     porcentaje: '',
     importe: '',
-    fechaPago: '',
-    editando: true
+    fechaPago: ''
   });
 
   sCtrl(ctrl);
@@ -5503,27 +5502,15 @@ function buildControlEstimaciones(key, fase){
       h += '<tr>';
       h += '<td>' + (idx + 1) + '</td>';
 
-      if(a.editando){
-        h += '<td>'
-          + '<button type="button" class="ctrl-add-btn" style="margin-top:0;padding:5px 10px" onclick="guardarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Guardar</button>'
-          + '<button type="button" class="ctrl-conv-del" style="margin-left:6px" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
-          + '</td>';
+      h += '<td>'
+        + '<button type="button" class="ctrl-conv-del" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
+        + '</td>';
 
-        h += '<td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(a.porcentaje || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'porcentaje\',this.value,' + importeContrato + ')" placeholder="30"></td>';
+      h += '<td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(a.porcentaje || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'porcentaje\',this.value,' + importeContrato + ')" placeholder="30"></td>';
 
-        h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="number" step="0.01" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
+      h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="number" step="0.01" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
 
-        h += '<td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(a.fechaPago || '') + '" onchange="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaPago\',this.value,' + importeContrato + ')"></td>';
-      }else{
-        h += '<td>'
-          + '<button type="button" class="bedit" onclick="editarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Editar</button>'
-          + '<button type="button" class="ctrl-conv-del" style="margin-left:6px" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
-          + '</td>';
-
-        h += '<td>' + (a.porcentaje ? escCtrlHTML(a.porcentaje) + '%' : '--') + '</td>';
-        h += '<td style="color:#10b981;font-weight:700">' + (numCtrl(a.importe) ? mxn(numCtrl(a.importe)) : '--') + '</td>';
-        h += '<td>' + (a.fechaPago ? fdate(a.fechaPago) : '--') + '</td>';
-      }
+      h += '<td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(a.fechaPago || '') + '" onchange="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaPago\',this.value,' + importeContrato + ')"></td>';
 
       h += '</tr>';
     });
