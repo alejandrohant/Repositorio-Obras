@@ -2640,7 +2640,13 @@ function irFichaPerfil(id){
   docs.forEach(function(d){docsH+='<div class="campo"><label>'+d.lbl+'</label>'+estLabel(d.v)+'</div>';});
 
   var repseFichaH = '';
-  if((parseInt(p.acuseREPSE) || 0) !== 4){
+
+  if((parseInt(p.acuseREPSE) || 0) === 4){
+    repseFichaH = '<div class="sec"><h3>REPSE</h3>'
+      +'<div class="campo"><label>Acuse REPSE</label>'+estLabel(p.acuseREPSE)+'</div>'
+      +'<div class="campo"><label>Situación</label><span>No requiere REPSE</span></div>'
+      +'</div>';
+  }else{
     repseFichaH = '<div class="sec"><h3>REPSE</h3>'
       +'<div class="campo"><label>Folio REPSE</label><span class="mono">'+(p.folioREPSE||'--')+'</span></div>'
       +'<div class="campo"><label>Fecha REPSE</label><span>'+fdate(p.fechaREPSE)+'</span></div>'
