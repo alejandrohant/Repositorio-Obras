@@ -488,6 +488,35 @@ select.fg-sel:focus{border-color:#a78bfa}
   cursor:not-allowed;
 }
 
+.ctrl-rfc-filtros{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:4px 0 12px;
+}
+
+.ctrl-rfc-filtro-btn{
+  background:#0f1117;
+  border:1.5px solid #2d2d44;
+  border-radius:8px;
+  padding:6px 12px;
+  font-size:11px;
+  font-weight:800;
+  color:#94a3b8;
+  cursor:pointer;
+}
+
+.ctrl-rfc-filtro-btn:hover{
+  border-color:#10b981;
+  color:#10b981;
+}
+
+.ctrl-rfc-filtro-btn.sel{
+  background:#1e2d2a;
+  border-color:#10b981;
+  color:#10b981;
+}
+
 .ctrl-fase-card-hdr{
   display:flex;
   align-items:flex-start;
@@ -5221,6 +5250,14 @@ function buildReporteContratista(prf, fasesCtrl){
   return h;
 }
   
+function setFiltroObligacionesRFC(filtro){
+  localStorage.setItem('ctrl_filtro_rfc', filtro || 'todos');
+
+  if(typeof recargarControl === 'function'){
+    recargarControl();
+  }
+}
+
 // Build RFC html without relying on fixed panel id
 function buildRFCHtml(perfil, fasesBase) {
   var key = 'rfc_' + perfil.rfc;
@@ -5242,14 +5279,42 @@ function buildRFCHtml(perfil, fasesBase) {
   // Merge manual extras
   periodos = periodos.concat(extraKeyRFCList).concat(extraKeySUAList).filter(function(p,i,a){ return a.indexOf(p)===i; }).sort();
   var cols = [
-    {k:'iva_fmt',l:'IVA Formato'},{k:'iva_acu',l:'IVA Acuse'},{k:'iva_det',l:'IVA Detalle'},{k:'iva_pag',l:'IVA Pago'},
-    {k:'isr_fmt',l:'ISR Formato'},{k:'isr_acu',l:'ISR Acuse'},{k:'isr_det',l:'ISR Detalle'},{k:'isr_pag',l:'ISR Pago'},
-    {k:'isrr_fmt',l:'ISR-Ret Fmt'},{k:'isrr_acu',l:'ISR-Ret Acu'},{k:'isrr_det',l:'ISR-Ret Det'},{k:'isrr_pag',l:'ISR-Ret Pago'},
-    {k:'diot_env',l:'DIOT Envío'},{k:'diot_ace',l:'DIOT Acep.'},{k:'diot_arc',l:'DIOT Archivo'},
-    {k:'op_imss',l:'Op. IMSS'},{k:'op_inf',l:'Op. Infonavit'},{k:'op_sat',l:'Op. SAT'},
-    {k:'icsoe',l:'ICSOE'},{k:'sisub',l:'SISUB'}
+    {k:'iva_fmt',l:'IVA Formato',g:'iva'},{k:'iva_acu',l:'IVA Acuse',g:'iva'},{k:'iva_det',l:'IVA Detalle',g:'iva'},{k:'iva_pag',l:'IVA Pago',g:'iva'},
+    {k:'isr_fmt',l:'ISR Formato',g:'isr'},{k:'isr_acu',l:'ISR Acuse',g:'isr'},{k:'isr_det',l:'ISR Detalle',g:'isr'},{k:'isr_pag',l:'ISR Pago',g:'isr'},
+    {k:'isrr_fmt',l:'ISR-Ret Fmt',g:'isrr'},{k:'isrr_acu',l:'ISR-Ret Acu',g:'isrr'},{k:'isrr_det',l:'ISR-Ret Det',g:'isrr'},{k:'isrr_pag',l:'ISR-Ret Pago',g:'isrr'},
+    {k:'diot_env',l:'DIOT Envío',g:'diot'},{k:'diot_ace',l:'DIOT Acep.',g:'diot'},{k:'diot_arc',l:'DIOT Archivo',g:'diot'},
+    {k:'op_imss',l:'Op. IMSS',g:'opiniones'},{k:'op_inf',l:'Op. Infonavit',g:'opiniones'},{k:'op_sat',l:'Op. SAT',g:'opiniones'},
+    {k:'icsoe',l:'ICSOE',g:'repse'},{k:'sisub',l:'SISUB',g:'repse'}
   ];
+
+  var filtroRFC = localStorage.getItem('ctrl_filtro_rfc') || 'todos';
+
+   if(filtroRFC !== 'todos'){
+    cols = cols.filter(function(c){
+      return c.g === filtroRFC;
+    });
+  }
+
   var h = '';
+
+  var filtrosRFC = [
+    ['todos','Todos'],
+    ['iva','IVA'],
+    ['isr','ISR'],
+    ['isrr','ISR Ret.'],
+    ['diot','DIOT'],
+    ['opiniones','Opiniones'],
+    ['repse','REPSE']
+  ];
+
+  h += '<div class="ctrl-rfc-filtros">';
+
+  filtrosRFC.forEach(function(fil){
+    h += '<button type="button" class="ctrl-rfc-filtro-btn ' + (filtroRFC === fil[0] ? 'sel' : '') + '" onclick="setFiltroObligacionesRFC(\'' + fil[0] + '\')">' + fil[1] + '</button>';
+  });
+
+  h += '</div>';
+
   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
   cols.forEach(function(c){ h += '<th>' + c.l + '</th>'; });
   h += '</tr></thead><tbody>';
