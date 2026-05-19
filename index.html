@@ -266,6 +266,41 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .fase-toggle-row input[type=checkbox]{accent-color:#10b981;width:14px;height:14px;cursor:pointer}
 select.fg-sel{background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none;transition:border 0.2s;width:100%}
 select.fg-sel:focus{border-color:#a78bfa}
+
+.fase-modal-section .fg:has(.doc-upload){
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:5px 14px;
+  align-items:start;
+  grid-column:1/-1;
+}
+
+.fase-modal-section .fg:has(.doc-upload) > label{
+  grid-column:1/2;
+  padding-top:9px;
+}
+
+.fase-modal-section .fg:has(.doc-upload) > select{
+  grid-column:2/3;
+}
+
+.fase-modal-section .fg:has(.doc-upload) > .doc-upload{
+  grid-column:2/3;
+  margin-top:0;
+}
+
+@media(max-width:600px){
+  .fase-modal-section .fg:has(.doc-upload){
+    grid-template-columns:1fr;
+  }
+
+  .fase-modal-section .fg:has(.doc-upload) > label,
+  .fase-modal-section .fg:has(.doc-upload) > select,
+  .fase-modal-section .fg:has(.doc-upload) > .doc-upload{
+    grid-column:1/-1;
+  }
+}
+
 .mbox-fase{max-width:780px}
 .fase-bfases{background:#1e3a2e;color:#10b981;border:2px solid #10b981;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
 .fase-bfases:hover{background:#10b981;color:#fff}
@@ -882,12 +917,17 @@ select.fg-sel:focus{border-color:#a78bfa}
       <div class="fase-modal-section">
         <h4>Documentos del Contrato</h4>
         <div class="fgrid">
-          <div class="fg"><label>Contrato</label><select class="fg-sel" id="fa-doc-contrato"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Contrato firmado</label><select class="fg-sel" id="fa-doc-firmado"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Acuse SIROC</label><select class="fg-sel" id="fa-doc-siroc"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Presupuesto</label><select class="fg-sel" id="fa-doc-presupuesto"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Explosion de insumos</label><select class="fg-sel" id="fa-explosi"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
-          <div class="fg"><label>Planos de construccion</label><select class="fg-sel" id="fa-planos"><option value="0">--</option><option value="1">Presentado</option><option value="2">Pendiente</option><option value="3">Erroneo</option><option value="4">No aplica</option></select></div>
+          <div class="fg"><label>Contrato</label><select class="fg-sel" id="fa-doc-contrato"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-contrato" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('contrato')"><label class="doc-pick" for="fa-file-contrato">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-contrato" onclick="verArchivoFase('contrato')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-contrato" onclick="marcarEliminarArchivoFase('contrato')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-contrato">Sin archivo</span></div></div>
+
+          <div class="fg"><label>Contrato firmado</label><select class="fg-sel" id="fa-doc-firmado"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-contrato-firmado" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('contratoFirmado')"><label class="doc-pick" for="fa-file-contrato-firmado">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-contrato-firmado" onclick="verArchivoFase('contratoFirmado')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-contrato-firmado" onclick="marcarEliminarArchivoFase('contratoFirmado')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-contrato-firmado">Sin archivo</span></div></div>
+
+          <div class="fg"><label>Acuse SIROC</label><select class="fg-sel" id="fa-doc-siroc"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-acuse-siroc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('acuseSiroc')"><label class="doc-pick" for="fa-file-acuse-siroc">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-acuse-siroc" onclick="verArchivoFase('acuseSiroc')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-acuse-siroc" onclick="marcarEliminarArchivoFase('acuseSiroc')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-acuse-siroc">Sin archivo</span></div></div>
+
+          <div class="fg"><label>Presupuesto</label><select class="fg-sel" id="fa-doc-presupuesto"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-presupuesto" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('presupuesto')"><label class="doc-pick" for="fa-file-presupuesto">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-presupuesto" onclick="verArchivoFase('presupuesto')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-presupuesto" onclick="marcarEliminarArchivoFase('presupuesto')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-presupuesto">Sin archivo</span></div></div>
+
+          <div class="fg"><label>Explosión de insumos</label><select class="fg-sel" id="fa-explosi"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-explosion-insumos" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('explosionInsumos')"><label class="doc-pick" for="fa-file-explosion-insumos">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-explosion-insumos" onclick="verArchivoFase('explosionInsumos')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-explosion-insumos" onclick="marcarEliminarArchivoFase('explosionInsumos')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-explosion-insumos">Sin archivo</span></div></div>
+
+          <div class="fg"><label>Planos de construcción</label><select class="fg-sel" id="fa-planos"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="fa-file-planos-construccion" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('planosConstruccion')"><label class="doc-pick" for="fa-file-planos-construccion">Subir archivo</label><button type="button" class="doc-view" id="fa-ver-planos-construccion" onclick="verArchivoFase('planosConstruccion')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="fa-del-planos-construccion" onclick="marcarEliminarArchivoFase('planosConstruccion')" style="display:none">Quitar archivo</button><span class="doc-none" id="fa-name-planos-construccion">Sin archivo</span></div></div>
         </div>
       </div>
       <!-- Grupo 4: IMSS -->
@@ -2891,6 +2931,180 @@ async function verArchivoObra(campo){
 
   await verRutaDocumentoPerfil(ruta);
 }
+function faseDocMeta(campo){
+  var mapa = {
+    arp:{input:'fa-file-arp',ver:'fa-ver-arp',del:'fa-del-arp',name:'fa-name-arp',select:'fa-arp'},
+    tarjetaPatronal:{input:'fa-file-tarjeta-patronal',ver:'fa-ver-tarjeta-patronal',del:'fa-del-tarjeta-patronal',name:'fa-name-tarjeta-patronal',select:'fa-tarjeta-patronal'},
+    croquisRP:{input:'fa-file-croquis-rp',ver:'fa-ver-croquis-rp',del:'fa-del-croquis-rp',name:'fa-name-croquis-rp',select:'fa-croquis-rp'},
+    compDomRP:{input:'fa-file-compdom-rp',ver:'fa-ver-compdom-rp',del:'fa-del-compdom-rp',name:'fa-name-compdom-rp',select:'fa-compdom-rp'},
+
+    contrato:{input:'fa-file-contrato',ver:'fa-ver-contrato',del:'fa-del-contrato',name:'fa-name-contrato',select:'fa-doc-contrato'},
+    contratoFirmado:{input:'fa-file-contrato-firmado',ver:'fa-ver-contrato-firmado',del:'fa-del-contrato-firmado',name:'fa-name-contrato-firmado',select:'fa-doc-firmado'},
+    acuseSiroc:{input:'fa-file-acuse-siroc',ver:'fa-ver-acuse-siroc',del:'fa-del-acuse-siroc',name:'fa-name-acuse-siroc',select:'fa-doc-siroc'},
+    presupuesto:{input:'fa-file-presupuesto',ver:'fa-ver-presupuesto',del:'fa-del-presupuesto',name:'fa-name-presupuesto',select:'fa-doc-presupuesto'},
+    explosionInsumos:{input:'fa-file-explosion-insumos',ver:'fa-ver-explosion-insumos',del:'fa-del-explosion-insumos',name:'fa-name-explosion-insumos',select:'fa-explosi'},
+    planosConstruccion:{input:'fa-file-planos-construccion',ver:'fa-ver-planos-construccion',del:'fa-del-planos-construccion',name:'fa-name-planos-construccion',select:'fa-planos'}
+  };
+
+  return mapa[campo] || null;
+}
+
+function faseDocCampos(){
+  return [
+    'arp',
+    'tarjetaPatronal',
+    'croquisRP',
+    'compDomRP',
+    'contrato',
+    'contratoFirmado',
+    'acuseSiroc',
+    'presupuesto',
+    'explosionInsumos',
+    'planosConstruccion'
+  ];
+}
+
+function limpiarInputsArchivosFase(){
+  archivosFaseEliminar = {};
+
+  faseDocCampos().forEach(function(campo){
+    var m = faseDocMeta(campo);
+    if(!m) return;
+
+    var inp = document.getElementById(m.input);
+    var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
+    var name = document.getElementById(m.name);
+
+    if(inp) inp.value = '';
+    if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'none';
+    if(name) name.textContent = 'Sin archivo';
+  });
+}
+
+function pintarArchivosFase(archivos){
+  archivos = archivos || {};
+
+  faseDocCampos().forEach(function(campo){
+    var m = faseDocMeta(campo);
+    if(!m) return;
+
+    var ruta = archivos[campo] || '';
+    var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
+    var name = document.getElementById(m.name);
+
+    if(ver) ver.style.display = ruta ? 'inline-block' : 'none';
+    if(del) del.style.display = ruta ? 'inline-block' : 'none';
+    if(name) name.textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  });
+}
+
+function previsualizarArchivoFase(campo){
+  var m = faseDocMeta(campo);
+  if(!m) return;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp && inp.files && inp.files[0]){
+    archivosFaseEliminar[campo] = false;
+
+    if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'inline-block';
+    if(name) name.textContent = inp.files[0].name + ' (pendiente de guardar)';
+  }
+}
+
+function marcarEliminarArchivoFase(campo){
+  var m = faseDocMeta(campo);
+  if(!m) return;
+
+  archivosFaseEliminar[campo] = true;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp) inp.value = '';
+  if(ver) ver.style.display = 'none';
+  if(del) del.style.display = 'none';
+  if(name) name.textContent = 'Se quitará al guardar';
+}
+
+async function borrarRutaDocumentoFase(ruta){
+  if(!ruta || !currentUser) return true;
+
+  var borrado = await supabaseClient.storage
+    .from('documentos')
+    .remove([ruta]);
+
+  if(borrado.error){
+    console.error('Error borrando archivo de fase:', borrado.error);
+    alert('El archivo se quitó de la fase, pero no se pudo borrar del bucket documentos. Revisa permisos DELETE del bucket.');
+    return false;
+  }
+
+  return true;
+}
+
+async function subirArchivoFaseCampo(campo, faseId, archivosActuales){
+  archivosActuales = archivosActuales || {};
+
+  var m = faseDocMeta(campo);
+  if(!m) return archivosActuales[campo] || '';
+
+  var input = document.getElementById(m.input);
+
+  if(archivosFaseEliminar[campo]){
+    await borrarRutaDocumentoFase(archivosActuales[campo] || '');
+    return '';
+  }
+
+  if(!input || !input.files || !input.files[0]){
+    return archivosActuales[campo] || '';
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+  var ruta = currentUser.id + '/fases/' + faseId + '/' + campo + '_' + Date.now() + '_' + limpio;
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de fase:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    return archivosActuales[campo] || '';
+  }
+
+  if(archivosActuales[campo] && archivosActuales[campo] !== ruta){
+    await borrarRutaDocumentoFase(archivosActuales[campo]);
+  }
+
+  return ruta;
+}
+
+async function verArchivoFase(campo){
+  if(!eFaseId){
+    alert('Primero guarda la fase.');
+    return;
+  }
+
+  var f = gFases().find(function(x){
+    return x.id === eFaseId;
+  });
+
+  var ruta = f && f.archivos ? f.archivos[campo] : '';
+
+  await verRutaDocumentoPerfil(ruta);
+}
 function renderPerfiles(lista){
   var h='';
   if(!lista.length){h='<div class="empty"><p>Sin perfiles.</p></div>';}
@@ -4016,6 +4230,11 @@ function abrirEditarFase(id){
     if(el)el.value=f[docs7props[i]]||0;
   });
 
+  if(typeof limpiarInputsArchivosFase === 'function'){
+    limpiarInputsArchivosFase();
+    pintarArchivosFase(f.archivos || {});
+  }
+
   setTimeout(calcISNFase, 50);
   setTimeout(calcIMSSFase, 50);
   toggleISNSectionFase();
@@ -4049,6 +4268,10 @@ function resetFaseForm(){
   if(lblCtr)lblCtr.textContent='Contratista';
   if(lblRp)lblRp.textContent='RP Contratista';
   if(lblSiroc)lblSiroc.textContent='SIROC Contratista';
+
+  if(typeof limpiarInputsArchivosFase === 'function'){
+    limpiarInputsArchivosFase();
+  }
 }
 function poblarObras(){
   var sel=document.getElementById('fa-obra');
@@ -4130,7 +4353,10 @@ function toggleSubcontrato(){
   if(!chk || !wrap) return;
   wrap.style.display=chk.checked?'block':'none';
 }
-function cerrarFase(){document.getElementById('modal-fase').classList.remove('open');}
+function cerrarFase(){
+  archivosFaseEliminar = {};
+  document.getElementById('modal-fase').classList.remove('open');
+}
 async function guardarFase(){
   var objeto=document.getElementById('fa-objeto').value.trim();
   var rfc=document.getElementById('fa-rfc').value;
@@ -4150,8 +4376,49 @@ async function guardarFase(){
     return parseInt(fallback) || 0;
   }
 
+  var faseIdGuardar = eFaseId || 'fa_' + Date.now();
+  var archivosPreviosFase = faseAnterior && faseAnterior.archivos ? faseAnterior.archivos : {};
+  var archivosFase = Object.assign({}, archivosPreviosFase);
+
+  var estadoDocsFase = {
+    arp:intFase('fa-arp', faseAnterior.arp),
+    tarjetaPatronal:intFase('fa-tarjeta-patronal', faseAnterior.tarjetaPatronal),
+    croquisRP:intFase('fa-croquis-rp', faseAnterior.croquisRP),
+    compDomRP:intFase('fa-compdom-rp', faseAnterior.compDomRP),
+    contrato:intFase('fa-doc-contrato', faseAnterior.docContrato),
+    contratoFirmado:intFase('fa-doc-firmado', faseAnterior.docFirmado),
+    acuseSiroc:intFase('fa-doc-siroc', faseAnterior.docSiroc),
+    presupuesto:intFase('fa-doc-presupuesto', faseAnterior.docPresupuesto != null ? faseAnterior.docPresupuesto : faseAnterior.docSirocVig),
+    explosionInsumos:intFase('fa-explosi', faseAnterior.docExplosion),
+    planosConstruccion:intFase('fa-planos', faseAnterior.docPlanos)
+  };
+
+  if(currentUser){
+    for(var fi = 0; fi < faseDocCampos().length; fi++){
+      var campoFaseArchivo = faseDocCampos()[fi];
+
+      if(estadoDocsFase[campoFaseArchivo] === 4){
+        if(archivosFase[campoFaseArchivo]){
+          await borrarRutaDocumentoFase(archivosFase[campoFaseArchivo]);
+        }
+        archivosFase[campoFaseArchivo] = '';
+        continue;
+      }
+
+      archivosFase[campoFaseArchivo] = await subirArchivoFaseCampo(campoFaseArchivo, faseIdGuardar, archivosFase);
+    }
+  }else{
+    for(var fj = 0; fj < faseDocCampos().length; fj++){
+      var campoFaseLocal = faseDocCampos()[fj];
+
+      if(estadoDocsFase[campoFaseLocal] === 4 || archivosFaseEliminar[campoFaseLocal]){
+        archivosFase[campoFaseLocal] = '';
+      }
+    }
+  }
+
   var f={
-    id:eFaseId||'fa_'+Date.now(),
+    id:faseIdGuardar,
     origen:document.getElementById('fa-origen').value,
     rfcOrigen:'',
     obra:obra,
@@ -4161,10 +4428,10 @@ async function guardarFase(){
     perfil:document.getElementById('fa-perfil').value,
     rp:document.getElementById('fa-rp').value,
     subdelegacion: document.getElementById('fa-subdelegacion') ? document.getElementById('fa-subdelegacion').value : '',
-    arp: document.getElementById('fa-arp') ? parseInt(document.getElementById('fa-arp').value) || 0 : 0,
-    tarjetaPatronal: document.getElementById('fa-tarjeta-patronal') ? parseInt(document.getElementById('fa-tarjeta-patronal').value) || 0 : 0,
-    croquisRP: document.getElementById('fa-croquis-rp') ? parseInt(document.getElementById('fa-croquis-rp').value) || 0 : 0,
-    compDomRP: document.getElementById('fa-compdom-rp') ? parseInt(document.getElementById('fa-compdom-rp').value) || 0 : 0,
+    arp: estadoDocsFase.arp,
+    tarjetaPatronal: estadoDocsFase.tarjetaPatronal,
+    croquisRP: estadoDocsFase.croquisRP,
+    compDomRP: estadoDocsFase.compDomRP,
     objeto:objeto,
     tipoCto:document.getElementById('fa-tipo-cto').value,
     aplicaSiroc:parseInt(document.getElementById('fa-aplica-siroc').value)||1,
@@ -4198,10 +4465,10 @@ async function guardarFase(){
     fmoIsn:pctIn(document.getElementById('fa-fmo-isn').value),
     fisn:pctIn(document.getElementById('fa-fisn').value),
     isnEst:(num(document.getElementById('fa-importe').value) * pctIn(document.getElementById('fa-fmo-isn').value) * pctIn(document.getElementById('fa-fisn').value)),
-    docContrato:intFase('fa-doc-contrato', faseAnterior.docContrato),
-    docFirmado:intFase('fa-doc-firmado', faseAnterior.docFirmado),
-    docSiroc:intFase('fa-doc-siroc', faseAnterior.docSiroc),
-    docPresupuesto:intFase('fa-doc-presupuesto', faseAnterior.docPresupuesto != null ? faseAnterior.docPresupuesto : faseAnterior.docSirocVig),
+    docContrato:estadoDocsFase.contrato,
+    docFirmado:estadoDocsFase.contratoFirmado,
+    docSiroc:estadoDocsFase.acuseSiroc,
+    docPresupuesto:estadoDocsFase.presupuesto,
     docActa:intFase('fa-doc-acta', faseAnterior.docActa),
     docAvterm:intFase('fa-doc-avterm', faseAnterior.docAvterm),
     corp1:intFase('fa-corp1', faseAnterior.corp1),
@@ -4212,8 +4479,8 @@ async function guardarFase(){
     corpOficio:intFase('fa-corp-oficio', faseAnterior.corpOficio),
     corpDictamen:intFase('fa-corp-dictamen', faseAnterior.corpDictamen),
     docEnObra:intFase('fa-en-obra', faseAnterior.docEnObra),
-    docExplosion:intFase('fa-explosi', faseAnterior.docExplosion),
-    docPlanos:intFase('fa-planos', faseAnterior.docPlanos),
+    docExplosion:estadoDocsFase.explosionInsumos,
+    docPlanos:estadoDocsFase.planosConstruccion,
     docBalxls:intFase('fa-balxls', faseAnterior.docBalxls),
     docBalpdf:intFase('fa-balpdf', faseAnterior.docBalpdf),
     docDeclanu:intFase('fa-declanu', faseAnterior.docDeclanu),
@@ -4221,7 +4488,8 @@ async function guardarFase(){
     docNompdf:intFase('fa-nompdf', faseAnterior.docNompdf),
     docNomxml:intFase('fa-nomxml', faseAnterior.docNomxml),
     docFact:intFase('fa-fact', faseAnterior.docFact),
-    docEstim:intFase('fa-estim', faseAnterior.docEstim)
+    docEstim:intFase('fa-estim', faseAnterior.docEstim),
+    archivos: archivosFase
   };
   // rfcOrigen from obra
   var todas=gP().concat(gC());
