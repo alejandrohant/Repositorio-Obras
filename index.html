@@ -956,18 +956,23 @@ select.fg-sel:focus{border-color:#a78bfa}
     </div>
     <div class="fg"><label>Correo</label><input type="email" id="prf-correo"></div>
     <div class="fg"><label>Teléfono</label><input id="prf-tel"></div>
-    <div class="fg"><label>Folio REPSE</label><input id="prf-folio"></div>
-    <div class="fg">
+
+    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-sat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseSAT')"><label class="doc-pick" for="prf-file-sat">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-sat" onclick="verArchivoPerfil('acuseSAT')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-sat" onclick="marcarEliminarArchivoPerfil('acuseSAT')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-sat">Sin archivo</span></div></div>
+
+    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" onchange="toggleREPSEPerfil()" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-arep" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseREPSE')"><label class="doc-pick" for="prf-file-arep">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-arep" onclick="verArchivoPerfil('acuseREPSE')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-arep" onclick="marcarEliminarArchivoPerfil('acuseREPSE')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-arep">Sin archivo</span></div></div>
+
+    <div class="fg" id="wrap-prf-folio"><label>Folio REPSE</label><input id="prf-folio"></div>
+
+    <div class="fg" id="wrap-prf-frepse">
   <label>Fecha REPSE</label>
   <input type="date" id="prf-frepse" onchange="calcVigenciaREPSE()">
 </div>
-    <div class="fg">
+
+    <div class="fg" id="wrap-prf-vrepse">
   <label>Vigencia REPSE</label>
   <input type="date" id="prf-vrepse" readonly style="background:#161622;color:#64748b">
   <div id="prf-repse-warn" class="fase-tag fase-tag-venc" style="display:none;margin-top:6px">REPSE vencido</div>
 </div>
-    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-sat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseSAT')"><label class="doc-pick" for="prf-file-sat">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-sat" onclick="verArchivoPerfil('acuseSAT')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-sat" onclick="marcarEliminarArchivoPerfil('acuseSAT')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-sat">Sin archivo</span></div></div>
-    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-arep" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseREPSE')"><label class="doc-pick" for="prf-file-arep">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-arep" onclick="verArchivoPerfil('acuseREPSE')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-arep" onclick="marcarEliminarArchivoPerfil('acuseREPSE')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-arep">Sin archivo</span></div></div>
     <div class="fg" id="wrap-prf-acta">
   <label>ACTA CONSTITUTIVA</label>
   <select id="prf-acta" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
@@ -2250,6 +2255,21 @@ function calcVigenciaREPSE(){
     warn.style.display = d < hoy ? 'inline-block' : 'none';
   }
 }
+
+function toggleREPSEPerfil(){
+  var acuse = parseInt(document.getElementById('prf-arep').value) || 0;
+  var noAplica = acuse === 4;
+
+  var folio = document.getElementById('wrap-prf-folio');
+  var fecha = document.getElementById('wrap-prf-frepse');
+  var vigencia = document.getElementById('wrap-prf-vrepse');
+  var warn = document.getElementById('prf-repse-warn');
+
+  if(folio) folio.style.display = noAplica ? 'none' : 'flex';
+  if(fecha) fecha.style.display = noAplica ? 'none' : 'flex';
+  if(vigencia) vigencia.style.display = noAplica ? 'none' : 'flex';
+  if(warn && noAplica) warn.style.display = 'none';
+}
 async function hacerDel(){
   if(!dId){cerrarC();return;}
 
@@ -2618,16 +2638,22 @@ function irFichaPerfil(id){
   }
   var docsH='';
   docs.forEach(function(d){docsH+='<div class="campo"><label>'+d.lbl+'</label>'+estLabel(d.v)+'</div>';});
+
+  var repseFichaH = '';
+  if((parseInt(p.acuseREPSE) || 0) !== 4){
+    repseFichaH = '<div class="sec"><h3>REPSE</h3>'
+      +'<div class="campo"><label>Folio REPSE</label><span class="mono">'+(p.folioREPSE||'--')+'</span></div>'
+      +'<div class="campo"><label>Fecha REPSE</label><span>'+fdate(p.fechaREPSE)+'</span></div>'
+      +'<div class="campo"><label>Vigencia hasta</label><span>'+fdate(p.vigenciaREPSE)+'</span></div>'
+      +'</div>';
+  }
+
   var h='<div class="sec"><h3>Identificación</h3>'
     +'<div class="campo"><label>RFC</label><span class="mono">'+p.rfc+'</span></div>'
     +(p.correo?'<div class="campo"><label>Correo</label><span>'+p.correo+'</span></div>':'')
     +(p.telefono?'<div class="campo"><label>Teléfono</label><span>'+p.telefono+'</span></div>':'')
     +'</div>'
-    +'<div class="sec"><h3>REPSE</h3>'
-    +'<div class="campo"><label>Folio REPSE</label><span class="mono">'+(p.folioREPSE||'--')+'</span></div>'
-    +'<div class="campo"><label>Fecha REPSE</label><span>'+fdate(p.fechaREPSE)+'</span></div>'
-    +'<div class="campo"><label>Vigencia hasta</label><span>'+fdate(p.vigenciaREPSE)+'</span></div>'
-    +'</div>'
+    +repseFichaH
     +'<div class="sec full"><h3>Documentos</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'+docsH+'</div></div>'
     +(p.domicilio?'<div class="sec full"><h3>Domicilio Fiscal</h3><div class="campo"><span>'+p.domicilio+'</span></div></div>':'');
   document.getElementById('prf-fsecs').innerHTML=h;
@@ -2651,6 +2677,7 @@ function abrirNuevoPerfil(){
   document.getElementById('prf-idfisica').value = '0';
   limpiarInputsArchivosPerfil();
   togglePersonaFisicaPorRFC();
+  toggleREPSEPerfil();
   document.getElementById('modal-prf').classList.add('open');
 }
 function togglePersonaFisicaPorRFC(){
@@ -2726,6 +2753,7 @@ function abrirEditarPerfil(id){
 
   document.getElementById('prf-sat').value=p.acuseSAT||0;
   document.getElementById('prf-arep').value=p.acuseREPSE||0;
+  toggleREPSEPerfil();
   document.getElementById('prf-acta').value=p.actaConst||0;
   document.getElementById('prf-poder').value=p.poderRL||0;
   document.getElementById('prf-idrl').value=p.idRL||0;
@@ -2794,6 +2822,8 @@ if(currentUser){
   }
 }
 
+var repseNoAplicaPerfil = (parseInt(document.getElementById('prf-arep').value) || 0) === 4;
+
 var o = {
   id: perfilId,
     rfc: document.getElementById('prf-rfc').value.trim().toUpperCase(),
@@ -2801,9 +2831,9 @@ var o = {
     tipo: tipo,
     correo: document.getElementById('prf-correo').value.trim(),
     telefono: document.getElementById('prf-tel').value.trim(),
-    folioREPSE: document.getElementById('prf-folio').value.trim(),
-    fechaREPSE: document.getElementById('prf-frepse').value,
-    vigenciaREPSE: document.getElementById('prf-vrepse').value,
+    folioREPSE: repseNoAplicaPerfil ? '' : document.getElementById('prf-folio').value.trim(),
+    fechaREPSE: repseNoAplicaPerfil ? '' : document.getElementById('prf-frepse').value,
+    vigenciaREPSE: repseNoAplicaPerfil ? '' : document.getElementById('prf-vrepse').value,
     acuseSAT: estadoDocsPerfil.acuseSAT,
     idPersonaFisica: estadoDocsPerfil.idPersonaFisica,
     acuseREPSE: estadoDocsPerfil.acuseREPSE,
