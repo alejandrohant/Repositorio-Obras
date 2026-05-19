@@ -169,6 +169,8 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .doc-pick:hover{background:#3d3d5a}
 .doc-view{background:#1e2a3a;border:1px solid #60a5fa;border-radius:7px;padding:6px 10px;color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer}
 .doc-view:hover{background:#263957}
+.doc-del{background:#2d1a1a;border:1px solid #7f1d1d;border-radius:7px;padding:6px 10px;color:#f87171;font-size:11px;font-weight:700;cursor:pointer}
+.doc-del:hover{background:#3d2222;color:#fecaca}
 .doc-none{color:#64748b;font-size:11px;font-weight:600}
 /* FASES */
 .pg-fases{display:none;padding:32px 24px;max-width:1100px;margin:0 auto}
@@ -964,8 +966,8 @@ select.fg-sel:focus{border-color:#a78bfa}
   <input type="date" id="prf-vrepse" readonly style="background:#161622;color:#64748b">
   <div id="prf-repse-warn" class="fase-tag fase-tag-venc" style="display:none;margin-top:6px">REPSE vencido</div>
 </div>
-    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-sat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"><label class="doc-pick" for="prf-file-sat">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-sat" onclick="verArchivoPerfil('acuseSAT')" style="display:none">Ver archivo</button><span class="doc-none" id="prf-name-sat">Sin archivo</span></div></div>
-    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-arep" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"><label class="doc-pick" for="prf-file-arep">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-arep" onclick="verArchivoPerfil('acuseREPSE')" style="display:none">Ver archivo</button><span class="doc-none" id="prf-name-arep">Sin archivo</span></div></div>
+    <div class="fg"><label>Acuse constancia SAT</label><select id="prf-sat" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-sat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseSAT')"><label class="doc-pick" for="prf-file-sat">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-sat" onclick="verArchivoPerfil('acuseSAT')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-sat" onclick="marcarEliminarArchivoPerfil('acuseSAT')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-sat">Sin archivo</span></div></div>
+    <div class="fg"><label>Acuse REPSE</label><select id="prf-arep" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none"><option value="0">--</option><option value="1">✓ Presentado</option><option value="2">No presentado</option><option value="3">Erróneo</option><option value="4">No aplica</option></select><div class="doc-upload"><input class="doc-file" type="file" id="prf-file-arep" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoPerfil('acuseREPSE')"><label class="doc-pick" for="prf-file-arep">Subir archivo</label><button type="button" class="doc-view" id="prf-ver-arep" onclick="verArchivoPerfil('acuseREPSE')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="prf-del-arep" onclick="marcarEliminarArchivoPerfil('acuseREPSE')" style="display:none">Quitar archivo</button><span class="doc-none" id="prf-name-arep">Sin archivo</span></div></div>
     <div class="fg" id="wrap-prf-acta">
   <label>ACTA CONSTITUTIVA</label>
   <select id="prf-acta" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
@@ -2085,6 +2087,7 @@ function pedirDel(id){dId=id;var o=gP().find(function(x){return x.id===id;})||gC
 function cerrarC(){document.getElementById('cov').classList.remove('open');dId=null;}
 function cerrarPrf(){
   eIdPrf = null;
+  archivosPerfilEliminar = {};
   document.getElementById('modal-prf').classList.remove('open');
 }
 const cacheCP = {};
@@ -2333,8 +2336,20 @@ function estLabel(v){
 }
 function perfilDocMeta(campo){
   var mapa = {
-    acuseSAT:{input:'prf-file-sat',ver:'prf-ver-sat',name:'prf-name-sat'},
-    acuseREPSE:{input:'prf-file-arep',ver:'prf-ver-arep',name:'prf-name-arep'}
+    acuseSAT:{
+      input:'prf-file-sat',
+      ver:'prf-ver-sat',
+      del:'prf-del-sat',
+      name:'prf-name-sat',
+      select:'prf-sat'
+    },
+    acuseREPSE:{
+      input:'prf-file-arep',
+      ver:'prf-ver-arep',
+      del:'prf-del-arep',
+      name:'prf-name-arep',
+      select:'prf-arep'
+    }
   };
   return mapa[campo] || null;
 }
@@ -2350,16 +2365,20 @@ function nombreArchivoRuta(ruta){
 }
 
 function limpiarInputsArchivosPerfil(){
+  archivosPerfilEliminar = {};
+
   perfilDocCampos().forEach(function(campo){
     var m = perfilDocMeta(campo);
     if(!m) return;
 
     var inp = document.getElementById(m.input);
     var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
     var name = document.getElementById(m.name);
 
     if(inp) inp.value = '';
     if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'none';
     if(name) name.textContent = 'Sin archivo';
   });
 }
@@ -2373,11 +2392,64 @@ function pintarArchivosPerfil(archivos){
 
     var ruta = archivos[campo] || '';
     var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
     var name = document.getElementById(m.name);
 
     if(ver) ver.style.display = ruta ? 'inline-block' : 'none';
+    if(del) del.style.display = ruta ? 'inline-block' : 'none';
     if(name) name.textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
   });
+}
+
+function previsualizarArchivoPerfil(campo){
+  var m = perfilDocMeta(campo);
+  if(!m) return;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp && inp.files && inp.files[0]){
+    archivosPerfilEliminar[campo] = false;
+
+    if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'inline-block';
+    if(name) name.textContent = inp.files[0].name + ' (pendiente de guardar)';
+  }
+}
+
+function marcarEliminarArchivoPerfil(campo){
+  var m = perfilDocMeta(campo);
+  if(!m) return;
+
+  archivosPerfilEliminar[campo] = true;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp) inp.value = '';
+  if(ver) ver.style.display = 'none';
+  if(del) del.style.display = 'none';
+  if(name) name.textContent = 'Se quitará al guardar';
+}
+
+async function borrarRutaDocumentoPerfil(ruta){
+  if(!ruta || !currentUser) return true;
+
+  var borrado = await supabaseClient.storage
+    .from('documentos')
+    .remove([ruta]);
+
+  if(borrado.error){
+    console.error('Error borrando archivo de perfil:', borrado.error);
+    alert('El archivo se quitó del perfil, pero no se pudo borrar del bucket documentos. Revisa permisos DELETE del bucket.');
+    return false;
+  }
+
+  return true;
 }
 
 async function subirArchivoPerfilCampo(campo, perfilId, archivosActuales){
@@ -2387,6 +2459,11 @@ async function subirArchivoPerfilCampo(campo, perfilId, archivosActuales){
   if(!m) return archivosActuales[campo] || '';
 
   var input = document.getElementById(m.input);
+
+  if(archivosPerfilEliminar[campo]){
+    await borrarRutaDocumentoPerfil(archivosActuales[campo] || '');
+    return '';
+  }
 
   if(!input || !input.files || !input.files[0]){
     return archivosActuales[campo] || '';
@@ -2405,6 +2482,10 @@ async function subirArchivoPerfilCampo(campo, perfilId, archivosActuales){
     console.error('Error subiendo archivo de perfil:', subida.error);
     alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
     return archivosActuales[campo] || '';
+  }
+
+  if(archivosActuales[campo] && archivosActuales[campo] !== ruta){
+    await borrarRutaDocumentoPerfil(archivosActuales[campo]);
   }
 
   return ruta;
@@ -2498,6 +2579,7 @@ function irFichaPerfil(id){
   show('pg-prf-ficha');
 }
 var eIdPrf=null;
+var archivosPerfilEliminar = {};
 function abrirNuevoPerfil(){
   eIdPrf = null;
 
@@ -2593,6 +2675,8 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-poder').value=p.poderRL||0;
   document.getElementById('prf-idrl').value=p.idRL||0;
   document.getElementById('prf-csatrl').value=p.constSATRL||0;
+  archivosPerfilEliminar = {};
+  limpiarInputsArchivosPerfil();
   pintarArchivosPerfil(p.archivos || {});
   document.getElementById('prf-dom').value=p.domicilio||'';
   document.getElementById('prf-cp').value=p.cp||'';
@@ -2609,10 +2693,32 @@ var previo = eIdPrf ? gPrf().find(function(x){ return x.id === eIdPrf; }) : null
 var archivosPrevios = previo && previo.archivos ? previo.archivos : {};
 var archivosPerfil = Object.assign({}, archivosPrevios);
 
-  if(currentUser){
+var estadoDocsPerfil = {
+  acuseSAT: parseInt(document.getElementById('prf-sat').value) || 0,
+  acuseREPSE: parseInt(document.getElementById('prf-arep').value) || 0
+};
+
+if(currentUser){
   for(var ai = 0; ai < perfilDocCampos().length; ai++){
     var campoArchivo = perfilDocCampos()[ai];
+
+    if(estadoDocsPerfil[campoArchivo] === 4){
+      if(archivosPerfil[campoArchivo]){
+        await borrarRutaDocumentoPerfil(archivosPerfil[campoArchivo]);
+      }
+      archivosPerfil[campoArchivo] = '';
+      continue;
+    }
+
     archivosPerfil[campoArchivo] = await subirArchivoPerfilCampo(campoArchivo, perfilId, archivosPerfil);
+  }
+}else{
+  for(var aj = 0; aj < perfilDocCampos().length; aj++){
+    var campoLocal = perfilDocCampos()[aj];
+
+    if(estadoDocsPerfil[campoLocal] === 4 || archivosPerfilEliminar[campoLocal]){
+      archivosPerfil[campoLocal] = '';
+    }
   }
 }
 
@@ -2626,9 +2732,9 @@ var o = {
     folioREPSE: document.getElementById('prf-folio').value.trim(),
     fechaREPSE: document.getElementById('prf-frepse').value,
     vigenciaREPSE: document.getElementById('prf-vrepse').value,
-    acuseSAT: parseInt(document.getElementById('prf-sat').value) || 0,
+    acuseSAT: estadoDocsPerfil.acuseSAT,
     idPersonaFisica: parseInt(document.getElementById('prf-idfisica').value)||0,
-    acuseREPSE: parseInt(document.getElementById('prf-arep').value) || 0,
+    acuseREPSE: estadoDocsPerfil.acuseREPSE,
     actaConst: parseInt(document.getElementById('prf-acta').value) || 0,
     poderRL: parseInt(document.getElementById('prf-poder').value) || 0,
     idRL: parseInt(document.getElementById('prf-idrl').value) || 0,
