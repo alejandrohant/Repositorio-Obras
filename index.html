@@ -829,6 +829,13 @@ select.fg-sel:focus{border-color:#a78bfa}
     <option value="4">No aplica</option>
     <option value="3">Erróneo</option>
   </select>
+  <div class="doc-upload">
+    <input class="doc-file" type="file" id="fa-file-arp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('arp')">
+    <label class="doc-pick" for="fa-file-arp">Subir archivo</label>
+    <button type="button" class="doc-view" id="fa-ver-arp" onclick="verArchivoFase('arp')" style="display:none">Ver archivo</button>
+    <button type="button" class="doc-del" id="fa-del-arp" onclick="marcarEliminarArchivoFase('arp')" style="display:none">Quitar archivo</button>
+    <span class="doc-none" id="fa-name-arp">Sin archivo</span>
+  </div>
 </div>
 
 <div class="fg">
@@ -840,6 +847,13 @@ select.fg-sel:focus{border-color:#a78bfa}
     <option value="4">No aplica</option>
     <option value="3">Erróneo</option>
   </select>
+  <div class="doc-upload">
+    <input class="doc-file" type="file" id="fa-file-tarjeta-patronal" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('tarjetaPatronal')">
+    <label class="doc-pick" for="fa-file-tarjeta-patronal">Subir archivo</label>
+    <button type="button" class="doc-view" id="fa-ver-tarjeta-patronal" onclick="verArchivoFase('tarjetaPatronal')" style="display:none">Ver archivo</button>
+    <button type="button" class="doc-del" id="fa-del-tarjeta-patronal" onclick="marcarEliminarArchivoFase('tarjetaPatronal')" style="display:none">Quitar archivo</button>
+    <span class="doc-none" id="fa-name-tarjeta-patronal">Sin archivo</span>
+  </div>
 </div>
 
 <div class="fg">
@@ -851,6 +865,13 @@ select.fg-sel:focus{border-color:#a78bfa}
     <option value="4">No aplica</option>
     <option value="3">Erróneo</option>
   </select>
+  <div class="doc-upload">
+    <input class="doc-file" type="file" id="fa-file-croquis-rp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('croquisRP')">
+    <label class="doc-pick" for="fa-file-croquis-rp">Subir archivo</label>
+    <button type="button" class="doc-view" id="fa-ver-croquis-rp" onclick="verArchivoFase('croquisRP')" style="display:none">Ver archivo</button>
+    <button type="button" class="doc-del" id="fa-del-croquis-rp" onclick="marcarEliminarArchivoFase('croquisRP')" style="display:none">Quitar archivo</button>
+    <span class="doc-none" id="fa-name-croquis-rp">Sin archivo</span>
+  </div>
 </div>
 
 <div class="fg">
@@ -862,6 +883,13 @@ select.fg-sel:focus{border-color:#a78bfa}
     <option value="4">No aplica</option>
     <option value="3">Erróneo</option>
   </select>
+  <div class="doc-upload">
+    <input class="doc-file" type="file" id="fa-file-compdom-rp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoFase('compDomRP')">
+    <label class="doc-pick" for="fa-file-compdom-rp">Subir archivo</label>
+    <button type="button" class="doc-view" id="fa-ver-compdom-rp" onclick="verArchivoFase('compDomRP')" style="display:none">Ver archivo</button>
+    <button type="button" class="doc-del" id="fa-del-compdom-rp" onclick="marcarEliminarArchivoFase('compDomRP')" style="display:none">Quitar archivo</button>
+    <span class="doc-none" id="fa-name-compdom-rp">Sin archivo</span>
+  </div>
 </div>
           <div class="fg"><label id="fa-lbl-contratista">Contratista</label><input id="fa-contratista" readonly style="background:#161622;color:#64748b"></div>
           <div class="fg"><label>Perfil</label><input id="fa-perfil" readonly style="background:#161622;color:#64748b"></div>
