@@ -8798,7 +8798,67 @@ function generarReporteISNFase(f){
 // ============ FIN REPORTE ============
 
 // ============ FIN FASES ============
-init();counts();
+
+function normalizarSelectDocumental(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+
+  var valorActual = String(el.value || '0');
+
+  el.innerHTML =
+    '<option value="0">--</option>' +
+    '<option value="1">Presentado</option>' +
+    '<option value="2">No presentado</option>' +
+    '<option value="3">Erróneo</option>' +
+    '<option value="4">No aplica</option>';
+
+  el.value = valorActual;
+}
+
+function normalizarSelectoresDocumentales(){
+  [
+    'prf-sat',
+    'prf-arep',
+    'prf-acta',
+    'prf-poder',
+    'prf-idrl',
+    'prf-csatrl',
+    'prf-idfisica',
+
+    'p-doc-licencia-construccion',
+    'p-doc-presupuesto',
+    'p-doc-explosion-insumos',
+    'p-doc-acuse-siroc',
+    'p-arp',
+    'p-tarjeta-patronal',
+    'p-croquis-obra',
+    'p-croquis-rp',
+    'p-compdom-obra',
+    'p-compdom-rp',
+
+    'c-arp',
+    'c-tarjeta-patronal',
+    'c-croquis-obra',
+    'c-croquis-rp',
+    'c-compdom-obra',
+    'c-compdom-rp',
+
+    'fa-arp',
+    'fa-tarjeta-patronal',
+    'fa-croquis-rp',
+    'fa-compdom-rp',
+    'fa-doc-contrato',
+    'fa-doc-firmado',
+    'fa-doc-siroc',
+    'fa-doc-presupuesto',
+    'fa-explosi',
+    'fa-planos'
+  ].forEach(normalizarSelectDocumental);
+}
+
+init();
+normalizarSelectoresDocumentales();
+counts();
 setTimeout(initAuth, 500);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
