@@ -5250,7 +5250,9 @@ function buildReporteContratista(prf, fasesCtrl){
   return h;
 }
   
-function abrirBloqueObligacionesRFC(){
+function abrirBloqueControlPorTexto(textoBuscar){
+  textoBuscar = String(textoBuscar || '').toLowerCase();
+
   var bloques = document.querySelectorAll('.ctrl-collapsible');
 
   bloques.forEach(function(bloque){
@@ -5263,12 +5265,28 @@ function abrirBloqueObligacionesRFC(){
 
     var textoTitulo = String(titulo.textContent || '').trim().toLowerCase();
 
-    if(textoTitulo.indexOf('obligaciones rfc') === 0){
+    if(textoTitulo.indexOf(textoBuscar) === 0){
       body.classList.add('open');
       if(hdr) hdr.classList.add('open');
       if(chev) chev.classList.add('open');
     }
   });
+}
+
+function abrirBloqueObligacionesRFC(){
+  abrirBloqueControlPorTexto('obligaciones rfc');
+}
+
+function abrirBloqueDocumentoActual(){
+  if(!docRFCCtx) return;
+
+  var key = String(docRFCCtx.key || '');
+
+  if(key.indexOf('sua_') === 0){
+    abrirBloqueControlPorTexto('obligaciones rp');
+  }else{
+    abrirBloqueControlPorTexto('obligaciones rfc');
+  }
 }
 
 function setFiltroObligacionesRFC(filtro){
@@ -5416,7 +5434,9 @@ function buildSUAHtml(perfil, fasesBase) {
   h += '</tr></thead><tbody>';
   periodos.forEach(function(p){
     h += '<tr><td>' + periodoLabel(p) + '</td>';
-    colsDoc.forEach(function(c){ h += '<td>' + docSelectCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)) + '</td>'; });
+    colsDoc.forEach(function(c){
+      h += '<td>' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
+    });
     h += '</tr>';
   });
   h += '</tbody></table></div>';
@@ -6114,6 +6134,10 @@ function ctrlDocBloqueado(periodo, campo){
 
   if(campo === 'icsoe' || campo === 'sisub'){
     return !mes || [1,5,9].indexOf(mes) === -1;
+  }
+
+  if(campo === 'ced_bim' || campo === 'cfdi_inf'){
+    return !mes || mes % 2 !== 0;
   }
 
   return false;
@@ -7595,16 +7619,25 @@ function updateSummaryBar(tbl) {
 function recargarControl() {
   if(ctrlObraCtx){
     irControlObra(ctrlObraCtx);
+    setTimeout(function(){
+      abrirBloqueDocumentoActual();
+    }, 0);
     return;
   }
 
   if(ctrlFaseCtx){
     irControlContratistaDesdeFase(ctrlFaseCtx);
+    setTimeout(function(){
+      abrirBloqueDocumentoActual();
+    }, 0);
     return;
   }
 
   if(ctrlPerfilCtx){
     renderControlTabs(ctrlPerfilCtx);
+    setTimeout(function(){
+      abrirBloqueDocumentoActual();
+    }, 0);
   }
 }
 
