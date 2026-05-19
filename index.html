@@ -1048,19 +1048,27 @@ select.fg-sel:focus{border-color:#a78bfa}
 
 <div class="fg full fp"><label>Ubicación</label><input id="p-ubic"></div>
 
+<div class="fg fp"><label>Licencia de construcción</label><select id="p-doc-licencia-construccion" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-licencia-construccion" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('licenciaConstruccion')"><label class="doc-pick" for="p-file-licencia-construccion">Subir archivo</label><button type="button" class="doc-view" id="p-ver-licencia-construccion" onclick="verArchivoObra('licenciaConstruccion')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-licencia-construccion" onclick="marcarEliminarArchivoObra('licenciaConstruccion')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-licencia-construccion">Sin archivo</span></div></div>
+
+<div class="fg fp"><label>Presupuesto</label><select id="p-doc-presupuesto" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-presupuesto" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('presupuesto')"><label class="doc-pick" for="p-file-presupuesto">Subir archivo</label><button type="button" class="doc-view" id="p-ver-presupuesto" onclick="verArchivoObra('presupuesto')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-presupuesto" onclick="marcarEliminarArchivoObra('presupuesto')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-presupuesto">Sin archivo</span></div></div>
+
+<div class="fg fp"><label>Explosión de insumos</label><select id="p-doc-explosion-insumos" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-explosion-insumos" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('explosionInsumos')"><label class="doc-pick" for="p-file-explosion-insumos">Subir archivo</label><button type="button" class="doc-view" id="p-ver-explosion-insumos" onclick="verArchivoObra('explosionInsumos')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-explosion-insumos" onclick="marcarEliminarArchivoObra('explosionInsumos')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-explosion-insumos">Sin archivo</span></div></div>
+
+<div class="fg fp"><label>Acuse SIROC</label><select id="p-doc-acuse-siroc" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-acuse-siroc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('acuseSiroc')"><label class="doc-pick" for="p-file-acuse-siroc">Subir archivo</label><button type="button" class="doc-view" id="p-ver-acuse-siroc" onclick="verArchivoObra('acuseSiroc')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-acuse-siroc" onclick="marcarEliminarArchivoObra('acuseSiroc')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-acuse-siroc">Sin archivo</span></div></div>
+
 <div class="fg fp"><label>Subdelegación</label><input id="p-subdelegacion"></div>
 
-<div class="fg fp"><label>Formato de Alta Patronal (ARP)</label><select id="p-arp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Formato de Alta Patronal (ARP)</label><select id="p-arp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-arp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('arp')"><label class="doc-pick" for="p-file-arp">Subir archivo</label><button type="button" class="doc-view" id="p-ver-arp" onclick="verArchivoObra('arp')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-arp" onclick="marcarEliminarArchivoObra('arp')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-arp">Sin archivo</span></div></div>
 
-<div class="fg fp"><label>Tarjeta Patronal</label><select id="p-tarjeta-patronal" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Tarjeta Patronal</label><select id="p-tarjeta-patronal" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-tarjeta-patronal" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('tarjetaPatronal')"><label class="doc-pick" for="p-file-tarjeta-patronal">Subir archivo</label><button type="button" class="doc-view" id="p-ver-tarjeta-patronal" onclick="verArchivoObra('tarjetaPatronal')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-tarjeta-patronal" onclick="marcarEliminarArchivoObra('tarjetaPatronal')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-tarjeta-patronal">Sin archivo</span></div></div>
 
-<div class="fg fp"><label>Croquis ubicación obra</label><select id="p-croquis-obra" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Croquis ubicación obra</label><select id="p-croquis-obra" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-croquis-obra" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('croquisObra')"><label class="doc-pick" for="p-file-croquis-obra">Subir archivo</label><button type="button" class="doc-view" id="p-ver-croquis-obra" onclick="verArchivoObra('croquisObra')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-croquis-obra" onclick="marcarEliminarArchivoObra('croquisObra')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-croquis-obra">Sin archivo</span></div></div>
 
-<div class="fg fp"><label>Croquis ubicación domicilio RP</label><select id="p-croquis-rp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Croquis ubicación domicilio RP</label><select id="p-croquis-rp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-croquis-rp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('croquisRP')"><label class="doc-pick" for="p-file-croquis-rp">Subir archivo</label><button type="button" class="doc-view" id="p-ver-croquis-rp" onclick="verArchivoObra('croquisRP')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-croquis-rp" onclick="marcarEliminarArchivoObra('croquisRP')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-croquis-rp">Sin archivo</span></div></div>
 
-<div class="fg fp"><label>Comprobante domicilio obra</label><select id="p-compdom-obra" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Comprobante domicilio obra</label><select id="p-compdom-obra" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-compdom-obra" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('compDomObra')"><label class="doc-pick" for="p-file-compdom-obra">Subir archivo</label><button type="button" class="doc-view" id="p-ver-compdom-obra" onclick="verArchivoObra('compDomObra')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-compdom-obra" onclick="marcarEliminarArchivoObra('compDomObra')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-compdom-obra">Sin archivo</span></div></div>
 
-<div class="fg fp"><label>Comprobante domicilio RP</label><select id="p-compdom-rp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select></div>
+<div class="fg fp"><label>Comprobante domicilio RP</label><select id="p-compdom-rp" class="fg-sel"><option value="0">--</option><option value="1">Presentado</option><option value="2">No presentado</option><option value="4">No aplica</option><option value="3">Erróneo</option></select><div class="doc-upload"><input class="doc-file" type="file" id="p-file-compdom-rp" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="previsualizarArchivoObra('compDomRP')"><label class="doc-pick" for="p-file-compdom-rp">Subir archivo</label><button type="button" class="doc-view" id="p-ver-compdom-rp" onclick="verArchivoObra('compDomRP')" style="display:none">Ver archivo</button><button type="button" class="doc-del" id="p-del-compdom-rp" onclick="marcarEliminarArchivoObra('compDomRP')" style="display:none">Quitar archivo</button><span class="doc-none" id="p-name-compdom-rp">Sin archivo</span></div></div>
         <div class="fg fp"><label>C.P.</label><input id="p-cp" oninput="buscarCPP()"></div>
         <div class="fg fp"><label>Municipio</label><input id="p-municipio" readonly></div>
         <div class="fg fp"><label>Estado</label><input id="p-estado" readonly></div>
@@ -1773,8 +1781,10 @@ function selConMetodo(m){conMetodo=m;document.getElementById('con-btn-exp').clas
 function renderConTabla(o,m){var F_IMSS=0.240040,F_RCV=0.062745,F_INF=0.050000;var p=m==='exp'?o.costoExp:o.costoDOF;var mo=(o.valorTotal||0)*p;var totalDias=0,modia=0;if(o.inicia&&o.termina){var d1=new Date(o.inicia+'T12:00:00'),d2=new Date(o.termina+'T12:00:00');totalDias=Math.round((d2-d1)/(1000*60*60*24))+1;modia=totalDias>0?mo/totalDias:0;}document.getElementById('con-mo').textContent=mxn(mo);document.getElementById('con-modia').textContent=mxn(modia)+' /dia';document.getElementById('con-dias').textContent=fnum(totalDias)+' dias';var rows=[],th='',tD=0,tM=0,tI=0,tR=0,tN=0,tT=0;if(o.inicia&&o.termina){var d1=new Date(o.inicia+'T12:00:00'),d2=new Date(o.termina+'T12:00:00');var cur=new Date(d1);while(cur<=d2){var y=cur.getFullYear(),mn=cur.getMonth();var finMes=new Date(y,mn+1,0,12,0,0);var fin=finMes<d2?finMes:d2;var dias=Math.round((fin-cur)/(1000*60*60*24))+1;var moM=modia*dias;rows.push({label:(mn+1)+'/'+y,dias:dias,mo:moM,imss:moM*F_IMSS,rcv:moM*F_RCV,inf:moM*F_INF,tot:moM*(F_IMSS+F_RCV+F_INF)});cur=new Date(y,mn+1,1,12,0,0);}}rows.forEach(function(r){tD+=r.dias;tM+=r.mo;tI+=r.imss;tR+=r.rcv;tN+=r.inf;tT+=r.tot;th+='<tr><td>'+r.label+'</td><td>'+r.dias+'</td><td>'+mxn(r.mo)+'</td><td>'+mxn(r.imss)+'</td><td>'+mxn(r.rcv)+'</td><td>'+mxn(r.inf)+'</td><td>'+mxn(r.tot)+'</td></tr>';});th+='<tr class="tot"><td>Total</td><td>'+tD+'</td><td>'+mxn(tM)+'</td><td>'+mxn(tI)+'</td><td>'+mxn(tR)+'</td><td>'+mxn(tN)+'</td><td>'+mxn(tT)+'</td></tr>';document.getElementById('con-tbody').innerHTML=th;document.getElementById('con-tcuotas').textContent=mxn(tT);}
 function abrirCon(o){conObj=o;conMetodo='exp';document.getElementById('con-nom').textContent=o.nombre+' \u2014 Estimado Cuotas';document.getElementById('con-rfc').textContent=o.rfc||'--';document.getElementById('con-con').textContent=o.contratista||'--';document.getElementById('con-fas').textContent=o.fase||'--';document.getElementById('con-fdof').textContent=o.faseDOF||'--';document.getElementById('con-ubic').textContent=o.ubicacion||'--';document.getElementById('con-vig').textContent=fdate(o.inicia)+' \u2014 '+fdate(o.termina);document.getElementById('con-val2').textContent=mxn(o.valorTotal);document.getElementById('con-pct-dof').textContent=pct(o.costoDOF);document.getElementById('con-pct-exp').textContent=pct(o.costoExp);document.getElementById('con-bk').onclick=function(){show('pg-ficha');};selConMetodo('exp');show('pg-con');}
 var eId=null,eTipo=null;
+var archivosObraEliminar = {};
 function selT(t){document.getElementById('opt-p').classList.toggle('sel',t==='p');document.getElementById('opt-c').classList.toggle('sel',t==='c');document.querySelectorAll('.fp').forEach(function(el){el.classList.toggle('show',t==='p');});document.querySelectorAll('.fc').forEach(function(el){el.classList.toggle('show',t==='c');});eTipo=t;}
 function abrirNueva(){eId=null;eTipo=null;document.getElementById('mtit').textContent='Nueva Obra';document.getElementById('tsel').style.display='grid';document.getElementById('frm').reset();document.querySelectorAll('.fp,.fc').forEach(function(el){el.classList.remove('show');});document.querySelectorAll('.topt').forEach(function(el){el.classList.remove('sel');});if(document.getElementById('p-isn-pagado-por')) document.getElementById('p-isn-pagado-por').value = '';
+limpiarInputsArchivosObra();
 document.getElementById('modal').classList.add('open');}
 function abrirEditar(id){
   var p=gP(),c=gC();
@@ -1912,7 +1922,10 @@ if(document.getElementById('c-compdom-rp')) document.getElementById('c-compdom-r
 
   document.getElementById('modal').classList.add('open');
 }
-function cerrar(){document.getElementById('modal').classList.remove('open');}
+function cerrar(){
+  archivosObraEliminar = {};
+  document.getElementById('modal').classList.remove('open');
+}
 async function guardar(e){
   e.preventDefault();
 
@@ -1937,8 +1950,50 @@ async function guardar(e){
   var o = {};
 
   if(eTipo === 'p'){
+    var obraIdP = eId || gid('p');
+    var previoObraP = eId ? gP().find(function(x){ return x.id === eId; }) : null;
+    var archivosPreviosObraP = previoObraP && previoObraP.archivos ? previoObraP.archivos : {};
+    var archivosObraP = Object.assign({}, archivosPreviosObraP);
+
+    var estadoDocsObraP = {
+      licenciaConstruccion: parseInt(document.getElementById('p-doc-licencia-construccion').value) || 0,
+      presupuesto: parseInt(document.getElementById('p-doc-presupuesto').value) || 0,
+      explosionInsumos: parseInt(document.getElementById('p-doc-explosion-insumos').value) || 0,
+      acuseSiroc: parseInt(document.getElementById('p-doc-acuse-siroc').value) || 0,
+      arp: parseInt(document.getElementById('p-arp').value) || 0,
+      tarjetaPatronal: parseInt(document.getElementById('p-tarjeta-patronal').value) || 0,
+      croquisObra: parseInt(document.getElementById('p-croquis-obra').value) || 0,
+      croquisRP: parseInt(document.getElementById('p-croquis-rp').value) || 0,
+      compDomObra: parseInt(document.getElementById('p-compdom-obra').value) || 0,
+      compDomRP: parseInt(document.getElementById('p-compdom-rp').value) || 0
+    };
+
+    if(currentUser){
+      for(var oi = 0; oi < obraDocCamposPropietaria().length; oi++){
+        var campoObraArchivo = obraDocCamposPropietaria()[oi];
+
+        if(estadoDocsObraP[campoObraArchivo] === 4){
+          if(archivosObraP[campoObraArchivo]){
+            await borrarRutaDocumentoObra(archivosObraP[campoObraArchivo]);
+          }
+          archivosObraP[campoObraArchivo] = '';
+          continue;
+        }
+
+        archivosObraP[campoObraArchivo] = await subirArchivoObraCampo(campoObraArchivo, obraIdP, archivosObraP);
+      }
+    }else{
+      for(var oj = 0; oj < obraDocCamposPropietaria().length; oj++){
+        var campoObraLocal = obraDocCamposPropietaria()[oj];
+
+        if(estadoDocsObraP[campoObraLocal] === 4 || archivosObraEliminar[campoObraLocal]){
+          archivosObraP[campoObraLocal] = '';
+        }
+      }
+    }
+
     o = {
-      id: eId || gid('p'),
+      id: obraIdP,
       nombre: document.getElementById('p-nom').value.trim(),
       rfc: document.getElementById('p-rfc').value.trim(),
       patron: document.getElementById('p-pat').value.trim(),
@@ -1964,16 +2019,21 @@ async function guardar(e){
       isnEst: datasetOrValue('p-iest'),
       isnPagadoPor: document.getElementById('p-isn-pagado-por') ? document.getElementById('p-isn-pagado-por').value.trim() : '',
       ubicacion: document.getElementById('p-ubic').value.trim(),
+      docLicenciaConstruccion: estadoDocsObraP.licenciaConstruccion,
+      docPresupuesto: estadoDocsObraP.presupuesto,
+      docExplosionInsumos: estadoDocsObraP.explosionInsumos,
+      docAcuseSiroc: estadoDocsObraP.acuseSiroc,
       subdelegacion: document.getElementById('p-subdelegacion') ? document.getElementById('p-subdelegacion').value.trim() : '',
-      arp: document.getElementById('p-arp') ? parseInt(document.getElementById('p-arp').value) || 0 : 0,
-      tarjetaPatronal: document.getElementById('p-tarjeta-patronal') ? parseInt(document.getElementById('p-tarjeta-patronal').value) || 0 : 0,
-      croquisObra: document.getElementById('p-croquis-obra') ? parseInt(document.getElementById('p-croquis-obra').value) || 0 : 0,
-      croquisRP: document.getElementById('p-croquis-rp') ? parseInt(document.getElementById('p-croquis-rp').value) || 0 : 0,
-      compDomObra: document.getElementById('p-compdom-obra') ? parseInt(document.getElementById('p-compdom-obra').value) || 0 : 0,
-      compDomRP: document.getElementById('p-compdom-rp') ? parseInt(document.getElementById('p-compdom-rp').value) || 0 : 0,
+      arp: estadoDocsObraP.arp,
+      tarjetaPatronal: estadoDocsObraP.tarjetaPatronal,
+      croquisObra: estadoDocsObraP.croquisObra,
+      croquisRP: estadoDocsObraP.croquisRP,
+      compDomObra: estadoDocsObraP.compDomObra,
+      compDomRP: estadoDocsObraP.compDomRP,
       cp: document.getElementById('p-cp') ? document.getElementById('p-cp').value.trim() : '',
       municipio: document.getElementById('p-municipio') ? document.getElementById('p-municipio').value.trim() : '',
-      estado: document.getElementById('p-estado') ? document.getElementById('p-estado').value.trim() : ''
+      estado: document.getElementById('p-estado') ? document.getElementById('p-estado').value.trim() : '',
+      archivos: archivosObraP
     };
 
     if(!o.nombre || !o.rfc || !o.patron){
@@ -2596,6 +2656,179 @@ async function verArchivoPerfil(campo){
   });
 
   var ruta = p && p.archivos ? p.archivos[campo] : '';
+
+  await verRutaDocumentoPerfil(ruta);
+}
+function obraDocMeta(campo){
+  var mapa = {
+    licenciaConstruccion:{input:'p-file-licencia-construccion',ver:'p-ver-licencia-construccion',del:'p-del-licencia-construccion',name:'p-name-licencia-construccion',select:'p-doc-licencia-construccion'},
+    presupuesto:{input:'p-file-presupuesto',ver:'p-ver-presupuesto',del:'p-del-presupuesto',name:'p-name-presupuesto',select:'p-doc-presupuesto'},
+    explosionInsumos:{input:'p-file-explosion-insumos',ver:'p-ver-explosion-insumos',del:'p-del-explosion-insumos',name:'p-name-explosion-insumos',select:'p-doc-explosion-insumos'},
+    acuseSiroc:{input:'p-file-acuse-siroc',ver:'p-ver-acuse-siroc',del:'p-del-acuse-siroc',name:'p-name-acuse-siroc',select:'p-doc-acuse-siroc'},
+    arp:{input:'p-file-arp',ver:'p-ver-arp',del:'p-del-arp',name:'p-name-arp',select:'p-arp'},
+    tarjetaPatronal:{input:'p-file-tarjeta-patronal',ver:'p-ver-tarjeta-patronal',del:'p-del-tarjeta-patronal',name:'p-name-tarjeta-patronal',select:'p-tarjeta-patronal'},
+    croquisObra:{input:'p-file-croquis-obra',ver:'p-ver-croquis-obra',del:'p-del-croquis-obra',name:'p-name-croquis-obra',select:'p-croquis-obra'},
+    croquisRP:{input:'p-file-croquis-rp',ver:'p-ver-croquis-rp',del:'p-del-croquis-rp',name:'p-name-croquis-rp',select:'p-croquis-rp'},
+    compDomObra:{input:'p-file-compdom-obra',ver:'p-ver-compdom-obra',del:'p-del-compdom-obra',name:'p-name-compdom-obra',select:'p-compdom-obra'},
+    compDomRP:{input:'p-file-compdom-rp',ver:'p-ver-compdom-rp',del:'p-del-compdom-rp',name:'p-name-compdom-rp',select:'p-compdom-rp'}
+  };
+
+  return mapa[campo] || null;
+}
+
+function obraDocCamposPropietaria(){
+  return [
+    'licenciaConstruccion',
+    'presupuesto',
+    'explosionInsumos',
+    'acuseSiroc',
+    'arp',
+    'tarjetaPatronal',
+    'croquisObra',
+    'croquisRP',
+    'compDomObra',
+    'compDomRP'
+  ];
+}
+
+function limpiarInputsArchivosObra(){
+  archivosObraEliminar = {};
+
+  obraDocCamposPropietaria().forEach(function(campo){
+    var m = obraDocMeta(campo);
+    if(!m) return;
+
+    var inp = document.getElementById(m.input);
+    var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
+    var name = document.getElementById(m.name);
+
+    if(inp) inp.value = '';
+    if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'none';
+    if(name) name.textContent = 'Sin archivo';
+  });
+}
+
+function pintarArchivosObra(archivos){
+  archivos = archivos || {};
+
+  obraDocCamposPropietaria().forEach(function(campo){
+    var m = obraDocMeta(campo);
+    if(!m) return;
+
+    var ruta = archivos[campo] || '';
+    var ver = document.getElementById(m.ver);
+    var del = document.getElementById(m.del);
+    var name = document.getElementById(m.name);
+
+    if(ver) ver.style.display = ruta ? 'inline-block' : 'none';
+    if(del) del.style.display = ruta ? 'inline-block' : 'none';
+    if(name) name.textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  });
+}
+
+function previsualizarArchivoObra(campo){
+  var m = obraDocMeta(campo);
+  if(!m) return;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp && inp.files && inp.files[0]){
+    archivosObraEliminar[campo] = false;
+
+    if(ver) ver.style.display = 'none';
+    if(del) del.style.display = 'inline-block';
+    if(name) name.textContent = inp.files[0].name + ' (pendiente de guardar)';
+  }
+}
+
+function marcarEliminarArchivoObra(campo){
+  var m = obraDocMeta(campo);
+  if(!m) return;
+
+  archivosObraEliminar[campo] = true;
+
+  var inp = document.getElementById(m.input);
+  var ver = document.getElementById(m.ver);
+  var del = document.getElementById(m.del);
+  var name = document.getElementById(m.name);
+
+  if(inp) inp.value = '';
+  if(ver) ver.style.display = 'none';
+  if(del) del.style.display = 'none';
+  if(name) name.textContent = 'Se quitará al guardar';
+}
+
+async function borrarRutaDocumentoObra(ruta){
+  if(!ruta || !currentUser) return true;
+
+  var borrado = await supabaseClient.storage
+    .from('documentos')
+    .remove([ruta]);
+
+  if(borrado.error){
+    console.error('Error borrando archivo de obra:', borrado.error);
+    alert('El archivo se quitó de la obra, pero no se pudo borrar del bucket documentos. Revisa permisos DELETE del bucket.');
+    return false;
+  }
+
+  return true;
+}
+
+async function subirArchivoObraCampo(campo, obraId, archivosActuales){
+  archivosActuales = archivosActuales || {};
+
+  var m = obraDocMeta(campo);
+  if(!m) return archivosActuales[campo] || '';
+
+  var input = document.getElementById(m.input);
+
+  if(archivosObraEliminar[campo]){
+    await borrarRutaDocumentoObra(archivosActuales[campo] || '');
+    return '';
+  }
+
+  if(!input || !input.files || !input.files[0]){
+    return archivosActuales[campo] || '';
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+  var ruta = currentUser.id + '/obras/' + obraId + '/' + campo + '_' + Date.now() + '_' + limpio;
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de obra:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    return archivosActuales[campo] || '';
+  }
+
+  if(archivosActuales[campo] && archivosActuales[campo] !== ruta){
+    await borrarRutaDocumentoObra(archivosActuales[campo]);
+  }
+
+  return ruta;
+}
+
+async function verArchivoObra(campo){
+  if(!eId){
+    alert('Primero guarda la obra.');
+    return;
+  }
+
+  var o = gP().find(function(x){
+    return x.id === eId;
+  });
+
+  var ruta = o && o.archivos ? o.archivos[campo] : '';
 
   await verRutaDocumentoPerfil(ruta);
 }
