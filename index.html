@@ -1589,8 +1589,17 @@ function irFicha(id){
   }
 
   if(btnRptExpediente){
-  btnRptExpediente.style.display = 'none';
-  btnRptExpediente.onclick = null;
+    if(t === 'p'){
+      btnRptExpediente.style.display = '';
+      btnRptExpediente.textContent = 'Reporte expediente general';
+      btnRptExpediente.onclick = function(){
+        document.getElementById('modal-reportes').classList.remove('open');
+        generarReporteExpedienteGeneralObra(o);
+      };
+    }else{
+      btnRptExpediente.style.display = 'none';
+      btnRptExpediente.onclick = null;
+    }
   }
 
   if(btnRptM2){
@@ -6766,6 +6775,144 @@ function generarReporteISN(o,t){
   document.getElementById('rpt-contenido').innerHTML = h;
 
   document.getElementById('rpt-bk').onclick=function(){
+    show('pg-ficha');
+  };
+
+  show('pg-reporte');
+}
+function generarReporteExpedienteGeneralObra(o){
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  var archivos = o.archivos || {};
+
+  var docs = [
+    {k:'licenciaConstruccion',l:'Licencia de construcción',v:o.docLicenciaConstruccion},
+    {k:'presupuesto',l:'Presupuesto',v:o.docPresupuesto},
+    {k:'explosionInsumos',l:'Explosión de insumos',v:o.docExplosionInsumos},
+    {k:'acuseSiroc',l:'Acuse SIROC',v:o.docAcuseSiroc},
+    {k:'arp',l:'Formato de Alta Patronal (ARP)',v:o.arp},
+    {k:'tarjetaPatronal',l:'Tarjeta Patronal',v:o.tarjetaPatronal},
+    {k:'croquisObra',l:'Croquis ubicación obra',v:o.croquisObra},
+    {k:'croquisRP',l:'Croquis ubicación domicilio RP',v:o.croquisRP},
+    {k:'compDomObra',l:'Comprobante domicilio obra',v:o.compDomObra},
+    {k:'compDomRP',l:'Comprobante domicilio RP',v:o.compDomRP}
+  ];
+
+  var filasObs = '';
+  var filasTodo = '';
+  var totalObs = 0;
+  var sinCaptura = 0;
+  var noPresentado = 0;
+  var erroneo = 0;
+  var sinArchivo = 0;
+
+  function archivoDocReporte(d){
+    var v = parseInt(d.v) || 0;
+
+    if(v === 4){
+      return 'No aplica';
+    }
+
+    return archivos[d.k] ? 'Cargado' : 'Sin archivo';
+  }
+
+  function contarDocObra(v, tieneArchivo){
+    v = parseInt(v) || 0;
+
+    if(v === 0) sinCaptura++;
+    if(v === 2) noPresentado++;
+    if(v === 3) erroneo++;
+    if(v === 1 && !tieneArchivo) sinArchivo++;
+  }
+
+  docs.forEach(function(d){
+    var v = parseInt(d.v) || 0;
+    var tieneArchivo = !!archivos[d.k];
+    var archivoTxt = archivoDocReporte(d);
+    var observacion = esObservacionReporte(v) || (v === 1 && !tieneArchivo);
+
+    var fila = '<tr class="' + (observacion ? 'rpt-warn' : '') + '">'
+      + '<td>' + d.l + '</td>'
+      + '<td>' + estadoDocReporte(v) + '</td>'
+      + '<td>' + archivoTxt + '</td>'
+      + '</tr>';
+
+    filasTodo += fila;
+
+    if(observacion){
+      contarDocObra(v, tieneArchivo);
+      totalObs++;
+      filasObs += fila;
+    }
+  });
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">RO</div>'
+    + '<div class="rpt-title"><h1>Reporte de Expediente General</h1><p>Documentación general capturada en Obra Propietaria</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + (o.nombre || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Propietaria</label><span>' + (o.patron || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC</label><span style="font-family:monospace">' + (o.rfc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RP</label><span style="font-family:monospace">' + (o.rp || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>SIROC</label><span style="font-family:monospace">' + (o.siroc || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>No. Licencia</label><span>' + (o.licencia || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Subdelegación</label><span>' + (o.subdelegacion || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Ubicación</label><span>' + (o.ubicacion || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>C.P.</label><span>' + (o.cp || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Municipio / Estado</label><span>' + ((o.municipio || '--') + ' / ' + (o.estado || '--')) + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-total">'
+    + '<div class="rpt-total-item"><label>Observaciones</label><span class="' + (totalObs > 0 ? 'warn' : '') + '">' + totalObs + '</span></div>'
+    + '<div class="rpt-total-item"><label>Sin capturar</label><span class="' + (sinCaptura > 0 ? 'warn' : '') + '">' + sinCaptura + '</span></div>'
+    + '<div class="rpt-total-item"><label>No presentado</label><span class="' + (noPresentado > 0 ? 'warn' : '') + '">' + noPresentado + '</span></div>'
+    + '<div class="rpt-total-item"><label>Erróneo</label><span class="' + (erroneo > 0 ? 'warn' : '') + '">' + erroneo + '</span></div>'
+    + '<div class="rpt-total-item"><label>Sin archivo</label><span class="' + (sinArchivo > 0 ? 'warn' : '') + '">' + sinArchivo + '</span></div>'
+    + '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Documentación de obra con observación</h3>';
+
+  if(filasObs){
+    h += '<table class="rpt-tbl"><thead><tr>'
+      + '<th>Documento</th>'
+      + '<th>Estado</th>'
+      + '<th>Archivo</th>'
+      + '</tr></thead><tbody>'
+      + filasObs
+      + '</tbody></table>';
+  }else{
+    h += '<p style="color:#22c55e;font-weight:700">Expediente general de obra completo.</p>';
+  }
+
+  h += '</div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Detalle completo del expediente de obra</h3>';
+  h += '<table class="rpt-tbl"><thead><tr>'
+    + '<th>Documento</th>'
+    + '<th>Estado</th>'
+    + '<th>Archivo</th>'
+    + '</tr></thead><tbody>'
+    + filasTodo
+    + '</tbody></table>';
+  h += '</div>';
+
+  h += '<div class="rpt-card">'
+    + '<h3>Criterio del reporte</h3>'
+    + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
+    + 'Este reporte corresponde al expediente general de la Obra Propietaria. Revisa los documentos capturados al crear o editar la obra, incluyendo el estado documental y si existe archivo cargado en Supabase Storage.'
+    + '</p>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+
+  document.getElementById('rpt-bk').onclick = function(){
     show('pg-ficha');
   };
 
