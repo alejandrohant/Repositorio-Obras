@@ -5316,16 +5316,23 @@ function abrirBloqueDocumentoActual(){
   }
 }
 
+function aplicarFiltroObligacionesRFC(filtro){
+  filtro = filtro || localStorage.getItem('ctrl_filtro_rfc') || 'todos';
+
+  document.querySelectorAll('.ctrl-rfc-filtro-btn').forEach(function(btn){
+    btn.classList.toggle('sel', btn.getAttribute('data-rfc-filtro') === filtro);
+  });
+
+  document.querySelectorAll('[data-rfc-grupo]').forEach(function(el){
+    var grupo = el.getAttribute('data-rfc-grupo');
+    el.style.display = (filtro === 'todos' || grupo === filtro) ? '' : 'none';
+  });
+}
+
 function setFiltroObligacionesRFC(filtro){
-  localStorage.setItem('ctrl_filtro_rfc', filtro || 'todos');
-
-  if(typeof recargarControl === 'function'){
-    recargarControl();
-
-    setTimeout(function(){
-      abrirBloqueObligacionesRFC();
-    }, 50);
-  }
+  filtro = filtro || 'todos';
+  localStorage.setItem('ctrl_filtro_rfc', filtro);
+  aplicarFiltroObligacionesRFC(filtro);
 }
 
 // Build RFC html without relying on fixed panel id
@@ -5359,11 +5366,8 @@ function buildRFCHtml(perfil, fasesBase) {
 
   var filtroRFC = localStorage.getItem('ctrl_filtro_rfc') || 'todos';
 
-   if(filtroRFC !== 'todos'){
-    cols = cols.filter(function(c){
-      return c.g === filtroRFC;
-    });
-  }
+   // No filtramos aquí para evitar reconstruir la tabla.
+  // Las columnas se ocultan/mostrarán en pantalla con aplicarFiltroObligacionesRFC().
 
   var h = '';
 
@@ -5380,18 +5384,22 @@ function buildRFCHtml(perfil, fasesBase) {
   h += '<div class="ctrl-rfc-filtros">';
 
   filtrosRFC.forEach(function(fil){
-    h += '<button type="button" class="ctrl-rfc-filtro-btn ' + (filtroRFC === fil[0] ? 'sel' : '') + '" onclick="setFiltroObligacionesRFC(\'' + fil[0] + '\')">' + fil[1] + '</button>';
+    h += '<button type="button" data-rfc-filtro="' + fil[0] + '" class="ctrl-rfc-filtro-btn ' + (filtroRFC === fil[0] ? 'sel' : '') + '" onclick="setFiltroObligacionesRFC(\'' + fil[0] + '\')">' + fil[1] + '</button>';
   });
 
-  h += '</div>';
+    h += '</div>';
 
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
-  cols.forEach(function(c){ h += '<th>' + c.l + '</th>'; });
-  h += '</tr></thead><tbody>';
+    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
+
+    cols.forEach(function(c){
+      h += '<th data-rfc-grupo="' + c.g + '" style="' + (filtroRFC !== 'todos' && filtroRFC !== c.g ? 'display:none' : '') + '">' + c.l + '</th>';
+    });
+
+    h += '</tr></thead><tbody>';
   periodos.forEach(function(p) {
     h += '<tr><td>' + periodoLabel(p) + '</td>';
     cols.forEach(function(c){
-      h += '<td>' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
+      h += '<td data-rfc-grupo="' + c.g + '" style="' + (filtroRFC !== 'todos' && filtroRFC !== c.g ? 'display:none' : '') + '">' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
     });
     h += '</tr>';
   });
