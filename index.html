@@ -5770,10 +5770,14 @@ function buildFaseHtml(perfil, fase) {
     contratosHtml += '</div>';
 
     contratosHtml += '<h4>Documentos del contrato</h4>';
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
 
     colsContratos.forEach(function(c){
-      contratosHtml += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__contratos', c.k, getValContrato(c.k, c.fallback)) + '</td></tr>';
+      contratosHtml += '<tr>';
+      contratosHtml += '<td>' + c.l + '</td>';
+      contratosHtml += '<td>' + docSelectContratoControl(key, fase.id, c.k, getValContrato(c.k, c.fallback)) + '</td>';
+      contratosHtml += archivoContratoControlHtml(fase.id, c.k);
+      contratosHtml += '</tr>';
     });
 
     contratosHtml += '</tbody></table></div>';
@@ -7178,6 +7182,251 @@ function actualizarResumenContrato(cardId){
     });
 
     contratosHtml += '</tbody></table></div>';
+
+function controlContratoArchivoCampo(campoControl){
+  var mapa = {
+    docContrato:'contrato',
+    docFirmado:'contratoFirmado',
+    docSiroc:'acuseSiroc',
+    docPresupuesto:'presupuesto',
+    docExplosion:'explosionInsumos',
+    docPlanos:'planosConstruccion'
+  };
+
+  return mapa[campoControl] || campoControl;
+}
+
+function buscarFaseControlContrato(faseId){
+  return gFases().find(function(f){
+    return String(f.id || '') === String(faseId || '');
+  }) || null;
+}
+
+function idArchivoContratoControl(faseId, campoControl){
+  return String(faseId + '-' + campoControl).replace(/[^a-zA-Z0-9_-]/g,'_');
+}
+
+function guardarFaseLocalControl(fase){
+  var arr = gFases();
+  var idx = arr.findIndex(function(f){
+    return String(f.id || '') === String(fase.id || '');
+  });
+
+  if(idx >= 0){
+    arr[idx] = fase;
+    sFases(arr);
+  }
+}
+
+async function sincronizarFaseDesdeControl(fase){
+  try{
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    if(!user || !fase) return false;
+
+    var ownerId = getOwnerUserId();
+    var obraObj = gP().concat(gC()).find(function(o){
+      return String(o.nombre || '') === String(fase.obra || '');
+    });
+
+    await supabaseClient
+      .from('fases')
+      .delete()
+      .eq('user_id', ownerId)
+      .contains('data', { id: fase.id });
+
+    const { error } = await supabaseClient
+      .from('fases')
+      .insert([{
+        user_id: ownerId,
+        obra_id: obraObj ? obraObj.id : null,
+        created_by: user.id,
+        nombre: fase.objeto || null,
+        rfc_contratista: fase.rfc || null,
+        contratista: fase.contratista || null,
+        tipo: fase.perfil || null,
+        data: fase
+      }]);
+
+    if(error){
+      console.error('SUPABASE FASE CONTROL ERROR:', error);
+      return false;
+    }
+
+    return true;
+  }catch(err){
+    console.error('Error sincronizando fase desde control:', err);
+    return false;
+  }
+}
+
+function docSelectContratoControl(key, faseId, campoControl, val){
+  var opts = [
+    ['0','--'],
+    ['1','Presentado'],
+    ['2','No presentado'],
+    ['3','Erróneo'],
+    ['4','No aplica']
+  ];
+
+  var sel = '<select class="ctrl-sel" onchange="setContratoControlEstado(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\',parseInt(this.value)||0)">';
+
+  opts.forEach(function(o){
+    sel += '<option value="' + o[0] + '"' + (parseInt(val) === parseInt(o[0]) ? ' selected' : '') + '>' + o[1] + '</option>';
+  });
+
+  return sel + '</select>';
+}
+
+function setContratoControlEstado(key, faseId, campoControl, val){
+  setCtrlVal(key, '__contratos', campoControl, val);
+
+  var fase = buscarFaseControlContrato(faseId);
+  if(!fase) return;
+
+  fase[campoControl] = val;
+
+  guardarFaseLocalControl(fase);
+  sincronizarFaseDesdeControl(fase);
+}
+
+function archivoContratoControlHtml(faseId, campoControl){
+  var fase = buscarFaseControlContrato(faseId);
+  var campoArchivo = controlContratoArchivoCampo(campoControl);
+  var ruta = fase && fase.archivos ? (fase.archivos[campoArchivo] || '') : '';
+  var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  var safe = idArchivoContratoControl(faseId, campoControl);
+  var inputId = 'ctrl-contrato-file-' + safe;
+
+  var h = '';
+
+  h += '<td>';
+  h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\',this)">';
+  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+  h += '<div class="doc-none" id="ctrl-contrato-name-' + safe + '" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
+  h += '</td>';
+
+  h += '<td>';
+
+  if(ruta){
+    h += '<button type="button" class="doc-view" id="ctrl-contrato-ver-' + safe + '" onclick="verArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')">Ver archivo</button> ';
+    h += '<button type="button" class="doc-del ctrl-file-del" id="ctrl-contrato-del-' + safe + '" onclick="quitarArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')">Quitar archivo</button>';
+  }else{
+    h += '<button type="button" class="doc-view" id="ctrl-contrato-ver-' + safe + '" onclick="verArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="display:none">Ver archivo</button> ';
+    h += '<button type="button" class="doc-del ctrl-file-del" id="ctrl-contrato-del-' + safe + '" onclick="quitarArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="display:none">Quitar archivo</button>';
+    h += '<span class="doc-none" id="ctrl-contrato-sin-' + safe + '">Sin archivo</span>';
+  }
+
+  h += '</td>';
+
+  return h;
+}
+
+function pintarArchivoContratoControl(faseId, campoControl){
+  var fase = buscarFaseControlContrato(faseId);
+  var campoArchivo = controlContratoArchivoCampo(campoControl);
+  var ruta = fase && fase.archivos ? (fase.archivos[campoArchivo] || '') : '';
+  var safe = idArchivoContratoControl(faseId, campoControl);
+
+  var name = document.getElementById('ctrl-contrato-name-' + safe);
+  var ver = document.getElementById('ctrl-contrato-ver-' + safe);
+  var del = document.getElementById('ctrl-contrato-del-' + safe);
+  var sin = document.getElementById('ctrl-contrato-sin-' + safe);
+
+  if(name){
+    name.textContent = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+    name.title = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  }
+
+  if(ver) ver.style.display = ruta ? 'inline-block' : 'none';
+  if(del) del.style.display = ruta ? 'inline-block' : 'none';
+  if(sin) sin.style.display = ruta ? 'none' : 'inline';
+}
+
+async function subirArchivoContratoControl(faseId, campoControl, input){
+  if(!input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var fase = buscarFaseControlContrato(faseId);
+  if(!fase){
+    alert('No se encontró la fase/subfase.');
+    input.value = '';
+    return;
+  }
+
+  var campoArchivo = controlContratoArchivoCampo(campoControl);
+
+  if(!fase.archivos) fase.archivos = {};
+
+  var anterior = fase.archivos[campoArchivo] || '';
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/fases/' + faseId + '/' + campoArchivo + '_' + Date.now() + '_' + limpio;
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de contrato:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    input.value = '';
+    return;
+  }
+
+  fase.archivos[campoArchivo] = ruta;
+  guardarFaseLocalControl(fase);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  var ok = await sincronizarFaseDesdeControl(fase);
+  if(!ok){
+    alert('Archivo actualizado localmente, pero falló la sincronización con Supabase.');
+  }
+
+  input.value = '';
+  pintarArchivoContratoControl(faseId, campoControl);
+}
+
+async function quitarArchivoContratoControl(faseId, campoControl){
+  var fase = buscarFaseControlContrato(faseId);
+  if(!fase) return;
+
+  var campoArchivo = controlContratoArchivoCampo(campoControl);
+
+  if(!fase.archivos) fase.archivos = {};
+
+  var anterior = fase.archivos[campoArchivo] || '';
+  fase.archivos[campoArchivo] = '';
+
+  guardarFaseLocalControl(fase);
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  var ok = await sincronizarFaseDesdeControl(fase);
+  if(!ok){
+    alert('Archivo quitado localmente, pero falló la sincronización con Supabase.');
+  }
+
+  pintarArchivoContratoControl(faseId, campoControl);
+}
+
+async function verArchivoContratoControl(faseId, campoControl){
+  var fase = buscarFaseControlContrato(faseId);
+  var campoArchivo = controlContratoArchivoCampo(campoControl);
+  var ruta = fase && fase.archivos ? (fase.archivos[campoArchivo] || '') : '';
+
+  await verRutaDocumentoPerfil(ruta || '');
+}
 
 function agregarConvenioContrato(faseId, cardId){
   var key = 'fase_' + faseId;
