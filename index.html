@@ -7157,27 +7157,27 @@ function actualizarResumenContrato(cardId){
   if(elFecha) elFecha.textContent = nuevaFecha ? fdate(nuevaFecha) : '--';
 }
 
-function abrirPanelContratosDespuesDeRecargar(cardId){
-  setTimeout(function(){
-    var card = document.getElementById('ctrlfase-card-' + cardId);
-    if(!card) return;
+    contratosHtml += '<h4>Convenios modificatorios</h4>';
 
-    var body = document.getElementById('ctrlfase-body-' + cardId);
-    var chev = document.getElementById('ctrlfase-chev-' + cardId);
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
 
-    if(body) body.classList.add('open');
-    if(chev) chev.classList.add('open');
+    conveniosCtrl.forEach(function(c, idx){
+      contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
+      contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
 
-    card.querySelectorAll('.ctrl-fase-panel').forEach(function(panel){
-      panel.classList.toggle('active', panel.getAttribute('data-panel') === 'contratos');
+      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
+        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
+        + 'placeholder="0.00"></td>';
+
+      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
+
+      contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
+
+      contratosHtml += '</tr>';
     });
 
-    card.querySelectorAll('.ctrl-fase-btn').forEach(function(btn){
-      var texto = String(btn.textContent || '').trim().toLowerCase();
-      btn.classList.toggle('sel', texto === 'control contratos / incidencias siroc');
-    });
-  }, 120);
-}
+    contratosHtml += '</tbody></table></div>';
 
 function agregarConvenioContrato(faseId, cardId){
   var key = 'fase_' + faseId;
@@ -7186,14 +7186,37 @@ function agregarConvenioContrato(faseId, cardId){
   if(!ctrl[key]) ctrl[key] = {};
   if(!ctrl[key]['__convenios']) ctrl[key]['__convenios'] = [];
 
+  var idx = ctrl[key]['__convenios'].length;
+
   ctrl[key]['__convenios'].push({
     importe: '',
     fechaTermino: ''
   });
 
   sCtrl(ctrl);
-  recargarControl();
-  abrirPanelContratosDespuesDeRecargar(cardId);
+
+  var tbody = document.getElementById('conv-tbody-' + cardId);
+  if(!tbody) return;
+
+  var html = '';
+
+  html += '<tr data-conv-box="' + escCtrlHTML(cardId) + '">';
+  html += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
+
+  html += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="" '
+    + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
+    + 'placeholder="0.00"></td>';
+
+  html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="" '
+    + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
+
+  html += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\')">Eliminar</button></td>';
+
+  html += '</tr>';
+
+  tbody.insertAdjacentHTML('beforeend', html);
+
+  actualizarResumenContrato(cardId);
 }
 
 function eliminarConvenioContrato(faseId, idx, cardId){
