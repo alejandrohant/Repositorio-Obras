@@ -7116,6 +7116,150 @@ function buildControlEstimaciones(key, fase){
 
   return h;
 }
+function archivoConvenioControlHtml(faseId, key, idx, cardId, c){
+  c = c || {};
+
+  var ruta = c.archivo || '';
+  var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  var safe = String(cardId + '-' + idx).replace(/[^a-zA-Z0-9_-]/g,'_');
+  var inputId = 'conv-file-' + safe;
+
+  var h = '';
+
+  h += '<td>';
+  h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\',this)">';
+  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+  h += '<div class="doc-none" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
+  h += '</td>';
+
+  h += '<td>';
+
+  if(ruta){
+    h += '<button type="button" class="doc-view" onclick="verArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ')">Ver archivo</button> ';
+    h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\')">Quitar archivo</button>';
+  }else{
+    h += '<span class="doc-none">Sin archivo</span>';
+  }
+
+  h += '</td>';
+
+  return h;
+}
+
+function renderFilaConvenioControl(faseId, key, idx, cardId, c){
+  c = c || {};
+
+  var html = '';
+
+  html += '<tr data-conv-box="' + escCtrlHTML(cardId) + '">';
+  html += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
+
+  html += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
+    + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
+    + 'placeholder="0.00"></td>';
+
+  html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+    + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
+
+  html += archivoConvenioControlHtml(faseId, key, idx, cardId, c);
+
+  html += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\')">Eliminar</button></td>';
+
+  html += '</tr>';
+
+  return html;
+}
+
+function renderConveniosControl(faseId, cardId){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+  var tbody = document.getElementById('conv-tbody-' + cardId);
+
+  if(!tbody) return;
+
+  var convenios = ctrl[key] && ctrl[key]['__convenios'] ? ctrl[key]['__convenios'] : [];
+
+  tbody.innerHTML = '';
+
+  convenios.forEach(function(c, idx){
+    tbody.insertAdjacentHTML('beforeend', renderFilaConvenioControl(faseId, key, idx, cardId, c));
+  });
+
+  actualizarResumenContrato(cardId);
+}
+
+async function subirArchivoConvenioControl(faseId, idx, cardId, input){
+  if(!input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!ctrl[key]['__convenios']) ctrl[key]['__convenios'] = [];
+  if(!ctrl[key]['__convenios'][idx]) ctrl[key]['__convenios'][idx] = {importe:'',fechaTermino:'',archivo:''};
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/control/' + key + '/convenio_' + idx + '_' + Date.now() + '_' + limpio;
+  var anterior = ctrl[key]['__convenios'][idx].archivo || '';
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de convenio:', subida.error);
+    alert('No se pudo subir el archivo.');
+    input.value = '';
+    return;
+  }
+
+  ctrl[key]['__convenios'][idx].archivo = ruta;
+  sCtrl(ctrl);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  input.value = '';
+  renderConveniosControl(faseId, cardId);
+}
+
+async function quitarArchivoConvenioControl(faseId, idx, cardId){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+
+  if(!ctrl[key] || !ctrl[key]['__convenios'] || !ctrl[key]['__convenios'][idx]) return;
+
+  var anterior = ctrl[key]['__convenios'][idx].archivo || '';
+  ctrl[key]['__convenios'][idx].archivo = '';
+  sCtrl(ctrl);
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  renderConveniosControl(faseId, cardId);
+}
+
+async function verArchivoConvenioControl(faseId, idx){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+  var ruta = '';
+
+  if(ctrl[key] && ctrl[key]['__convenios'] && ctrl[key]['__convenios'][idx]){
+    ruta = ctrl[key]['__convenios'][idx].archivo || '';
+  }
+
+  await verRutaDocumentoPerfil(ruta || '');
+}
+
 function setConvenioContratoVal(key, idx, campo, val, cardId){
   var ctrl = gCtrl();
 
@@ -7167,22 +7311,10 @@ function actualizarResumenContrato(cardId){
 
     contratosHtml += '<h4>Convenios modificatorios</h4>';
 
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
 
     conveniosCtrl.forEach(function(c, idx){
-      contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
-      contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
-
-      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
-        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
-        + 'placeholder="0.00"></td>';
-
-      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
-        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
-
-      contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
-
-      contratosHtml += '</tr>';
+      contratosHtml += renderFilaConvenioControl(fase.id, key, idx, faseIdSafe, c);
     });
 
     contratosHtml += '</tbody></table></div>';
@@ -7439,40 +7571,18 @@ function agregarConvenioContrato(faseId, cardId){
   if(!ctrl[key]) ctrl[key] = {};
   if(!ctrl[key]['__convenios']) ctrl[key]['__convenios'] = [];
 
-  var idx = ctrl[key]['__convenios'].length;
-
   ctrl[key]['__convenios'].push({
     importe: '',
-    fechaTermino: ''
+    fechaTermino: '',
+    archivo: ''
   });
 
   sCtrl(ctrl);
 
-  var tbody = document.getElementById('conv-tbody-' + cardId);
-  if(!tbody) return;
-
-  var html = '';
-
-  html += '<tr data-conv-box="' + escCtrlHTML(cardId) + '">';
-  html += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
-
-  html += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="" '
-    + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
-    + 'placeholder="0.00"></td>';
-
-  html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="" '
-    + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
-
-  html += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\')">Eliminar</button></td>';
-
-  html += '</tr>';
-
-  tbody.insertAdjacentHTML('beforeend', html);
-
-  actualizarResumenContrato(cardId);
+  renderConveniosControl(faseId, cardId);
 }
 
-function eliminarConvenioContrato(faseId, idx, cardId){
+async function eliminarConvenioContrato(faseId, idx, cardId){
   if(!confirm('¿Eliminar este convenio modificatorio?')) return;
 
   var key = 'fase_' + faseId;
@@ -7480,41 +7590,16 @@ function eliminarConvenioContrato(faseId, idx, cardId){
 
   if(!ctrl[key] || !ctrl[key]['__convenios']) return;
 
+  var archivo = ctrl[key]['__convenios'][idx] ? (ctrl[key]['__convenios'][idx].archivo || '') : '';
+
   ctrl[key]['__convenios'].splice(idx, 1);
   sCtrl(ctrl);
 
-  var tbody = document.getElementById('conv-tbody-' + cardId);
-
-  if(!tbody){
-    var filaActual = document.querySelector('tr[data-conv-box="' + cardId + '"]');
-    tbody = filaActual ? filaActual.parentNode : null;
+  if(archivo){
+    await borrarRutaDocumentoFase(archivo);
   }
 
-  if(tbody){
-    tbody.innerHTML = '';
-
-    ctrl[key]['__convenios'].forEach(function(c, nuevoIdx){
-      var html = '';
-
-      html += '<tr data-conv-box="' + escCtrlHTML(cardId) + '">';
-      html += '<td>Convenio modificatorio ' + (nuevoIdx + 1) + '</td>';
-
-      html += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
-        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + nuevoIdx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
-        + 'placeholder="0.00"></td>';
-
-      html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
-        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + nuevoIdx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
-
-      html += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(faseId) + '\',' + nuevoIdx + ',\'' + escCtrlJS(cardId) + '\')">Eliminar</button></td>';
-
-      html += '</tr>';
-
-      tbody.insertAdjacentHTML('beforeend', html);
-    });
-  }
-
-  actualizarResumenContrato(cardId);
+  renderConveniosControl(faseId, cardId);
 }
 function actualizarFilaControl(inputEl) {
   if(!inputEl || !inputEl.closest) return;
