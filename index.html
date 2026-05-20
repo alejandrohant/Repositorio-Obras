@@ -406,6 +406,29 @@ select.fg-sel:focus{border-color:#a78bfa}
   background:#3d2222;
   color:#fecaca;
 }
+
+.ctrl-filebox{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  min-width:190px;
+}
+
+.ctrl-filebox-actions{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.ctrl-filebox-name{
+  max-width:220px;
+  text-align:center;
+  margin-top:0 !important;
+}
 .ctrl-save-btn{background:#10b981;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;margin-top:12px}
 .ctrl-save-btn:hover{background:#059669}
 .ctrl-locked-field{
@@ -5778,7 +5801,7 @@ function buildFaseHtml(perfil, fase) {
     contratosHtml += '</div>';
 
     contratosHtml += '<h4>Documentos del contrato</h4>';
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
 
     colsContratos.forEach(function(c){
       contratosHtml += '<tr>';
@@ -5803,22 +5826,10 @@ function buildFaseHtml(perfil, fase) {
 
     contratosHtml += '<h4>Convenios modificatorios</h4>';
 
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Archivo</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
 
     conveniosCtrl.forEach(function(c, idx){
-      contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
-      contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
-
-      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
-        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
-        + 'placeholder="0.00"></td>';
-
-      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
-        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
-
-      contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
-
-      contratosHtml += '</tr>';
+      contratosHtml += renderFilaConvenioControl(fase.id, key, idx, faseIdSafe, c);
     });
 
     contratosHtml += '</tbody></table></div>';
@@ -6522,31 +6533,35 @@ function buildControlIncidenciasSiroc(key, fase){
 
   function archivoCells(grupo, idx, item){
     item = item || {};
+
     var ruta = item.archivo || '';
     var inputId = 'ctrl-file-' + faseIdSafe + '-' + grupo + '-' + idx;
     var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
 
     var h = '';
-    h += '<td>';
-    h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ',this)">';
-    h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
-    h += '<div class="doc-none" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
-    h += '</td>';
 
     h += '<td>';
+    h += '<div class="ctrl-filebox">';
+    h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ',this)">';
+
+    h += '<div class="ctrl-filebox-actions">';
+    h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+
     if(ruta){
-      h += '<button type="button" class="doc-view" onclick="verArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Ver archivo</button> ';
+      h += '<button type="button" class="doc-view" onclick="verArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Ver archivo</button>';
       h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Quitar archivo</button>';
-    }else{
-      h += '<span class="doc-none">Sin archivo</span>';
     }
+
+    h += '</div>';
+    h += '<div class="doc-none ctrl-filebox-name" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+    h += '</div>';
     h += '</td>';
 
     return h;
   }
 
   var h = '<h4>Incidencias SIROC</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th></tr></thead><tbody>';
 
   incidenciasVista.forEach(function(item, idx){
     h += '<tr>';
@@ -7127,20 +7142,20 @@ function archivoConvenioControlHtml(faseId, key, idx, cardId, c){
   var h = '';
 
   h += '<td>';
+  h += '<div class="ctrl-filebox">';
   h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\',this)">';
-  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
-  h += '<div class="doc-none" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
-  h += '</td>';
 
-  h += '<td>';
+  h += '<div class="ctrl-filebox-actions">';
+  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
 
   if(ruta){
-    h += '<button type="button" class="doc-view" onclick="verArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ')">Ver archivo</button> ';
+    h += '<button type="button" class="doc-view" onclick="verArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ')">Ver archivo</button>';
     h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoConvenioControl(\'' + escCtrlJS(faseId) + '\',' + idx + ',\'' + escCtrlJS(cardId) + '\')">Quitar archivo</button>';
-  }else{
-    h += '<span class="doc-none">Sin archivo</span>';
   }
 
+  h += '</div>';
+  h += '<div class="doc-none ctrl-filebox-name" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+  h += '</div>';
   h += '</td>';
 
   return h;
@@ -7437,22 +7452,20 @@ function archivoContratoControlHtml(faseId, campoControl){
   var h = '';
 
   h += '<td>';
+  h += '<div class="ctrl-filebox">';
   h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\',this)">';
+
+  h += '<div class="ctrl-filebox-actions">';
   h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
-  h += '<div class="doc-none" id="ctrl-contrato-name-' + safe + '" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
-  h += '</td>';
 
-  h += '<td>';
+  h += '<button type="button" class="doc-view" id="ctrl-contrato-ver-' + safe + '" onclick="verArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="' + (ruta ? '' : 'display:none') + '">Ver archivo</button>';
 
-  if(ruta){
-    h += '<button type="button" class="doc-view" id="ctrl-contrato-ver-' + safe + '" onclick="verArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')">Ver archivo</button> ';
-    h += '<button type="button" class="doc-del ctrl-file-del" id="ctrl-contrato-del-' + safe + '" onclick="quitarArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')">Quitar archivo</button>';
-  }else{
-    h += '<button type="button" class="doc-view" id="ctrl-contrato-ver-' + safe + '" onclick="verArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="display:none">Ver archivo</button> ';
-    h += '<button type="button" class="doc-del ctrl-file-del" id="ctrl-contrato-del-' + safe + '" onclick="quitarArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="display:none">Quitar archivo</button>';
-    h += '<span class="doc-none" id="ctrl-contrato-sin-' + safe + '">Sin archivo</span>';
-  }
+  h += '<button type="button" class="doc-del ctrl-file-del" id="ctrl-contrato-del-' + safe + '" onclick="quitarArchivoContratoControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(campoControl) + '\')" style="' + (ruta ? '' : 'display:none') + '">Quitar archivo</button>';
+  h += '</div>';
 
+  h += '<div class="doc-none ctrl-filebox-name" id="ctrl-contrato-name-' + safe + '" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+
+  h += '</div>';
   h += '</td>';
 
   return h;
