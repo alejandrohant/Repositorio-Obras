@@ -7473,10 +7473,40 @@ function eliminarConvenioContrato(faseId, idx, cardId){
   if(!ctrl[key] || !ctrl[key]['__convenios']) return;
 
   ctrl[key]['__convenios'].splice(idx, 1);
-
   sCtrl(ctrl);
-  recargarControl();
-  abrirPanelContratosDespuesDeRecargar(cardId);
+
+  var tbody = document.getElementById('conv-tbody-' + cardId);
+
+  if(!tbody){
+    var filaActual = document.querySelector('tr[data-conv-box="' + cardId + '"]');
+    tbody = filaActual ? filaActual.parentNode : null;
+  }
+
+  if(tbody){
+    tbody.innerHTML = '';
+
+    ctrl[key]['__convenios'].forEach(function(c, nuevoIdx){
+      var html = '';
+
+      html += '<tr data-conv-box="' + escCtrlHTML(cardId) + '">';
+      html += '<td>Convenio modificatorio ' + (nuevoIdx + 1) + '</td>';
+
+      html += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
+        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + nuevoIdx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
+        + 'placeholder="0.00"></td>';
+
+      html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + nuevoIdx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
+
+      html += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(faseId) + '\',' + nuevoIdx + ',\'' + escCtrlJS(cardId) + '\')">Eliminar</button></td>';
+
+      html += '</tr>';
+
+      tbody.insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+  actualizarResumenContrato(cardId);
 }
 function actualizarFilaControl(inputEl) {
   if(!inputEl || !inputEl.closest) return;
