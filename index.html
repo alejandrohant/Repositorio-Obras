@@ -5795,29 +5795,25 @@ function buildFaseHtml(perfil, fase) {
 
     contratosHtml += '<h4>Convenios modificatorios</h4>';
 
-    if(!conveniosCtrl.length){
-      contratosHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin convenios modificatorios agregados.</p>';
-    } else {
-      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody>';
+    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
 
-      conveniosCtrl.forEach(function(c, idx){
-        contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
-        contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
+    conveniosCtrl.forEach(function(c, idx){
+      contratosHtml += '<tr data-conv-box="' + faseIdSafe + '">';
+      contratosHtml += '<td>Convenio modificatorio ' + (idx + 1) + '</td>';
 
-        contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
-          + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
-          + 'placeholder="0.00"></td>';
+      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="importe" type="number" step="0.01" value="' + escCtrlHTML(c.importe || '') + '" '
+        + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(faseIdSafe) + '\')" '
+        + 'placeholder="0.00"></td>';
 
-        contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
-          + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
+      contratosHtml += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+        + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(faseIdSafe) + '\')"></td>';
 
-        contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
+      contratosHtml += '<td><button type="button" class="ctrl-conv-del" onclick="eliminarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',' + idx + ',\'' + escCtrlJS(faseIdSafe) + '\')">Eliminar</button></td>';
 
-        contratosHtml += '</tr>';
-      });
+      contratosHtml += '</tr>';
+    });
 
-      contratosHtml += '</tbody></table></div>';
-    }
+    contratosHtml += '</tbody></table></div>';
 
     contratosHtml += '<button class="ctrl-add-btn" onclick="agregarConvenioContrato(\'' + escCtrlJS(fase.id) + '\',\'' + escCtrlJS(faseIdSafe) + '\')">+ Agregar convenio modificatorio</button>';
 
