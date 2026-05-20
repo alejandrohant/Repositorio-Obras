@@ -7162,15 +7162,21 @@ function abrirPanelContratosDespuesDeRecargar(cardId){
     var card = document.getElementById('ctrlfase-card-' + cardId);
     if(!card) return;
 
-    var btns = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn'));
-    var btnContratos = btns.find(function(b){
-      return b.textContent.trim() === 'Control Contratos / Incidencias SIROC';
+    var body = document.getElementById('ctrlfase-body-' + cardId);
+    var chev = document.getElementById('ctrlfase-chev-' + cardId);
+
+    if(body) body.classList.add('open');
+    if(chev) chev.classList.add('open');
+
+    card.querySelectorAll('.ctrl-fase-panel').forEach(function(panel){
+      panel.classList.toggle('active', panel.getAttribute('data-panel') === 'contratos');
     });
 
-    if(btnContratos){
-      toggleControlFasePanel(cardId, 'contratos', btnContratos);
-    }
-  }, 80);
+    card.querySelectorAll('.ctrl-fase-btn').forEach(function(btn){
+      var texto = String(btn.textContent || '').trim().toLowerCase();
+      btn.classList.toggle('sel', texto === 'control contratos / incidencias siroc');
+    });
+  }, 120);
 }
 
 function agregarConvenioContrato(faseId, cardId){
