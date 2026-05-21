@@ -2026,40 +2026,112 @@ async function cargarDatosSupabase(){
     return nombresObrasVisibles.indexOf(dataFase.obra || '') >= 0;
   });
 
-  var perfilesVisibles = perfiles || [];
+  var perfilesVisibles = (perfiles || []).map(function(x){
+    var dataPerfil = x.data || x;
+    dataPerfil.__created_by = x.created_by || dataPerfil.__created_by || '';
+    return dataPerfil;
+  });
 
   if(!esUsuarioDueno()){
-    var rfcsPermitidos = [];
+    var perfilesRelacionados = [];
 
-    function agregarRFCPermitido(rfc){
-      rfc = String(rfc || '').trim().toUpperCase();
-      if(rfc && rfcsPermitidos.indexOf(rfc) < 0){
-        rfcsPermitidos.push(rfc);
+    function normalizarRFC(rfc){
+      return String(rfc || '').trim().toUpperCase();
+    }
+
+    function existePerfilRFC(lista, rfc){
+      rfc = normalizarRFC(rfc);
+      return lista.some(function(p){
+        return normalizarRFC(p.rfc) === rfc;
+      });
+    }
+
+    function buscarPerfilRealPorRFC(rfc){
+      rfc = normalizarRFC(rfc);
+      return perfilesVisibles.find(function(p){
+        return normalizarRFC(p.rfc) === rfc;
+      });
+    }
+
+    function agregarPerfilRelacionado(rfc, nombre, tipo){
+      rfc = normalizarRFC(rfc);
+      if(!rfc) return;
+
+      if(existePerfilRFC(perfilesRelacionados, rfc)) return;
+
+      var perfilReal = buscarPerfilRealPorRFC(rfc);
+
+      if(perfilReal){
+        perfilesRelacionados.push(perfilReal);
+        return;
       }
+
+      perfilesRelacionados.push({
+        id: 'tmp_prf_' + rfc,
+        rfc: rfc,
+        nombre: nombre || rfc,
+        tipo: tipo || 'contratista',
+        correo: '',
+        telefono: '',
+        folioREPSE: '',
+        fechaREPSE: '',
+        vigenciaREPSE: '',
+        acuseSAT: 0,
+        acuseREPSE: 0,
+        actaConst: 0,
+        poderRL: 0,
+        idRL: 0,
+        constSATRL: 0,
+        idPersonaFisica: 0,
+        domicilio: '',
+        cp: '',
+        estado: '',
+        archivos: {}
+      });
     }
 
     obrasVisibles.forEach(function(x){
       var dataObra = x.data || x;
-      agregarRFCPermitido(dataObra.rfc);
+
+      agregarPerfilRelacionado(
+        dataObra.rfc,
+        dataObra.patron || dataObra.contratista || dataObra.nombre || dataObra.rfc,
+        dataObra.tipo === 'contratista' ? 'contratista' : 'propietaria'
+      );
     });
 
     fasesVisibles.forEach(function(x){
       var dataFase = x.data || x;
-      agregarRFCPermitido(dataFase.rfc);
-      agregarRFCPermitido(dataFase.rfcOrigen);
+      var tipoPerfil = String(dataFase.perfil || '').toLowerCase();
+
+      if(tipoPerfil.indexOf('sub') >= 0){
+        tipoPerfil = 'subcontratista';
+      }else{
+        tipoPerfil = 'contratista';
+      }
+
+      agregarPerfilRelacionado(
+        dataFase.rfc,
+        dataFase.contratista || dataFase.nombre || dataFase.rfc,
+        tipoPerfil
+      );
     });
 
-    perfilesVisibles = perfilesVisibles.filter(function(x){
-      var dataPerfil = x.data || x;
-      var rfcPerfil = String(dataPerfil.rfc || '').trim().toUpperCase();
-      var creadoPorEsteUsuario = String(x.created_by || '') === String(user.id);
+    perfilesVisibles.forEach(function(p){
+      var creadoPorEsteUsuario = String(p.__created_by || '') === String(user.id);
 
-      return creadoPorEsteUsuario || rfcsPermitidos.indexOf(rfcPerfil) >= 0;
+      if(creadoPorEsteUsuario && !existePerfilRFC(perfilesRelacionados, p.rfc)){
+        perfilesRelacionados.push(p);
+      }
     });
+
+    perfilesVisibles = perfilesRelacionados;
   }
 
-  localStorage.setItem('perfiles', JSON.stringify(perfilesVisibles.map(function(x){
-    return x.data || x;
+  localStorage.setItem('perfiles', JSON.stringify(perfilesVisibles.map(function(p){
+    var limpio = Object.assign({}, p);
+    delete limpio.__created_by;
+    return limpio;
   })));
 
   localStorage.setItem('op', JSON.stringify(
