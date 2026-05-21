@@ -6738,26 +6738,121 @@ function setCtrlLicenciaVal(key, grupo, idx, campo, val){
   sCtrl(ctrl);
 }
 
+function recargarPanelLicenciaSirocControl(key){
+  var faseId = String(key || '').replace(/^fase_/, '');
+  var faseIdSafe = faseIdSafeCtrl(faseId);
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+
+  if(!card){
+    recargarControl();
+    return;
+  }
+
+  var fase = gFases().find(function(f){
+    return String(f.id || '') === String(faseId || '');
+  });
+
+  if(!fase && ctrlFaseCtx && String(ctrlFaseCtx.id || '') === String(faseId || '')){
+    fase = ctrlFaseCtx;
+  }
+
+  if(!fase && ctrlObraCtx && String(faseId || '') === String('prop_' + ctrlObraCtx.id)){
+    fase = {
+      id:'prop_' + ctrlObraCtx.id,
+      origen:'Propietaria',
+      rfcOrigen:ctrlObraCtx.rfc || '',
+      obra:ctrlObraCtx.nombre || '',
+      sirocPrincipal:ctrlObraCtx.siroc || '',
+      rfc:ctrlObraCtx.rfc || '',
+      contratista:ctrlObraCtx.patron || ctrlObraCtx.nombre || 'Propietaria',
+      perfil:'Propietaria',
+      rp:ctrlObraCtx.rp || '--',
+      objeto:'Obra propia propietaria',
+      tipoCto:'Obra propia',
+      aplicaSiroc:1,
+      siroc:ctrlObraCtx.siroc || '',
+      ubicacion:ctrlObraCtx.ubicacion || '',
+      inicia:ctrlObraCtx.inicia || '',
+      termina:ctrlObraCtx.termina || ''
+    };
+  }
+
+  if(!fase && String(faseId || '') === 'propietaria' && ctrlPerfilCtx){
+    fase = {
+      id:'propietaria',
+      contratista:ctrlPerfilCtx.patron || ctrlPerfilCtx.nombre || 'Propietaria',
+      perfil:'Propietaria',
+      rp:ctrlPerfilCtx.rp || '',
+      siroc:ctrlPerfilCtx.siroc || '',
+      objeto:'Obra propia propietaria',
+      inicia:ctrlPerfilCtx.inicia || '',
+      termina:ctrlPerfilCtx.termina || ''
+    };
+  }
+
+  if(!fase){
+    recargarControl();
+    return;
+  }
+
+  var posicionPantalla = window.scrollY || window.pageYOffset || 0;
+  var panelLicencia = card.querySelector('[data-panel="licencia"]');
+
+  if(panelLicencia){
+    panelLicencia.innerHTML = buildControlLicenciaSiroc(key, fase);
+
+    var body = document.getElementById('ctrlfase-body-' + faseIdSafe);
+    var chev = document.getElementById('ctrlfase-chev-' + faseIdSafe);
+
+    if(body) body.classList.add('open');
+    if(chev) chev.classList.add('open');
+
+    var btn = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn')).find(function(b){
+      return String(b.getAttribute('onclick') || '').indexOf("'licencia'") >= 0;
+    });
+
+    toggleControlFasePanel(faseIdSafe, 'licencia', btn || null);
+
+    requestAnimationFrame(function(){
+      window.scrollTo(0, posicionPantalla);
+
+      if(typeof aplicarBloqueoControl === 'function'){
+        aplicarBloqueoControl();
+      }
+    });
+
+    return;
+  }
+
+  recargarTarjetaFaseControl(faseId, 'contratos');
+}
+
 function agregarActualizacionLicencia(key){
   var ctrl = gCtrl();
   var data = asegurarControlLicenciaData(ctrl, key);
+
   if(!data.actualizaciones.length){
     data.actualizaciones.push({estado:0,archivo:''});
   }
+
   data.actualizaciones.push({estado:0,archivo:''});
+
   sCtrl(ctrl);
-  recargarControl();
+  recargarPanelLicenciaSirocControl(key);
 }
 
 function agregarIncidenciaSiroc(key){
   var ctrl = gCtrl();
   var data = asegurarControlLicenciaData(ctrl, key);
+
   if(!data.incidencias.length){
     data.incidencias.push({tipo:'',archivo:''});
   }
+
   data.incidencias.push({tipo:'',archivo:''});
+
   sCtrl(ctrl);
-  recargarControl();
+  recargarPanelLicenciaSirocControl(key);
 }
 
 async function subirArchivoControlLicencia(key, grupo, idx, input){
@@ -6796,7 +6891,8 @@ async function subirArchivoControlLicencia(key, grupo, idx, input){
     await borrarRutaDocumentoFase(anterior);
   }
 
-  recargarControl();
+  input.value = '';
+  recargarPanelLicenciaSirocControl(key);
 }
 
 async function quitarArchivoControlLicencia(key, grupo, idx){
@@ -6812,7 +6908,7 @@ async function quitarArchivoControlLicencia(key, grupo, idx){
     await borrarRutaDocumentoFase(anterior);
   }
 
-  recargarControl();
+  recargarPanelLicenciaSirocControl(key);
 }
 
 function buildControlCierreHtml(key){
