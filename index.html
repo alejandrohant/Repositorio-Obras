@@ -5723,7 +5723,7 @@ function buildFaseHtml(perfil, fase) {
 
       cuotasHtml += '</tbody></table></div>';
       cuotasHtml += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
-      cuotasHtml += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">&#8635; Actualizar</button>';
+      cuotasHtml += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarTarjetaFaseControl(\'' + escCtrlJS(fase.id) + '\',\'cuotas\')">&#8635; Actualizar</button>';
     }
 
     cuotasHtml += '</div>';
@@ -5929,7 +5929,81 @@ function agregarPeriodoManualInline(faseId, btn) {
   }
 
   sCtrl(ctrl);
-  recargarControl();
+  recargarTarjetaFaseControl(faseId, 'cuotas');
+}
+
+function recargarTarjetaFaseControl(faseId, panelName){
+  var faseIdSafe = faseIdSafeCtrl(faseId);
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+
+  if(!card){
+    recargarControl();
+    return;
+  }
+
+  var fase = gFases().find(function(f){
+    return String(f.id || '') === String(faseId || '');
+  });
+
+  if(!fase && ctrlFaseCtx && String(ctrlFaseCtx.id || '') === String(faseId || '')){
+    fase = ctrlFaseCtx;
+  }
+
+  if(!fase && String(faseId || '') === 'propietaria' && ctrlPerfilCtx){
+    fase = {
+      id:'propietaria',
+      rfc:ctrlPerfilCtx.rfc || '',
+      contratista:ctrlPerfilCtx.patron || ctrlPerfilCtx.nombre || 'Propietaria',
+      perfil:'Propietaria',
+      rp:ctrlPerfilCtx.rp || '',
+      siroc:ctrlPerfilCtx.siroc || '',
+      objeto:'Obra propia propietaria',
+      inicia:ctrlPerfilCtx.inicia || '',
+      termina:ctrlPerfilCtx.termina || ''
+    };
+  }
+
+  if(!fase){
+    recargarControl();
+    return;
+  }
+
+  var perfil = gPrf().find(function(p){
+    return String(p.rfc || '').toUpperCase() === String(fase.rfc || '').toUpperCase();
+  }) || ctrlPerfilCtx || {};
+
+  var posicionPantalla = window.scrollY || window.pageYOffset || 0;
+
+  var temp = document.createElement('div');
+  temp.innerHTML = buildFaseHtml(perfil, fase).trim();
+
+  var nuevaCard = temp.firstElementChild;
+  if(!nuevaCard){
+    recargarControl();
+    return;
+  }
+
+  card.parentNode.replaceChild(nuevaCard, card);
+
+  var body = document.getElementById('ctrlfase-body-' + faseIdSafe);
+  var chev = document.getElementById('ctrlfase-chev-' + faseIdSafe);
+
+  if(body) body.classList.add('open');
+  if(chev) chev.classList.add('open');
+
+  var btnPanel = Array.prototype.slice.call(nuevaCard.querySelectorAll('.ctrl-fase-btn')).find(function(b){
+    return String(b.getAttribute('onclick') || '').indexOf("'" + panelName + "'") >= 0;
+  });
+
+  toggleControlFasePanel(faseIdSafe, panelName || 'cuotas', btnPanel || null);
+
+  requestAnimationFrame(function(){
+    window.scrollTo(0, posicionPantalla);
+
+    if(typeof aplicarBloqueoControl === 'function'){
+      aplicarBloqueoControl();
+    }
+  });
 }
 var ctrlPerfilCtx = null;
 var ctrlObraCtx = null;
@@ -6230,6 +6304,9 @@ function docCeldaRFC(key, periodo, campo, label, val){
   var texto = estadoDocRFCTexto(val) + clip;
 
   return '<button type="button" class="ctrl-doc-mini' + claseDocRFCEstado(val) + '" '
+    + 'data-ctrl-doc-key="' + escCtrlHTML(key) + '" '
+    + 'data-ctrl-doc-periodo="' + escCtrlHTML(periodo) + '" '
+    + 'data-ctrl-doc-campo="' + escCtrlHTML(campo) + '" '
     + 'onclick="abrirModalDocRFC(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(periodo) + '\',\'' + escCtrlJS(campo) + '\',\'' + escCtrlJS(label) + '\')">'
     + escCtrlHTML(texto)
     + '</button>';
@@ -6274,6 +6351,25 @@ function pintarModalDocRFC(){
   document.getElementById('doc-rfc-pick').style.display = bloqueado ? 'none' : 'inline-block';
 }
 
+function refrescarBotonDocRFCActual(){
+  if(!docRFCCtx) return;
+
+  var ctrl = gCtrl();
+  var val = getCtrlVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+  var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
+  var texto = estadoDocRFCTexto(val) + (ruta ? ' 📎' : '');
+
+  document.querySelectorAll('.ctrl-doc-mini').forEach(function(btn){
+    if(
+      btn.getAttribute('data-ctrl-doc-key') === String(docRFCCtx.key) &&
+      btn.getAttribute('data-ctrl-doc-periodo') === String(docRFCCtx.periodo) &&
+      btn.getAttribute('data-ctrl-doc-campo') === String(docRFCCtx.campo)
+    ){
+      btn.textContent = texto;
+      btn.className = 'ctrl-doc-mini' + claseDocRFCEstado(val);
+    }
+  });
+}
 function cambiarEstadoModalDocRFC(){
   if(!docRFCCtx) return;
 
@@ -6281,11 +6377,8 @@ function cambiarEstadoModalDocRFC(){
 
   setCtrlVal(docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo, valor);
 
-  recargarControl();
-
-  setTimeout(function(){
-    pintarModalDocRFC();
-  }, 0);
+  refrescarBotonDocRFCActual();
+  pintarModalDocRFC();
 }
 
 async function subirArchivoModalDocRFC(input){
@@ -6323,11 +6416,8 @@ async function subirArchivoModalDocRFC(input){
 
   input.value = '';
 
-  recargarControl();
-
-  setTimeout(function(){
-    pintarModalDocRFC();
-  }, 0);
+  refrescarBotonDocRFCActual();
+  pintarModalDocRFC();
 }
 
 async function quitarArchivoModalDocRFC(){
@@ -6342,11 +6432,8 @@ async function quitarArchivoModalDocRFC(){
     await borrarRutaDocumentoFase(anterior);
   }
 
-  recargarControl();
-
-  setTimeout(function(){
-    pintarModalDocRFC();
-  }, 0);
+  refrescarBotonDocRFCActual();
+  pintarModalDocRFC();
 }
 
 async function verArchivoModalDocRFC(){
