@@ -12184,8 +12184,49 @@ function normalizarSelectoresDocumentales(){
   ].forEach(normalizarSelectDocumental);
 }
 
+function prepararLoginManual(){
+  var email = document.getElementById('authEmail');
+  var pass = document.getElementById('authPassword');
+
+  function blindarCampo(el, tipo, nombreManual, auto){
+    if(!el) return;
+
+    el.setAttribute('type', tipo);
+    el.setAttribute('name', nombreManual);
+    el.setAttribute('autocomplete', auto);
+    el.setAttribute('autocorrect', 'off');
+    el.setAttribute('autocapitalize', 'none');
+    el.setAttribute('spellcheck', 'false');
+    el.setAttribute('data-lpignore', 'true');
+    el.setAttribute('data-form-type', 'other');
+    el.setAttribute('readonly', 'readonly');
+
+    el.addEventListener('focus', function(){
+      setTimeout(function(){
+        el.removeAttribute('readonly');
+      }, 80);
+    });
+
+    el.addEventListener('mousedown', function(){
+      setTimeout(function(){
+        el.removeAttribute('readonly');
+      }, 80);
+    });
+
+    el.addEventListener('touchstart', function(){
+      setTimeout(function(){
+        el.removeAttribute('readonly');
+      }, 80);
+    });
+  }
+
+  blindarCampo(email, 'text', 'correo_manual_forja', 'off');
+  blindarCampo(pass, 'password', 'clave_manual_forja', 'new-password');
+}
+
 init();
 normalizarSelectoresDocumentales();
+prepararLoginManual();
 counts();
 setTimeout(initAuth, 500);
 </script>
