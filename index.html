@@ -373,6 +373,61 @@ select.fg-sel:focus{border-color:#a78bfa}
   color:#cbd5e1;
   font-weight:600;
 }
+.ctrl-summary-bar{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.ctrl-summary-card{
+  background:#1e2d2a;
+  border-radius:8px;
+  padding:10px 14px;
+}
+
+.ctrl-summary-card.warn{
+  background:#2d1a00;
+}
+
+.ctrl-summary-card label{
+  display:block;
+  font-size:10px;
+  color:#10b981;
+  font-weight:600;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+
+.ctrl-summary-card span{
+  display:block;
+  font-size:15px;
+  font-weight:700;
+  color:#10b981;
+}
+
+.ctrl-summary-card.warn label,
+.ctrl-summary-card.warn span{
+  color:#f59e0b;
+}
+
+.ctrl-mo-impl{
+  color:#a78bfa;
+  font-weight:600;
+  font-size:11px;
+}
+
+.ctrl-cuotas-row{
+  color:#10b981;
+  font-weight:600;
+  font-size:11px;
+}
+
+@media(max-width:700px){
+  .ctrl-summary-bar{
+    grid-template-columns:1fr;
+  }
+}
 .ctrl-anticipo-val{width:180px !important;min-width:180px !important;text-align:left !important}
 .ctrl-anticipo-num{width:180px !important;min-width:180px !important;text-align:right !important}
 .ctrl-warn{background:#2d1a00;border:2px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:13px;color:#f59e0b}
@@ -5783,10 +5838,10 @@ function buildFaseHtml(perfil, fase) {
   }
 
   if(!soloISN){
-    cuotasHtml += '<div class="ctrl-summary-bar" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">'
-      + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">MO Acumulada</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (moAcum>0?mxn(moAcum):'--') + '</div></div>'
-      + '<div style="background:#1e2d2a;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#10b981;font-weight:600;text-transform:uppercase;margin-bottom:2px">Cuotas Pagadas</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#10b981">' + (cuotasAcum>0?mxn(cuotasAcum):'--') + '</div></div>'
-      + '<div style="background:#2d1a00;border-radius:8px;padding:10px 14px"><div style="font-size:10px;color:#f59e0b;font-weight:600;text-transform:uppercase;margin-bottom:2px">GPS Acumulado</div><div class="ctrl-sum-val" style="font-size:15px;font-weight:700;color:#f59e0b">' + (totalGPS>0?mxn(totalGPS):'--') + '</div></div>'
+    cuotasHtml += '<div class="ctrl-summary-bar">'
+      + '<div class="ctrl-summary-card"><label>MO Acumulada</label><span class="ctrl-sum-val">' + (moAcum>0?mxn(moAcum):'--') + '</span></div>'
+      + '<div class="ctrl-summary-card"><label>Cuotas Pagadas</label><span class="ctrl-sum-val">' + (cuotasAcum>0?mxn(cuotasAcum):'--') + '</span></div>'
+      + '<div class="ctrl-summary-card warn"><label>GPS Acumulado</label><span class="ctrl-sum-val">' + (totalGPS>0?mxn(totalGPS):'--') + '</span></div>'
       + '</div>';
 
     cuotasHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control cuotas IMSS/SIROC</h3>';
@@ -5824,8 +5879,8 @@ function buildFaseHtml(perfil, fase) {
         var infVal = parseFloat(getCtrlVal(ctrl,key,p,'inf'))||0;
         var cuotasRow = (copVal+rcvVal+infVal) > 0 ? mxn(copVal+rcvVal+infVal) : '--';
 
-        cuotasHtml += '<td class="mo-impl" style="color:#a78bfa;font-weight:600;font-size:11px">' + moImpl + '</td>';
-        cuotasHtml += '<td class="cuotas-row" style="color:#10b981;font-weight:600;font-size:11px">' + cuotasRow + '</td>';
+        cuotasHtml += '<td class="mo-impl ctrl-mo-impl">' + moImpl + '</td>';
+        cuotasHtml += '<td class="cuotas-row ctrl-cuotas-row">' + cuotasRow + '</td>';
 
         cols.forEach(function(c){
           if(c.k === 'vinc'){
