@@ -5978,7 +5978,7 @@ function buildFaseHtml(perfil, fase) {
 
     var nuevaFechaTermino = fechasConvenio.length ? fechasConvenio[fechasConvenio.length - 1] : fechaTerminoContrato;
 
-    contratosHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Contratos</h3>';
+    contratosHtml += '<div class="ctrl-seccion tight-top"><h3>Control Contratos</h3>';
 
     contratosHtml += '<div class="ctrl-contrato-resumen" id="contratos-resumen-' + faseIdSafe + '" '
       + 'data-importe-original="' + importeOriginal + '" '
@@ -5994,7 +5994,7 @@ function buildFaseHtml(perfil, fase) {
     contratosHtml += '</div>';
 
     contratosHtml += '<h4>Documentos del contrato</h4>';
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
+    contratosHtml += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
 
     colsContratos.forEach(function(c){
       contratosHtml += '<tr>';
@@ -6008,7 +6008,7 @@ function buildFaseHtml(perfil, fase) {
 
     if(conveniosLegacy.length){
       contratosHtml += '<h4>Convenios previos capturados en la fase</h4>';
-      contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe</th></tr></thead><tbody>';
+      contratosHtml += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe</th></tr></thead><tbody>';
 
       conveniosLegacy.forEach(function(c){
         contratosHtml += '<tr><td>' + c.nombre + '</td><td>' + mxn(c.importe) + '</td></tr>';
@@ -6019,7 +6019,7 @@ function buildFaseHtml(perfil, fase) {
 
     contratosHtml += '<h4>Convenios modificatorios</h4>';
 
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Archivo</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
+    contratosHtml += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Archivo</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
 
     conveniosCtrl.forEach(function(c, idx){
       contratosHtml += renderFilaConvenioControl(fase.id, key, idx, faseIdSafe, c);
@@ -7802,7 +7802,7 @@ function renderFilaConvenioControl(faseId, key, idx, cardId, c){
     + 'oninput="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',parseFloat(this.value)||0,\'' + escCtrlJS(cardId) + '\')" '
     + 'placeholder="0.00"></td>';
 
-  html += '<td><input class="ctrl-inp" data-conv-campo="fechaTermino" type="date" style="width:150px;text-align:left" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
+  html += '<td><input class="ctrl-inp ctrl-inp-w130" data-conv-campo="fechaTermino" type="date" value="' + escCtrlHTML(c.fechaTermino || '') + '" '
     + 'onchange="setConvenioContratoVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaTermino\',this.value,\'' + escCtrlJS(cardId) + '\')"></td>';
 
   html += archivoConvenioControlHtml(faseId, key, idx, cardId, c);
