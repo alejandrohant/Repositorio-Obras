@@ -5733,15 +5733,7 @@ function buildFaseHtml(perfil, fase) {
 
   var estimacionesHtml = !soloISN ? buildControlEstimaciones(key, fase) : '';
 
-  var cierreHtml = '';
-  if(!soloISN){
-    cierreHtml += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Cierre</h3>';
-    cierreHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th></tr></thead><tbody>';
-    colsCierre.forEach(function(c){
-      cierreHtml += '<tr><td>' + c.l + '</td><td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td></tr>';
-    });
-    cierreHtml += '</tbody></table></div></div>';
-  }
+  var cierreHtml = !soloISN ? buildControlCierreHtml(key) : '';
 
   var contratosHtml = '';
   if(!faseEsPropietaria && !soloISN){
@@ -6679,11 +6671,158 @@ async function quitarArchivoControlLicencia(key, grupo, idx){
   recargarControl();
 }
 
-async function verArchivoControlLicencia(key, grupo, idx){
+function buildControlCierreHtml(key){
   var ctrl = gCtrl();
-  var data = asegurarControlLicenciaData(ctrl, key);
-  var item = asegurarControlLicenciaItem(data, grupo, idx);
-  await verRutaDocumentoPerfil(item.archivo || '');
+
+  var colsCierre = [
+    {k:'acta',l:'Acta entrega'},
+    {k:'av_term',l:'Aviso terminación'},
+    {k:'corp1',l:'CORP 01'},
+    {k:'corp2',l:'CORP 02'},
+    {k:'pago_dif',l:'Pago de diferencias'},
+    {k:'oficio',l:'Oficio conclusión'},
+    {k:'dictamen',l:'Aviso de dictamen'},
+    {k:'dictamen_sin_salvedades',l:'Dictamen sin salvedades'}
+  ];
+
+  var h = '';
+  h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Cierre</h3>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
+
+  colsCierre.forEach(function(c){
+    h += '<tr>';
+    h += '<td>' + c.l + '</td>';
+    h += '<td>' + docSelectCtrl(key, '__cierre', c.k, getCtrlVal(ctrl,key,'__cierre',c.k)) + '</td>';
+    h += ctrlCierreArchivoCell(key, c.k, c.l);
+    h += '</tr>';
+  });
+
+  h += '</tbody></table></div></div>';
+
+  return h;
+}
+
+function ctrlCierreArchivoCell(key, campo, label){
+  var ctrl = gCtrl();
+  var ruta = getCtrlArchivoVal(ctrl, key, '__cierre', campo);
+  var safe = String(key + '-' + campo).replace(/[^a-zA-Z0-9_-]/g,'_');
+  var inputId = 'ctrl-cierre-file-' + safe;
+  var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+
+  var h = '';
+
+  h += '<td>';
+  h += '<div class="ctrl-filebox">';
+  h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlCierre(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(campo) + '\',this)">';
+  h += '<div class="ctrl-filebox-actions">';
+  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+
+  if(ruta){
+    h += '<button type="button" class="doc-view" onclick="verArchivoControlCierre(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(campo) + '\')">Ver archivo</button>';
+    h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoControlCierre(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(campo) + '\')">Quitar archivo</button>';
+  }
+
+  h += '</div>';
+  h += '<div class="doc-none ctrl-filebox-name" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+  h += '</div>';
+  h += '</td>';
+
+  return h;
+}
+
+function recargarPanelCierreControl(key){
+  var faseId = String(key || '').replace(/^fase_/, '');
+  var faseIdSafe = faseIdSafeCtrl(faseId);
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+
+  if(!card){
+    recargarControl();
+    return;
+  }
+
+  var panel = card.querySelector('[data-panel="cierre"]');
+  if(!panel) return;
+
+  var posicionPantalla = window.scrollY || window.pageYOffset || 0;
+
+  panel.innerHTML = buildControlCierreHtml(key);
+
+  var body = document.getElementById('ctrlfase-body-' + faseIdSafe);
+  var chev = document.getElementById('ctrlfase-chev-' + faseIdSafe);
+
+  if(body) body.classList.add('open');
+  if(chev) chev.classList.add('open');
+
+  var btn = Array.prototype.slice.call(card.querySelectorAll('.ctrl-fase-btn')).find(function(b){
+    return String(b.getAttribute('onclick') || '').indexOf("'cierre'") >= 0;
+  });
+
+  toggleControlFasePanel(faseIdSafe, 'cierre', btn || null);
+
+  requestAnimationFrame(function(){
+    window.scrollTo(0, posicionPantalla);
+
+    if(typeof aplicarBloqueoControl === 'function'){
+      aplicarBloqueoControl();
+    }
+  });
+}
+
+async function subirArchivoControlCierre(key, campo, input){
+  if(!input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/control/' + key + '/cierre_' + campo + '_' + Date.now() + '_' + limpio;
+
+  var ctrl = gCtrl();
+  var anterior = getCtrlArchivoVal(ctrl, key, '__cierre', campo);
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de cierre:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    input.value = '';
+    return;
+  }
+
+  setCtrlArchivoVal(key, '__cierre', campo, ruta);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  input.value = '';
+  recargarPanelCierreControl(key);
+}
+
+async function quitarArchivoControlCierre(key, campo){
+  var ctrl = gCtrl();
+  var anterior = getCtrlArchivoVal(ctrl, key, '__cierre', campo);
+
+  setCtrlArchivoVal(key, '__cierre', campo, '');
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  recargarPanelCierreControl(key);
+}
+
+async function verArchivoControlCierre(key, campo){
+  var ctrl = gCtrl();
+  var ruta = getCtrlArchivoVal(ctrl, key, '__cierre', campo);
+
+  await verRutaDocumentoPerfil(ruta || '');
 }
 function montoInputCtrl(key, periodo, campo, val) {
   var esc = function(s){return s.replace(/'/g,"\'");};
