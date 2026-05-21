@@ -3628,7 +3628,7 @@ async function guardarUsuarioApp(e){
 
     if(eUpdate){
       console.error('ACTUALIZAR USUARIO ERROR:', eUpdate);
-      alert('No se pudo actualizar el usuario.');
+      alert('No se pudo actualizar el usuario: ' + (eUpdate.message || 'Error desconocido'));
       return;
     }
   }else{
