@@ -6451,7 +6451,7 @@ function buildFaseHtml(perfil, fase) {
     h += '<button type="button" class="ctrl-fase-btn ' + (panelInicial === 'isn' ? 'sel' : '') + '" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'isn\',this)">Control ISN</button>';
   }
 
-  if(!soloISN){
+  if(!faseEsPropietaria && !soloISN){
     h += '<button type="button" class="ctrl-fase-btn" onclick="toggleControlFasePanel(\'' + faseIdSafe + '\',\'estimaciones\',this)">Control Anticipo / Estimaciones</button>';
   }
 
@@ -6479,7 +6479,7 @@ function buildFaseHtml(perfil, fase) {
       + '</div>';
   }
 
-  if(!soloISN){
+   if(!faseEsPropietaria && !soloISN){
     h += '<div class="ctrl-fase-panel" data-panel="estimaciones">'
       + wrapBloqueControl('fase_' + faseIdSafe + '_estimaciones', 'Control Anticipo / Estimaciones', estimacionesHtml)
       + '</div>';
@@ -7833,13 +7833,17 @@ function editarAnticipoControl(faseId, idx){
   recargarPanelEstimacionesControl(faseId);
 }
 
-function eliminarAnticipoControl(faseId, idx){
+async function eliminarAnticipoControl(faseId, idx){
   if(!confirm('¿Eliminar este anticipo?')) return;
 
   var key = 'fase_' + faseId;
   var ctrl = gCtrl();
 
   if(!ctrl[key] || !Array.isArray(ctrl[key].__anticipos)) return;
+
+  var item = ctrl[key].__anticipos[idx];
+
+  await borrarArchivosAntEstItem(item);
 
   ctrl[key].__anticipos.splice(idx, 1);
 
@@ -7939,7 +7943,7 @@ function recargarPanelEstimacionesControl(faseId){
 
   var posicionPantalla = window.scrollY || window.pageYOffset || 0;
 
-  panel.innerHTML = buildControlEstimaciones(key, fase);
+  panel.innerHTML = wrapBloqueControl('fase_' + faseIdSafe + '_estimaciones', 'Control Anticipo / Estimaciones', buildControlEstimaciones(key, fase));
   abrirPanelEstimacionesControl(faseId);
 
   requestAnimationFrame(function(){
@@ -7974,13 +7978,17 @@ function agregarEstimacionControl(faseId){
   recargarPanelEstimacionesControl(faseId);
 }
 
-function eliminarEstimacionControl(faseId, idx){
+async function eliminarEstimacionControl(faseId, idx){
   if(!confirm('¿Eliminar esta estimación?')) return;
 
   var key = 'fase_' + faseId;
   var ctrl = gCtrl();
 
   if(!ctrl[key] || !Array.isArray(ctrl[key].__estimaciones)) return;
+
+  var item = ctrl[key].__estimaciones[idx];
+
+  await borrarArchivosAntEstItem(item);
 
   ctrl[key].__estimaciones.splice(idx, 1);
 
@@ -7992,6 +8000,125 @@ function eliminarEstimacionControl(faseId, idx){
   recargarPanelEstimacionesControl(faseId);
 }
 
+function archivoAntEstCell(faseId, key, tipo, idx, campo, item){
+  item = item || {};
+  if(!item.archivos) item.archivos = {};
+
+  var ruta = item.archivos[campo] || '';
+  var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
+  var safe = String(key + '-' + tipo + '-' + idx + '-' + campo).replace(/[^a-zA-Z0-9_-]/g,'_');
+  var inputId = 'antest-file-' + safe;
+
+  var h = '';
+
+  h += '<td>';
+  h += '<div class="ctrl-filebox">';
+  h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.xml,.doc,.docx,.xls,.xlsx" onchange="subirArchivoAntEstControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(tipo) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',this)">';
+
+  h += '<div class="ctrl-filebox-actions">';
+  h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+
+  if(ruta){
+    h += '<button type="button" class="doc-view" onclick="verArchivoAntEstControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(tipo) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\')">Ver archivo</button>';
+    h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoAntEstControl(\'' + escCtrlJS(faseId) + '\',\'' + escCtrlJS(tipo) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\')">Quitar archivo</button>';
+  }
+
+  h += '</div>';
+  h += '<div class="doc-none ctrl-filebox-name" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+  h += '</div>';
+  h += '</td>';
+
+  return h;
+}
+
+function getItemAntEstControl(ctrl, key, tipo, idx){
+  if(!ctrl[key]) ctrl[key] = {};
+
+  var lista = tipo === 'anticipo' ? '__anticipos' : '__estimaciones';
+
+  if(!Array.isArray(ctrl[key][lista])) ctrl[key][lista] = [];
+  if(!ctrl[key][lista][idx]) ctrl[key][lista][idx] = {};
+  if(!ctrl[key][lista][idx].archivos) ctrl[key][lista][idx].archivos = {};
+
+  return ctrl[key][lista][idx];
+}
+
+async function subirArchivoAntEstControl(faseId, tipo, idx, campo, input){
+  if(!input || !input.files || !input.files[0]) return;
+
+  if(!currentUser){
+    alert('Inicia sesión para subir archivos.');
+    input.value = '';
+    return;
+  }
+
+  var key = 'fase_' + faseId;
+  var file = input.files[0];
+  var limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var ruta = currentUser.id + '/control/' + key + '/' + tipo + '_' + idx + '_' + campo + '_' + Date.now() + '_' + limpio;
+
+  var ctrl = gCtrl();
+  var item = getItemAntEstControl(ctrl, key, tipo, idx);
+  var anterior = item.archivos[campo] || '';
+
+  var subida = await supabaseClient.storage
+    .from('documentos')
+    .upload(ruta, file, { upsert:false });
+
+  if(subida.error){
+    console.error('Error subiendo archivo de anticipo/estimación:', subida.error);
+    alert('No se pudo subir el archivo. Revisa permisos del bucket documentos.');
+    input.value = '';
+    return;
+  }
+
+  item.archivos[campo] = ruta;
+  sCtrl(ctrl);
+
+  if(anterior && anterior !== ruta){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  input.value = '';
+  recargarPanelEstimacionesControl(faseId);
+}
+
+async function quitarArchivoAntEstControl(faseId, tipo, idx, campo){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+  var item = getItemAntEstControl(ctrl, key, tipo, idx);
+  var anterior = item.archivos[campo] || '';
+
+  item.archivos[campo] = '';
+  sCtrl(ctrl);
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  recargarPanelEstimacionesControl(faseId);
+}
+
+async function verArchivoAntEstControl(faseId, tipo, idx, campo){
+  var key = 'fase_' + faseId;
+  var ctrl = gCtrl();
+  var item = getItemAntEstControl(ctrl, key, tipo, idx);
+  var ruta = item.archivos[campo] || '';
+
+  await verRutaDocumentoPerfil(ruta || '');
+}
+
+async function borrarArchivosAntEstItem(item){
+  if(!item || !item.archivos) return;
+
+  var rutas = Object.keys(item.archivos).map(function(k){
+    return item.archivos[k];
+  }).filter(Boolean);
+
+  for(var i = 0; i < rutas.length; i++){
+    await borrarRutaDocumentoFase(rutas[i]);
+  }
+}
 function inputEstimacion(key, idx, campo, val, tipo, ancho){
   tipo = tipo || 'number';
   ancho = ancho || '';
@@ -8069,7 +8196,7 @@ function buildControlEstimaciones(key, fase){
     h += '<p class="ctrl-muted-msg">Sin anticipos agregados.</p>';
   }else{
     h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr>';
-    h += '<th>No.</th><th>Acción</th><th>% anticipo</th><th>Importe anticipo</th><th>Fecha pago anticipo</th>';
+    h += '<th>No.</th><th>Acción</th><th>% anticipo</th><th>Importe anticipo</th><th>Fecha pago anticipo</th><th>CFDI</th><th>XML</th><th>Comprobante pago</th><th>Fianza</th>';
     h += '</tr></thead><tbody>';
 
     anticipos.forEach(function(a, idx){
@@ -8085,6 +8212,11 @@ function buildControlEstimaciones(key, fase){
       h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="number" step="0.01" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
 
       h += '<td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(a.fechaPago || '') + '" onchange="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaPago\',this.value,' + importeContrato + ')"></td>';
+
+      h += archivoAntEstCell(fase.id, key, 'anticipo', idx, 'cfdi', a);
+      h += archivoAntEstCell(fase.id, key, 'anticipo', idx, 'xml', a);
+      h += archivoAntEstCell(fase.id, key, 'anticipo', idx, 'comprobantePago', a);
+      h += archivoAntEstCell(fase.id, key, 'anticipo', idx, 'fianza', a);
 
       h += '</tr>';
     });
@@ -8111,7 +8243,7 @@ function buildControlEstimaciones(key, fase){
     h += '<p class="ctrl-muted-msg">Sin estimaciones agregadas.</p>';
   } else {
     h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr>';
-    h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Subtotal sin IVA</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total con IVA</th><th>Fecha pago</th><th>Estatus</th>';
+    h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Subtotal sin IVA</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total con IVA</th><th>Fecha pago</th><th>Estatus</th><th>Estimación / carátula</th><th>CFDI</th><th>XML</th><th>Comprobante pago</th><th>Soporte retención</th>';
     h += '</tr></thead><tbody>';
 
     estimaciones.forEach(function(e, idx){
@@ -8127,6 +8259,11 @@ function buildControlEstimaciones(key, fase){
       h += '<td>' + inputEstimacion(key, idx, 'total', e.total || e.totalPagado || '', 'number') + '</td>';
       h += '<td>' + inputEstimacion(key, idx, 'fechaPago', e.fechaPago || '', 'date', '130px') + '</td>';
       h += '<td>' + selectEstimacion(key, idx, e.estatus || '0') + '</td>';
+      h += archivoAntEstCell(fase.id, key, 'estimacion', idx, 'estimacionCaratula', e);
+      h += archivoAntEstCell(fase.id, key, 'estimacion', idx, 'cfdi', e);
+      h += archivoAntEstCell(fase.id, key, 'estimacion', idx, 'xml', e);
+      h += archivoAntEstCell(fase.id, key, 'estimacion', idx, 'comprobantePago', e);
+      h += archivoAntEstCell(fase.id, key, 'estimacion', idx, 'soporteRetencion', e);
       h += '</tr>';
     });
 
