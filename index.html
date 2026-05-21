@@ -714,17 +714,11 @@ label.ctrl-action-locked{
 .ctrl-fase-btn:hover{border-color:#10b981;color:#10b981}
 .ctrl-fase-btn.sel{background:#1e2d2a;border-color:#10b981;color:#10b981}
 .ctrl-fase-panel{
-  max-height:0;
-  overflow:hidden;
-  opacity:0;
-  pointer-events:none;
-  transition:max-height .22s ease, opacity .18s ease;
+  display:none;
 }
 
 .ctrl-fase-panel.active{
-  max-height:12000px;
-  opacity:1;
-  pointer-events:auto;
+  display:block;
 }
 
 .ctrl-doc-mini{
