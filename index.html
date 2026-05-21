@@ -5681,7 +5681,7 @@ function buildFaseHtml(perfil, fase) {
     if(!todosPeridos.length) {
       cuotasHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin periodos generados. La fase no tiene fechas definidas.</p>';
     } else {
-      cuotasHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>Estado</th>';
+      cuotasHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>Estado</th><th>Acción</th>';
       colsMonto.forEach(function(c){ cuotasHtml += '<th title="' + c.tip + '">' + c.l + '</th>'; });
       cuotasHtml += '<th>MO implícita</th><th>Cuotas</th>';
       cols.forEach(function(c){ cuotasHtml += '<th>' + c.l + '</th>'; });
@@ -5693,10 +5693,14 @@ function buildFaseHtml(perfil, fase) {
         var badge = esExtra ? '<span class="periodo-badge pb-manual">Manual</span>'
           : (esVenc ? '<span class="periodo-badge pb-venc">Vencido</span>' : '<span class="periodo-badge pb-ok">OK</span>');
 
+        var accionManual = esExtra
+          ? '<button type="button" class="ctrl-conv-del" onclick="eliminarPeriodoManualInline(\'' + escCtrlJS(fase.id) + '\',\'' + escCtrlJS(p) + '\')">Eliminar</button>'
+          : '<span style="color:#64748b">--</span>';
+
         var gpsVal = parseFloat(getCtrlVal(ctrl,key,p,'gps'))||0;
         var moImpl = gpsVal > 0 ? mxn(gpsVal/0.01) : '--';
 
-        cuotasHtml += '<tr' + (esVenc?' class="venc"':'') + '><td>' + periodoLabel(p) + '</td><td>' + badge + '</td>';
+        cuotasHtml += '<tr' + (esVenc?' class="venc"':'') + '><td>' + periodoLabel(p) + '</td><td>' + badge + '</td><td>' + accionManual + '</td>';
 
         colsMonto.forEach(function(c){
           cuotasHtml += '<td>' + montoInputCtrl(key, p, c.k, getCtrlVal(ctrl,key,p,c.k)||'') + '</td>';
@@ -5926,6 +5930,40 @@ function agregarPeriodoManualInline(faseId, btn) {
 
   if(ctrl[key]['__extra'].indexOf(p) < 0){
     ctrl[key]['__extra'].push(p);
+  }
+
+  sCtrl(ctrl);
+  recargarTarjetaFaseControl(faseId, 'cuotas');
+}
+
+function periodoPerteneceFechasFase(fase, periodo){
+  if(!fase || !fase.inicia || !fase.termina || !periodo) return false;
+
+  var ini = String(fase.inicia).slice(0,7);
+  var fin = String(fase.termina).slice(0,7);
+
+  return periodo >= ini && periodo <= fin;
+}
+
+function eliminarPeriodoManualInline(faseId, periodo){
+  if(!confirm('¿Eliminar el periodo manual ' + periodoLabel(periodo) + '?')) return;
+
+  var ctrl = gCtrl();
+  var key = 'fase_' + faseId;
+
+  if(!ctrl[key]) ctrl[key] = {};
+  if(!Array.isArray(ctrl[key]['__extra'])) ctrl[key]['__extra'] = [];
+
+  ctrl[key]['__extra'] = ctrl[key]['__extra'].filter(function(p){
+    return String(p) !== String(periodo);
+  });
+
+  var fase = gFases().find(function(f){
+    return String(f.id || '') === String(faseId || '');
+  });
+
+  if(!periodoPerteneceFechasFase(fase, periodo)){
+    delete ctrl[key][periodo];
   }
 
   sCtrl(ctrl);
