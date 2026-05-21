@@ -409,25 +409,51 @@ select.fg-sel:focus{border-color:#a78bfa}
 
 .ctrl-filebox{
   display:flex;
-  flex-direction:column;
   align-items:center;
-  justify-content:center;
-  gap:5px;
-  min-width:190px;
+  justify-content:flex-start;
+  gap:8px;
+  flex-wrap:nowrap;
+  width:100%;
+  min-width:280px;
 }
 
 .ctrl-filebox-actions{
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:6px;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
+  flex:0 0 auto;
 }
 
 .ctrl-filebox-name{
   max-width:220px;
-  text-align:center;
+  text-align:left;
   margin-top:0 !important;
+  flex:1 1 auto;
+  min-width:80px;
+}
+
+.ctrl-filebox .doc-pick,
+.ctrl-filebox .doc-view,
+.ctrl-filebox .doc-del{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+@media(max-width:700px){
+  .ctrl-filebox{
+    flex-wrap:wrap;
+    min-width:220px;
+  }
+
+  .ctrl-filebox-actions{
+    flex-wrap:wrap;
+  }
+
+  .ctrl-filebox-name{
+    max-width:100%;
+  }
 }
 .ctrl-save-btn{background:#10b981;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;margin-top:12px}
 .ctrl-save-btn:hover{background:#059669}
@@ -6680,19 +6706,22 @@ function buildControlLicenciaSiroc(key, fase){
     var nombre = ruta ? nombreArchivoRuta(ruta) : 'Sin archivo';
 
     var h = '';
-    h += '<td>';
-    h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ',this)">';
-    h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
-    h += '<div class="doc-none" title="' + escCtrlHTML(nombre) + '" style="margin-top:4px;max-width:180px">' + escCtrlHTML(nombre) + '</div>';
-    h += '</td>';
 
     h += '<td>';
+    h += '<div class="ctrl-filebox">';
+    h += '<input class="doc-file" type="file" id="' + inputId + '" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="subirArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ',this)">';
+
+    h += '<div class="ctrl-filebox-actions">';
+    h += '<label class="doc-pick ctrl-file-pick" for="' + inputId + '">Subir archivo</label>';
+
     if(ruta){
-      h += '<button type="button" class="doc-view" onclick="verArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Ver archivo</button> ';
+      h += '<button type="button" class="doc-view" onclick="verArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Ver archivo</button>';
       h += '<button type="button" class="doc-del ctrl-file-del" onclick="quitarArchivoControlLicencia(\'' + escCtrlJS(key) + '\',\'' + grupo + '\',' + idx + ')">Quitar archivo</button>';
-    }else{
-      h += '<span class="doc-none">Sin archivo</span>';
     }
+
+    h += '</div>';
+    h += '<div class="doc-none ctrl-filebox-name" title="' + escCtrlHTML(nombre) + '">' + escCtrlHTML(nombre) + '</div>';
+    h += '</div>';
     h += '</td>';
 
     return h;
@@ -6701,7 +6730,7 @@ function buildControlLicenciaSiroc(key, fase){
   var h = '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Licencia / Incidencias SIROC</h3>';
 
   h += '<h4>Actualización licencia</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
   actualizacionesVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Actualización licencia ' + (idx + 1) + '</td>';
@@ -6714,7 +6743,7 @@ function buildControlLicenciaSiroc(key, fase){
   h += '<button type="button" class="ctrl-add-btn" onclick="agregarActualizacionLicencia(\'' + escCtrlJS(key) + '\')">+ Agregar actualización</button>';
 
   h += '<h4>Incidencia SIROC</h4>';
-   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody>';
+   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
   incidenciasVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Incidencia SIROC ' + (idx + 1) + '</td>';
