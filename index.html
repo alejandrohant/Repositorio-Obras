@@ -786,6 +786,45 @@ label.ctrl-action-locked{
   display:none !important;
 }
 
+.ctrl-doc-rfc-modal{
+  max-width:520px;
+}
+
+.ctrl-doc-rfc-periodo-box{
+  background:#0f1117;
+  border:1px solid #2d2d44;
+  border-radius:10px;
+  padding:12px 14px;
+  margin-bottom:16px;
+}
+
+.ctrl-doc-rfc-periodo-label{
+  font-size:10px;
+  color:#64748b;
+  font-weight:800;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+.ctrl-doc-rfc-periodo-text{
+  color:#e2e8f0;
+  font-size:14px;
+  font-weight:700;
+}
+
+.ctrl-modal-one-col{
+  grid-template-columns:1fr;
+}
+
+.ctrl-modal-title-accent{
+  color:#a78bfa !important;
+}
+
+.ctrl-modal-actions-list{
+  display:grid;
+  gap:10px;
+  margin-top:16px;
+}
 .ctrl-fase-card-hdr{
   display:flex;
   align-items:flex-start;
@@ -1415,15 +1454,15 @@ label.ctrl-action-locked{
 </div>
 
 <div class="mov" id="modal-doc-rfc">
-  <div class="mbox" style="max-width:520px">
+  <div class="mbox ctrl-doc-rfc-modal">
     <h2 id="doc-rfc-titulo">Documento de control</h2>
 
-    <div style="background:#0f1117;border:1px solid #2d2d44;border-radius:10px;padding:12px 14px;margin-bottom:16px">
-      <div style="font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase;margin-bottom:4px">Periodo</div>
-      <div id="doc-rfc-periodo" style="color:#e2e8f0;font-size:14px;font-weight:700">--</div>
+    <div class="ctrl-doc-rfc-periodo-box">
+      <div class="ctrl-doc-rfc-periodo-label">Periodo</div>
+      <div id="doc-rfc-periodo" class="ctrl-doc-rfc-periodo-text">--</div>
     </div>
 
-    <div class="fgrid" style="grid-template-columns:1fr">
+    <div class="fgrid ctrl-modal-one-col">
       <div class="fg">
         <label>Estado</label>
         <select id="doc-rfc-estado" class="fg-sel" onchange="cambiarEstadoModalDocRFC()">
@@ -1659,9 +1698,9 @@ label.ctrl-action-locked{
 </div>
 <div class="cov" id="modal-reportes">
   <div class="cbox">
-    <h3 style="color:#a78bfa">Reportes</h3>
+    <h3 class="ctrl-modal-title-accent">Reportes</h3>
 
-    <div style="display:grid;gap:10px;margin-top:16px">
+    <div class="ctrl-modal-actions-list">
   <button class="nbtn" id="btn-rpt-cuotas-m2">Reporte cuotas IMSS — m² licencia</button>
   <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
   <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
@@ -1673,9 +1712,9 @@ label.ctrl-action-locked{
 </div>
 <div class="cov" id="modal-estimados">
   <div class="cbox">
-    <h3 style="color:#a78bfa">Estimados</h3>
+    <h3 class="ctrl-modal-title-accent">Estimados</h3>
 
-    <div style="display:grid;gap:10px;margin-top:16px">
+    <div class="ctrl-modal-actions-list">
       <button class="nbtn" id="btn-est-m2">Estimado cuotas m2</button>
       <button class="nbtn" id="btn-est-presupuesto">Estimado cuotas presupuesto</button>
       <button class="nbtn" id="btn-est-isn">Estimado ISN</button>
