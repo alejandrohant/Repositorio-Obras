@@ -7953,15 +7953,6 @@ function actualizarResumenContrato(cardId){
   if(elFecha) elFecha.textContent = nuevaFecha ? fdate(nuevaFecha) : '--';
 }
 
-    contratosHtml += '<h4>Convenios modificatorios</h4>';
-
-    contratosHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Convenio</th><th>Importe de convenio</th><th>Nueva fecha de término convenio</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody id="conv-tbody-' + faseIdSafe + '">';
-
-    conveniosCtrl.forEach(function(c, idx){
-      contratosHtml += renderFilaConvenioControl(fase.id, key, idx, faseIdSafe, c);
-    });
-
-    contratosHtml += '</tbody></table></div>';
 
 function controlContratoArchivoCampo(campoControl){
   var mapa = {
