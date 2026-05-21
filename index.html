@@ -447,6 +447,36 @@ select.fg-sel:focus{border-color:#a78bfa}
 }
 .ctrl-add-btn{background:#1e2d2a;border:1.5px dashed #10b981;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;color:#10b981;cursor:pointer;margin-top:8px}
 .ctrl-add-btn:hover{background:#10b981;color:#fff}
+.ctrl-add-btn.alt{
+  margin-left:8px;
+  border-color:#a78bfa;
+  color:#a78bfa;
+}
+
+.ctrl-add-btn.alt:hover{
+  background:#a78bfa;
+  color:#fff;
+}
+
+.ctrl-scroll-x{
+  overflow-x:auto;
+}
+
+.ctrl-muted-msg{
+  color:#64748b;
+  font-size:13px;
+  padding:8px 0;
+}
+
+.ctrl-seccion.tight-top{
+  margin-top:12px;
+}
+
+.ctrl-inp-w130{
+  width:130px !important;
+  min-width:130px !important;
+  text-align:left !important;
+}
 .ctrl-conv-del{
   background:#2d1a1a;
   border:1px solid #7f1d1d;
@@ -7588,12 +7618,16 @@ function inputEstimacion(key, idx, campo, val, tipo, ancho){
   ancho = ancho || '';
 
   var cls = tipo === 'text' || tipo === 'date' ? 'ctrl-inp-wide' : 'ctrl-inp';
+
+  if(ancho){
+    cls += ' ctrl-inp-w' + String(ancho).replace(/[^0-9]/g, '');
+  }
+
   var step = tipo === 'number' ? ' step="0.01"' : '';
-  var style = ancho ? ' style="width:' + ancho + ';text-align:left"' : '';
   var valor = escCtrlHTML(val || '');
   var parser = tipo === 'number' ? 'numCtrl(this.value)' : 'this.value';
 
-  return '<input class="' + cls + '" type="' + tipo + '"' + step + style + ' value="' + valor + '" '
+  return '<input class="' + cls + '" type="' + tipo + '"' + step + ' value="' + valor + '" '
     + 'oninput="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')" '
     + 'onchange="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')">';
 }
@@ -7648,14 +7682,14 @@ function buildControlEstimaciones(key, fase){
 
   var h = '';
 
-  h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Anticipo / Estimaciones</h3>';
+  h += '<div class="ctrl-seccion tight-top"><h3>Control Anticipo / Estimaciones</h3>';
 
     h += '<h4>Anticipos</h4>';
 
   if(!anticipos.length){
-    h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin anticipos agregados.</p>';
+    h += '<p class="ctrl-muted-msg">Sin anticipos agregados.</p>';
   }else{
-    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
+    h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr>';
     h += '<th>No.</th><th>Acción</th><th>% anticipo</th><th>Importe anticipo</th><th>Fecha pago anticipo</th>';
     h += '</tr></thead><tbody>';
 
@@ -7695,9 +7729,9 @@ function buildControlEstimaciones(key, fase){
   h += '<h4>Estimaciones</h4>';
 
   if(!estimaciones.length){
-    h += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin estimaciones agregadas.</p>';
+    h += '<p class="ctrl-muted-msg">Sin estimaciones agregadas.</p>';
   } else {
-    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr>';
+    h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr>';
     h += '<th>No.</th><th>Acción</th><th>Folio</th><th>Periodo</th><th>Subtotal sin IVA</th><th>Amortización anticipo</th><th>Retención</th><th>IVA</th><th>Total con IVA</th><th>Fecha pago</th><th>Estatus</th>';
     h += '</tr></thead><tbody>';
 
@@ -7721,7 +7755,7 @@ function buildControlEstimaciones(key, fase){
   }
 
   h += '<button class="ctrl-add-btn" onclick="agregarEstimacionControl(\'' + escCtrlJS(fase.id) + '\')">+ Agregar estimación</button>';
-  h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarPanelEstimacionesControl(\'' + escCtrlJS(fase.id) + '\')">Actualizar resumen</button>';
+  h += '<button class="ctrl-add-btn alt" onclick="recargarPanelEstimacionesControl(\'' + escCtrlJS(fase.id) + '\')">Actualizar resumen</button>';
   h += '</div>';
 
   return h;
