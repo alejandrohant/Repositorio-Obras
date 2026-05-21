@@ -441,7 +441,26 @@ select.fg-sel:focus{border-color:#a78bfa}
 .periodo-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
 .pb-ok{background:#1e2d2a;color:#10b981}
 .pb-venc{background:#2d1a1a;color:#f87171}
-.pb-manual{background:#1e1e3a;color:#a78bfa}
+.ctrl-cuotas-tbl th:first-child,
+.ctrl-cuotas-tbl td:first-child{
+  width:92px !important;
+  min-width:92px !important;
+  max-width:92px !important;
+}
+
+.ctrl-cuotas-tbl th:nth-child(2),
+.ctrl-cuotas-tbl td:nth-child(2){
+  width:86px !important;
+  min-width:86px !important;
+  max-width:86px !important;
+}
+
+.ctrl-cuotas-tbl th:nth-child(3),
+.ctrl-cuotas-tbl td:nth-child(3){
+  width:86px !important;
+  min-width:86px !important;
+  max-width:86px !important;
+}
 
 .ctrl-collapsible{background:#1e1e2e;border-radius:12px;margin-bottom:10px;overflow:hidden}
 .ctrl-coll-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;border-bottom:2px solid transparent;transition:border-color 0.2s}
@@ -5681,7 +5700,7 @@ function buildFaseHtml(perfil, fase) {
     if(!todosPeridos.length) {
       cuotasHtml += '<p style="color:#64748b;font-size:13px;padding:8px 0">Sin periodos generados. La fase no tiene fechas definidas.</p>';
     } else {
-      cuotasHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th><th>Estado</th><th>Acción</th>';
+      cuotasHtml += '<div style="overflow-x:auto"><table class="ctrl-tbl ctrl-cuotas-tbl"><thead><tr><th>Periodo</th><th>Origen</th><th>Acción</th>';
       colsMonto.forEach(function(c){ cuotasHtml += '<th title="' + c.tip + '">' + c.l + '</th>'; });
       cuotasHtml += '<th>MO implícita</th><th>Cuotas</th>';
       cols.forEach(function(c){ cuotasHtml += '<th>' + c.l + '</th>'; });
@@ -5690,8 +5709,8 @@ function buildFaseHtml(perfil, fase) {
       todosPeridos.forEach(function(p){
         var esExtra = extra.indexOf(p) >= 0;
         var esVenc = !esExtra && fase.termina && p > fase.termina.slice(0,7);
-        var badge = esExtra ? '<span class="periodo-badge pb-manual">Manual</span>'
-          : (esVenc ? '<span class="periodo-badge pb-venc">Vencido</span>' : '<span class="periodo-badge pb-ok">OK</span>');
+        var badge = esExtra ? '<span class="periodo-badge pb-manual">Convenio</span>'
+          : (esVenc ? '<span class="periodo-badge pb-venc">Contrato</span>' : '<span class="periodo-badge pb-ok">Contrato</span>');
 
         var accionManual = esExtra
           ? '<button type="button" class="ctrl-conv-del" onclick="eliminarPeriodoManualInline(\'' + escCtrlJS(fase.id) + '\',\'' + escCtrlJS(p) + '\')">Eliminar</button>'
@@ -5726,7 +5745,7 @@ function buildFaseHtml(perfil, fase) {
       });
 
       cuotasHtml += '</tbody></table></div>';
-      cuotasHtml += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo manual</button>';
+      cuotasHtml += '<button class="ctrl-add-btn" onclick="agregarPeriodoManualInline(\'' + fase.id + '\',this)">+ Agregar periodo por convenio</button>';
       cuotasHtml += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarTarjetaFaseControl(\'' + escCtrlJS(fase.id) + '\',\'cuotas\')">&#8635; Actualizar</button>';
     }
 
@@ -5916,7 +5935,7 @@ function buildFaseHtml(perfil, fase) {
 }
 
 function agregarPeriodoManualInline(faseId, btn) {
-  var p = prompt('Ingresa el periodo (formato YYYY-MM, ej. 2026-08):');
+  var p = prompt('Ingresa el periodo del convenio (formato YYYY-MM, ej. 2027-03):');
   if(!p || p.length!==7 || p[4]!=='-') {
     alert('Formato inválido. Usa YYYY-MM');
     return;
@@ -5946,7 +5965,7 @@ function periodoPerteneceFechasFase(fase, periodo){
 }
 
 function eliminarPeriodoManualInline(faseId, periodo){
-  if(!confirm('¿Eliminar el periodo manual ' + periodoLabel(periodo) + '?')) return;
+  if(!confirm('¿Eliminar el periodo por convenio ' + periodoLabel(periodo) + '?')) return;
 
   var ctrl = gCtrl();
   var key = 'fase_' + faseId;
