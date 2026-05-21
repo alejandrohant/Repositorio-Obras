@@ -442,6 +442,72 @@ button.ctrl-action-locked,
 label.ctrl-action-locked{
   box-shadow:none !important;
 }
+.ctrl-bloque-control{
+  border:1px solid #243044;
+  border-radius:12px;
+  margin-bottom:14px;
+  overflow:hidden;
+  background:#151722;
+}
+
+.ctrl-bloque-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  border-bottom:1px solid #243044;
+  background:#171a26;
+}
+
+.ctrl-bloque-title{
+  font-size:11px;
+  font-weight:800;
+  color:#10b981;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+}
+
+.ctrl-bloque-sub{
+  font-size:10px;
+  color:#64748b;
+  margin-top:2px;
+}
+
+.ctrl-bloque-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+}
+
+.ctrl-bloque-edit{
+  background:#2d2d44;
+  border:1px solid #3d3d5a;
+  border-radius:7px;
+  padding:6px 10px;
+  color:#a78bfa;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.ctrl-bloque-save{
+  background:#10b981;
+  border:1px solid #10b981;
+  border-radius:7px;
+  padding:6px 10px;
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  display:none;
+}
+
+.ctrl-bloque-body{
+  padding:12px;
+}
 .periodo-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
 .pb-ok{background:#1e2d2a;color:#10b981}
 .pb-venc{background:#2d1a1a;color:#f87171}
@@ -8340,6 +8406,7 @@ async function guardarControl() {
   await sincronizarControlSupabase();
 
   localStorage.setItem('control_bloqueado', '1');
+  localStorage.setItem('control_bloques_editables', '[]');
 
   recargarControl();
 
@@ -8355,11 +8422,113 @@ function editarControl(){
   aplicarBloqueoControl();
 }
 
+function controlBloqueadoGeneral(){
+  return localStorage.getItem('control_bloqueado') !== '0';
+}
+
+function getBloquesEditablesControl(){
+  try{
+    return JSON.parse(localStorage.getItem('control_bloques_editables') || '[]');
+  }catch(e){
+    return [];
+  }
+}
+
+function setBloquesEditablesControl(lista){
+  localStorage.setItem('control_bloques_editables', JSON.stringify(lista || []));
+}
+
+function esBloqueEditableControl(id){
+  if(!controlBloqueadoGeneral()) return true;
+
+  var lista = getBloquesEditablesControl();
+
+  return lista.indexOf(String(id || '')) >= 0;
+}
+
+function elementoEditablePorBloque(el){
+  if(!controlBloqueadoGeneral()) return true;
+
+  var bloque = el.closest('.ctrl-bloque-control');
+  if(!bloque) return false;
+
+  return esBloqueEditableControl(bloque.getAttribute('data-ctrl-bloque'));
+}
+
+function editarBloqueControl(id){
+  id = String(id || '');
+
+  localStorage.setItem('control_bloqueado', '1');
+
+  var lista = getBloquesEditablesControl();
+
+  if(lista.indexOf(id) < 0){
+    lista.push(id);
+  }
+
+  setBloquesEditablesControl(lista);
+  aplicarBloqueoControl();
+}
+
+async function guardarBloqueControl(id){
+  id = String(id || '');
+
+  await sincronizarControlSupabase();
+
+  var lista = getBloquesEditablesControl().filter(function(x){
+    return String(x) !== id;
+  });
+
+  setBloquesEditablesControl(lista);
+  localStorage.setItem('control_bloqueado', '1');
+
+  aplicarBloqueoControl();
+
+  alert('Bloque guardado correctamente.');
+}
+
+function actualizarBotonesBloquesControl(){
+  document.querySelectorAll('.ctrl-bloque-control').forEach(function(bloque){
+    var id = bloque.getAttribute('data-ctrl-bloque') || '';
+    var editable = esBloqueEditableControl(id);
+
+    var btnEdit = bloque.querySelector('.ctrl-bloque-edit');
+    var btnSave = bloque.querySelector('.ctrl-bloque-save');
+
+    if(btnEdit) btnEdit.style.display = editable ? 'none' : 'inline-block';
+    if(btnSave) btnSave.style.display = editable ? 'inline-block' : 'none';
+  });
+}
+
+function docRFCPerteneceABloqueEditable(){
+  if(!controlBloqueadoGeneral()) return true;
+  if(!docRFCCtx) return false;
+
+  var btns = document.querySelectorAll('.ctrl-doc-mini');
+
+  for(var i = 0; i < btns.length; i++){
+    var btn = btns[i];
+
+    if(
+      btn.getAttribute('data-ctrl-doc-key') === String(docRFCCtx.key) &&
+      btn.getAttribute('data-ctrl-doc-periodo') === String(docRFCCtx.periodo) &&
+      btn.getAttribute('data-ctrl-doc-campo') === String(docRFCCtx.campo)
+    ){
+      var bloque = btn.closest('.ctrl-bloque-control');
+      if(!bloque) return false;
+
+      return esBloqueEditableControl(bloque.getAttribute('data-ctrl-bloque'));
+    }
+  }
+
+  return false;
+}
+
 function aplicarBloqueoControl(){
   var pg = document.getElementById('pg-ctrl');
   if(!pg) return;
 
-  var bloqueado = localStorage.getItem('control_bloqueado') === '1';
+  var bloqueado = controlBloqueadoGeneral();
 
   var btnGuardar = document.getElementById('ctrl-save-btn');
   var btnEditar = document.getElementById('ctrl-edit-btn');
@@ -8368,7 +8537,9 @@ function aplicarBloqueoControl(){
   if(btnEditar) btnEditar.style.display = bloqueado ? 'inline-block' : 'none';
 
   pg.querySelectorAll('input, select, textarea').forEach(function(el){
-    if(bloqueado){
+    var editable = elementoEditablePorBloque(el);
+
+    if(!editable){
       if(!el.disabled){
         el.setAttribute('data-lock-disabled', '1');
         el.disabled = true;
@@ -8386,7 +8557,9 @@ function aplicarBloqueoControl(){
   pg.querySelectorAll('.ctrl-add-btn, .ctrl-conv-del, button.bedit, .ctrl-file-pick, .ctrl-file-del').forEach(function(btn){
     if(btn.id === 'ctrl-edit-btn') return;
 
-    if(bloqueado){
+    var editable = elementoEditablePorBloque(btn);
+
+    if(!editable){
       if(btn.tagName === 'BUTTON' && !btn.disabled){
         btn.setAttribute('data-lock-disabled-btn', '1');
         btn.disabled = true;
@@ -8404,6 +8577,8 @@ function aplicarBloqueoControl(){
       btn.removeAttribute('aria-disabled');
     }
   });
+
+  actualizarBotonesBloquesControl();
 }
 
 
