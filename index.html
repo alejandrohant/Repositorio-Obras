@@ -1829,7 +1829,7 @@ label.ctrl-action-locked{
   <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
   <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
   <button class="nbtn" id="btn-rpt-obligaciones">Reporte obligaciones RFC/RP</button>
-  <button class="nbtn" id="btn-rpt-cumplimiento-contratista" style="display:none">Reporte cumplimiento contratista</button>
+  <button class="nbtn" id="btn-rpt-cumplimiento-contratista" style="display:none">Reporte cumplimiento</button>
   <button class="nbtn" id="btn-rpt-expediente">Reporte expediente general</button>
   <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
 </div>
@@ -1837,8 +1837,8 @@ label.ctrl-action-locked{
 </div>
 <div class="cov" id="modal-rpt-contratista">
   <div class="cbox">
-    <h3 class="ctrl-modal-title-accent">Reporte cumplimiento contratista</h3>
-    <p style="color:#94a3b8;font-size:13px;margin-bottom:14px">Selecciona el contratista que quieres reportar dentro de esta obra.</p>
+    <h3 class="ctrl-modal-title-accent">Reporte cumplimiento</h3>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:14px">Selecciona el contratista o subcontratista que quieres reportar dentro de esta obra.</p>
 
     <select id="rpt-contratista-select" class="fg-sel" style="width:100%;margin-bottom:16px"></select>
 
@@ -2265,7 +2265,7 @@ function irFicha(id){
   if(btnRptCumplimiento){
     if(t === 'p'){
       btnRptCumplimiento.style.display = '';
-      btnRptCumplimiento.textContent = 'Reporte cumplimiento contratista';
+      btnRptCumplimiento.textContent = 'Reporte cumplimiento por contratista/subcontratista';
       btnRptCumplimiento.onclick = function(){
         document.getElementById('modal-reportes').classList.remove('open');
         abrirSelectorReporteCumplimientoContratista(o);
@@ -9435,6 +9435,7 @@ function contratistasReporteCumplimientoObra(obraObj){
       mapa[rfc] = {
         rfc: rfc,
         nombre: f.contratista || rfc,
+        perfil: String(f.perfil || '').toLowerCase().trim() === 'subcontratista' ? 'Subcontratista' : 'Contratista',
         fases: []
       };
       lista.push(mapa[rfc]);
@@ -9464,7 +9465,7 @@ function abrirSelectorReporteCumplimientoContratista(obraObj){
   var h = '<option value="">Selecciona contratista...</option>';
 
   lista.forEach(function(c){
-    h += '<option value="' + escCtrlHTML(c.rfc) + '">' + escCtrlHTML(c.nombre) + ' · ' + escCtrlHTML(c.rfc) + ' · ' + c.fases.length + ' contrato' + (c.fases.length !== 1 ? 's' : '') + '</option>';
+    h += '<option value="' + escCtrlHTML(c.rfc) + '">' + escCtrlHTML(c.perfil || 'Contratista') + ' · ' + escCtrlHTML(c.nombre) + ' · ' + escCtrlHTML(c.rfc) + ' · ' + c.fases.length + ' contrato' + (c.fases.length !== 1 ? 's' : '') + '</option>';
   });
 
   sel.innerHTML = h;
@@ -9664,21 +9665,30 @@ function rptFaseConRP(fases, perfil){
   return fases.find(function(f){ return String(f.rp || '').trim(); }) || {rp: perfil.rp || ''};
 }
 
-function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
+function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista, fasesForzadas, alcanceReporte){
   var rfc = rptNormalizarRFC(rfcContratista);
   var ctrl = gCtrl();
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
 
-  var fases = gFases().filter(function(f){
+  var fases = Array.isArray(fasesForzadas) ? fasesForzadas : gFases().filter(function(f){
     return rptMismoTexto(f.obra, obraObj.nombre)
       && rptNormalizarRFC(f.rfc) === rfc
       && String(f.perfil || '').toLowerCase().trim() !== 'propietaria';
   });
 
   if(!fases.length){
-    alert('No encontré fases/SIROC de ese contratista dentro de esta obra.');
+    alert('No encontré fases/SIROC para generar el reporte de cumplimiento.');
     return;
   }
+
+  var perfilFaseReporte = String(fases[0].perfil || '').toLowerCase().trim();
+  var actorReporte = perfilFaseReporte === 'subcontratista' ? 'subcontratista' : 'contratista';
+  var actorReporteMayus = actorReporte === 'subcontratista' ? 'Subcontratista' : 'Contratista';
+  var alcance = alcanceReporte || actorReporte;
+  var tituloReporte = alcance === 'fase' ? 'Reporte cumplimiento fase' : 'Reporte cumplimiento ' + actorReporte;
+  var subtituloReporte = alcance === 'fase'
+    ? 'Seguimiento específico del contrato/SIROC seleccionado'
+    : 'Seguimiento ejecutivo para propietaria con copia al ' + actorReporte;
 
   var perfil = gPrf().find(function(p){
     return rptNormalizarRFC(p.rfc) === rfc;
@@ -9707,7 +9717,7 @@ function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
 
   h += '<div class="rpt-header">'
     + '<div class="rpt-logo">RO</div>'
-    + '<div class="rpt-title"><h1>Reporte cumplimiento contratista</h1><p>Seguimiento ejecutivo para propietaria con copia al contratista</p></div>'
+    + '<div class="rpt-title"><h1>' + escCtrlHTML(tituloReporte) + '</h1><p>' + escCtrlHTML(subtituloReporte) + '</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
     + '</div>';
 
@@ -9715,10 +9725,10 @@ function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
     + '<h2>' + escCtrlHTML(obraObj.nombre || '--') + '</h2>'
     + '<div class="rpt-obra-grid">'
     + '<div class="rpt-dato"><label>Propietaria</label><span>' + escCtrlHTML(obraObj.patron || obraObj.contratista || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Contratista</label><span>' + escCtrlHTML(perfil.nombre || fases[0].contratista || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>RFC contratista</label><span style="font-family:monospace">' + escCtrlHTML(rfc) + '</span></div>'
+    + '<div class="rpt-dato"><label>' + escCtrlHTML(actorReporteMayus) + '</label><span>' + escCtrlHTML(perfil.nombre || fases[0].contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC ' + escCtrlHTML(actorReporte) + '</label><span style="font-family:monospace">' + escCtrlHTML(rfc) + '</span></div>'
     + '<div class="rpt-dato"><label>RP usado para control</label><span style="font-family:monospace">' + escCtrlHTML(rpControl || '--') + '</span></div>'
-    + '<div class="rpt-dato"><label>Contratos / SIROC</label><span>' + fases.length + '</span></div>'
+    + '<div class="rpt-dato"><label>' + (alcance === 'fase' ? 'Contrato / SIROC' : 'Contratos / SIROC') + '</label><span>' + fases.length + '</span></div>'
     + '<div class="rpt-dato"><label>Periodo revisado</label><span>' + (periodos.length ? periodoLabel(periodos[0]) + ' — ' + periodoLabel(periodos[periodos.length - 1]) : '--') + '</span></div>'
     + '</div></div>';
 
@@ -9900,7 +9910,7 @@ function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
   ];
 
   h += '<div class="rpt-card">';
-  h += '<h3>Control general RFC/RP del contratista</h3>';
+  h += '<h3>Control general RFC/RP del ' + escCtrlHTML(actorReporte) + '</h3>';
   h += '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>Grupo</th><th>Documentación</th>';
 
   periodos.forEach(function(p){
@@ -9924,7 +9934,7 @@ function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
   h += '<div class="rpt-card">'
     + '<h3>Criterio del reporte</h3>'
     + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
-    + 'Este reporte consolida el cumplimiento del contratista dentro de la obra seleccionada. Incluye documentación única del perfil, documentación por contrato/SIROC, avance financiero, cuotas IMSS pagadas, fondo de garantía, contingencia IMSS y obligaciones mensuales RFC/RP. Los importes pagados se muestran sin IVA y netos de amortización de anticipo cuando la estimación está marcada como pagada o tiene fecha/comprobante de pago.'
+    + (alcance === 'fase' ? 'Este reporte muestra el cumplimiento de la fase/SIROC seleccionada.' : 'Este reporte consolida el cumplimiento del ' + actorReporte + ' dentro de la obra seleccionada.') + ' Incluye documentación única del perfil, documentación por contrato/SIROC, avance financiero, cuotas IMSS pagadas, fondo de garantía, contingencia IMSS y obligaciones mensuales RFC/RP. Los importes pagados se muestran sin IVA y netos de amortización de anticipo cuando la estimación está marcada como pagada o tiene fecha/comprobante de pago.'
     + '</p>'
     + '</div>';
 
@@ -9936,6 +9946,29 @@ function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
 
   show('pg-reporte');
 }
+
+function generarReporteCumplimientoFase(f){
+  if(!f){
+    alert('No encontré la fase para generar el reporte de cumplimiento.');
+    return;
+  }
+
+  var obraObj = gP().concat(gC()).find(function(o){
+    return rptMismoTexto(o.nombre, f.obra);
+  }) || {
+    id: f.obra || '',
+    nombre: f.obra || '--',
+    patron: '',
+    contratista: ''
+  };
+
+  generarReporteCumplimientoContratistaObra(obraObj, f.rfc, [f], 'fase');
+
+  document.getElementById('rpt-bk').onclick = function(){
+    irFichaFase(f.id);
+  };
+}
+
 
 function generarReporteISN(o,t){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
@@ -11210,8 +11243,12 @@ function abrirReportesFase(faseId){
   var btnExpediente = document.getElementById('btn-rpt-expediente');
 
   if(btnCumplimiento){
-    btnCumplimiento.style.display = 'none';
-    btnCumplimiento.onclick = null;
+    btnCumplimiento.style.display = '';
+    btnCumplimiento.textContent = 'Reporte cumplimiento fase';
+    btnCumplimiento.onclick = function(){
+      document.getElementById('modal-reportes').classList.remove('open');
+      generarReporteCumplimientoFase(f);
+    };
   }
 
   if(btnCuotas){
