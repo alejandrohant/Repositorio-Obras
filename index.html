@@ -6812,10 +6812,10 @@ function buildControlLicenciaSiroc(key, fase){
     return h;
   }
 
-  var h = '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Licencia / Incidencias SIROC</h3>';
+  var h = '<div class="ctrl-seccion tight-top"><h3>Control Licencia / Incidencias SIROC</h3>';
 
   h += '<h4>Actualización licencia</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
+  h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
   actualizacionesVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Actualización licencia ' + (idx + 1) + '</td>';
@@ -6828,7 +6828,7 @@ function buildControlLicenciaSiroc(key, fase){
   h += '<button type="button" class="ctrl-add-btn" onclick="agregarActualizacionLicencia(\'' + escCtrlJS(key) + '\')">+ Agregar actualización</button>';
 
   h += '<h4>Incidencia SIROC</h4>';
-   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
+   h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
   incidenciasVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Incidencia SIROC ' + (idx + 1) + '</td>';
@@ -7151,8 +7151,8 @@ function buildControlCierreHtml(key){
   ];
 
   var h = '';
-  h += '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Cierre</h3>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
+  h += '<div class="ctrl-seccion tight-top"><h3>Control Cierre</h3>';
+  h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Archivo</th></tr></thead><tbody>';
 
   colsCierre.forEach(function(c){
     h += '<tr>';
