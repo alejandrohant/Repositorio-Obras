@@ -2026,7 +2026,41 @@ async function cargarDatosSupabase(){
     return nombresObrasVisibles.indexOf(dataFase.obra || '') >= 0;
   });
 
-  localStorage.setItem('perfiles', JSON.stringify((perfiles || []).map(x => x.data || x)));
+  var perfilesVisibles = perfiles || [];
+
+  if(!esUsuarioDueno()){
+    var rfcsPermitidos = [];
+
+    function agregarRFCPermitido(rfc){
+      rfc = String(rfc || '').trim().toUpperCase();
+      if(rfc && rfcsPermitidos.indexOf(rfc) < 0){
+        rfcsPermitidos.push(rfc);
+      }
+    }
+
+    obrasVisibles.forEach(function(x){
+      var dataObra = x.data || x;
+      agregarRFCPermitido(dataObra.rfc);
+    });
+
+    fasesVisibles.forEach(function(x){
+      var dataFase = x.data || x;
+      agregarRFCPermitido(dataFase.rfc);
+      agregarRFCPermitido(dataFase.rfcOrigen);
+    });
+
+    perfilesVisibles = perfilesVisibles.filter(function(x){
+      var dataPerfil = x.data || x;
+      var rfcPerfil = String(dataPerfil.rfc || '').trim().toUpperCase();
+      var creadoPorEsteUsuario = String(x.created_by || '') === String(user.id);
+
+      return creadoPorEsteUsuario || rfcsPermitidos.indexOf(rfcPerfil) >= 0;
+    });
+  }
+
+  localStorage.setItem('perfiles', JSON.stringify(perfilesVisibles.map(function(x){
+    return x.data || x;
+  })));
 
   localStorage.setItem('op', JSON.stringify(
     obrasVisibles
