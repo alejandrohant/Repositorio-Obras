@@ -782,6 +782,9 @@ label.ctrl-action-locked{
   border-color:#10b981;
   color:#10b981;
 }
+.ctrl-rfc-hidden{
+  display:none !important;
+}
 
 .ctrl-fase-card-hdr{
   display:flex;
@@ -5589,7 +5592,7 @@ function aplicarFiltroObligacionesRFC(filtro){
 
   document.querySelectorAll('[data-rfc-grupo]').forEach(function(el){
     var grupo = el.getAttribute('data-rfc-grupo');
-    el.style.display = (filtro === 'todos' || grupo === filtro) ? '' : 'none';
+    el.classList.toggle('ctrl-rfc-hidden', !(filtro === 'todos' || grupo === filtro));
   });
 }
 
@@ -5653,17 +5656,19 @@ function buildRFCHtml(perfil, fasesBase) {
 
     h += '</div>';
 
-    h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
+    h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
 
     cols.forEach(function(c){
-      h += '<th data-rfc-grupo="' + c.g + '" style="' + (filtroRFC !== 'todos' && filtroRFC !== c.g ? 'display:none' : '') + '">' + c.l + '</th>';
+      var claseFiltro = filtroRFC !== 'todos' && filtroRFC !== c.g ? 'ctrl-rfc-hidden' : '';
+      h += '<th data-rfc-grupo="' + c.g + '" class="' + claseFiltro + '">' + c.l + '</th>';
     });
 
     h += '</tr></thead><tbody>';
   periodos.forEach(function(p) {
     h += '<tr><td>' + periodoLabel(p) + '</td>';
     cols.forEach(function(c){
-      h += '<td data-rfc-grupo="' + c.g + '" style="' + (filtroRFC !== 'todos' && filtroRFC !== c.g ? 'display:none' : '') + '">' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
+      var claseFiltro = filtroRFC !== 'todos' && filtroRFC !== c.g ? 'ctrl-rfc-hidden' : '';
+      h += '<td data-rfc-grupo="' + c.g + '" class="' + claseFiltro + '">' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
     });
     h += '</tr>';
   });
@@ -5728,7 +5733,7 @@ function buildSUAHtml(perfil, fasesBase) {
     {k:'cfdi_imss',l:'CFDI IMSS'},{k:'cfdi_inf',l:'CFDI Infonavit'}
   ];
   var h = '';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
+  h += '<div class="ctrl-scroll-x"><table class="ctrl-tbl"><thead><tr><th>Periodo</th>';
   colsDoc.forEach(function(c){ h += '<th>' + c.l + '</th>'; });
   h += '</tr></thead><tbody>';
   periodos.forEach(function(p){
