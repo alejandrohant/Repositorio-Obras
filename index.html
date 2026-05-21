@@ -431,12 +431,16 @@ select.fg-sel:focus{border-color:#a78bfa}
 }
 .ctrl-save-btn{background:#10b981;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;margin-top:12px}
 .ctrl-save-btn:hover{background:#059669}
-.ctrl-locked-field{
-  opacity:.65 !important;
+.ctrl-action-locked{
+  opacity:.38 !important;
+  pointer-events:none !important;
   cursor:not-allowed !important;
-  background:#10131c !important;
-  color:#94a3b8 !important;
-  border-color:#1e2d2a !important;
+  filter:grayscale(.35);
+}
+
+button.ctrl-action-locked,
+label.ctrl-action-locked{
+  box-shadow:none !important;
 }
 .periodo-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
 .pb-ok{background:#1e2d2a;color:#10b981}
@@ -8383,15 +8387,21 @@ function aplicarBloqueoControl(){
     if(btn.id === 'ctrl-edit-btn') return;
 
     if(bloqueado){
-      if(!btn.hasAttribute('data-lock-display')){
-        btn.setAttribute('data-lock-display', btn.style.display || '');
+      if(btn.tagName === 'BUTTON' && !btn.disabled){
+        btn.setAttribute('data-lock-disabled-btn', '1');
+        btn.disabled = true;
       }
-      btn.style.display = 'none';
+
+      btn.classList.add('ctrl-action-locked');
+      btn.setAttribute('aria-disabled', 'true');
     }else{
-      if(btn.hasAttribute('data-lock-display')){
-        btn.style.display = btn.getAttribute('data-lock-display');
-        btn.removeAttribute('data-lock-display');
+      if(btn.getAttribute('data-lock-disabled-btn') === '1'){
+        btn.disabled = false;
+        btn.removeAttribute('data-lock-disabled-btn');
       }
+
+      btn.classList.remove('ctrl-action-locked');
+      btn.removeAttribute('aria-disabled');
     }
   });
 }
