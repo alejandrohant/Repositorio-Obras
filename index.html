@@ -5975,27 +5975,39 @@ function buildFaseHtml(perfil, fase) {
   h += '</div>';
 
   if(faseEsPropietaria && !soloISN){
-    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'licencia' ? 'active' : '') + '" data-panel="licencia">' + licenciaSirocHtml + '</div>';
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'licencia' ? 'active' : '') + '" data-panel="licencia">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_licencia', 'Control Licencia / Incidencias SIROC', licenciaSirocHtml)
+      + '</div>';
   }
 
   if(!soloISN){
-    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'cuotas' ? 'active' : '') + '" data-panel="cuotas">' + cuotasHtml + '</div>';
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'cuotas' ? 'active' : '') + '" data-panel="cuotas">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_cuotas', 'Control cuotas IMSS/SIROC', cuotasHtml)
+      + '</div>';
   }
 
   if(debeMostrarISN){
-    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'isn' ? 'active' : '') + '" data-panel="isn">' + isnHtml + '</div>';
+    h += '<div class="ctrl-fase-panel ' + (panelInicial === 'isn' ? 'active' : '') + '" data-panel="isn">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_isn', 'Control ISN', isnHtml)
+      + '</div>';
   }
 
   if(!soloISN){
-    h += '<div class="ctrl-fase-panel" data-panel="estimaciones">' + estimacionesHtml + '</div>';
+    h += '<div class="ctrl-fase-panel" data-panel="estimaciones">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_estimaciones', 'Control Anticipo / Estimaciones', estimacionesHtml)
+      + '</div>';
   }
 
   if(!soloISN){
-    h += '<div class="ctrl-fase-panel" data-panel="cierre">' + cierreHtml + '</div>';
+    h += '<div class="ctrl-fase-panel" data-panel="cierre">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_cierre', 'Control Cierre', cierreHtml)
+      + '</div>';
   }
 
   if(!faseEsPropietaria && !soloISN){
-    h += '<div class="ctrl-fase-panel" data-panel="contratos">' + contratosHtml + '</div>';
+    h += '<div class="ctrl-fase-panel" data-panel="contratos">'
+      + wrapBloqueControl('fase_' + faseIdSafe + '_contratos', 'Control Contratos / Incidencias SIROC', contratosHtml)
+      + '</div>';
   }
 
   h += '</div>';
@@ -6465,7 +6477,7 @@ function pintarModalDocRFC(){
   var ctrl = gCtrl();
   var estado = getCtrlVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
   var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
-  var bloqueado = localStorage.getItem('control_bloqueado') === '1';
+  var bloqueado = !docRFCPerteneceABloqueEditable();
 
   document.getElementById('doc-rfc-titulo').textContent = docRFCCtx.label || 'Documento de control';
   document.getElementById('doc-rfc-periodo').textContent = periodoLabel(docRFCCtx.periodo);
@@ -8582,12 +8594,40 @@ function aplicarBloqueoControl(){
 }
 
 
+function ctrlBloqueSafe(id){
+  return String(id || 'bloque').replace(/[^a-zA-Z0-9_-]/g,'_');
+}
+
+function wrapBloqueControl(id, title, content){
+  var bid = ctrlBloqueSafe(id);
+
+  return '<div class="ctrl-bloque-control" data-ctrl-bloque="' + escCtrlHTML(bid) + '">'
+    + '<div class="ctrl-bloque-bar">'
+      + '<div>'
+        + '<div class="ctrl-bloque-title">' + escCtrlHTML(title) + '</div>'
+        + '<div class="ctrl-bloque-sub">Edita y guarda sólo este bloque</div>'
+      + '</div>'
+      + '<div class="ctrl-bloque-actions">'
+        + '<button type="button" class="ctrl-bloque-edit" onclick="event.stopPropagation();editarBloqueControl(\'' + escCtrlJS(bid) + '\')">Editar bloque</button>'
+        + '<button type="button" class="ctrl-bloque-save" onclick="event.stopPropagation();guardarBloqueControl(\'' + escCtrlJS(bid) + '\')">Guardar bloque</button>'
+      + '</div>'
+    + '</div>'
+    + '<div class="ctrl-bloque-body">' + content + '</div>'
+    + '</div>';
+}
+
 function wrapCollapsible(title, content) {
   var uid = 'cc_' + Math.random().toString(36).slice(2,8);
-  return '<div class="ctrl-collapsible">'
+  var bid = ctrlBloqueSafe(title);
+
+  return '<div class="ctrl-collapsible ctrl-bloque-control" data-ctrl-bloque="' + escCtrlHTML(bid) + '">'
     + '<div class="ctrl-coll-hdr" id="hdr-' + uid + '" onclick="toggleCtrlColl(\'' + uid + '\')">'
-    + '<h3>' + title + '</h3>'
-    + '<span class="ctrl-coll-chev" id="chev-' + uid + '">&#9660;</span>'
+      + '<h3>' + escCtrlHTML(title) + '</h3>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<button type="button" class="ctrl-bloque-edit" onclick="event.stopPropagation();editarBloqueControl(\'' + escCtrlJS(bid) + '\')">Editar bloque</button>'
+        + '<button type="button" class="ctrl-bloque-save" onclick="event.stopPropagation();guardarBloqueControl(\'' + escCtrlJS(bid) + '\')">Guardar bloque</button>'
+        + '<span class="ctrl-coll-chev" id="chev-' + uid + '">&#9660;</span>'
+      + '</div>'
     + '</div>'
     + '<div class="ctrl-coll-body" id="body-' + uid + '">' + content + '</div>'
     + '</div>';
