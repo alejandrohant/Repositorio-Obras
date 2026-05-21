@@ -1098,7 +1098,7 @@ label.ctrl-action-locked{
     <button class="bcan" onclick="signOut()" style="display:none">Salir</button>
   </div>
 </nav>
-<div class="page active" id="pg-home">
+<div class="page" id="pg-home">
   <div class="home-intro">
     <div class="ht">Selecciona el tipo de obra</div>
     <div class="hs">El origen de la obra es una propietaria o un contratista</div>
@@ -2008,9 +2008,7 @@ async function initAuth(){
     localStorage.removeItem('perfiles');
     localStorage.removeItem('fases');
     localStorage.removeItem('control');
-    counts();
-    goHome();
-    alert('Inicia sesión para cargar tus datos.');
+    renderAuthStatus();
     return;
   }
 
