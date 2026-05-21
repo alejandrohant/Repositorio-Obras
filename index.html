@@ -1829,9 +1829,23 @@ label.ctrl-action-locked{
   <button class="nbtn" id="btn-rpt-cuotas-presupuesto">Reporte cuotas IMSS — presupuesto</button>
   <button class="nbtn" id="btn-rpt-isn">Reporte ISN</button>
   <button class="nbtn" id="btn-rpt-obligaciones">Reporte obligaciones RFC/RP</button>
+  <button class="nbtn" id="btn-rpt-cumplimiento-contratista" style="display:none">Reporte cumplimiento contratista</button>
   <button class="nbtn" id="btn-rpt-expediente">Reporte expediente general</button>
   <button class="bccan" onclick="document.getElementById('modal-reportes').classList.remove('open')">Cancelar</button>
 </div>
+  </div>
+</div>
+<div class="cov" id="modal-rpt-contratista">
+  <div class="cbox">
+    <h3 class="ctrl-modal-title-accent">Reporte cumplimiento contratista</h3>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:14px">Selecciona el contratista que quieres reportar dentro de esta obra.</p>
+
+    <select id="rpt-contratista-select" class="fg-sel" style="width:100%;margin-bottom:16px"></select>
+
+    <div class="ctrl-modal-actions-list">
+      <button class="nbtn" onclick="generarReporteCumplimientoContratistaDesdeSelector()">Generar reporte</button>
+      <button class="bccan" onclick="document.getElementById('modal-rpt-contratista').classList.remove('open')">Cancelar</button>
+    </div>
   </div>
 </div>
 <div class="cov" id="modal-estimados">
@@ -2240,11 +2254,26 @@ function irFicha(id){
   var btnRptM2 = document.getElementById('btn-rpt-cuotas-m2');
   var btnRptPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
   var btnRptObligaciones = document.getElementById('btn-rpt-obligaciones');
+  var btnRptCumplimiento = document.getElementById('btn-rpt-cumplimiento-contratista');
   var btnRptExpediente = document.getElementById('btn-rpt-expediente');
 
   if(btnRptObligaciones){
   btnRptObligaciones.style.display = 'none';
   btnRptObligaciones.onclick = null;
+  }
+
+  if(btnRptCumplimiento){
+    if(t === 'p'){
+      btnRptCumplimiento.style.display = '';
+      btnRptCumplimiento.textContent = 'Reporte cumplimiento contratista';
+      btnRptCumplimiento.onclick = function(){
+        document.getElementById('modal-reportes').classList.remove('open');
+        abrirSelectorReporteCumplimientoContratista(o);
+      };
+    }else{
+      btnRptCumplimiento.style.display = 'none';
+      btnRptCumplimiento.onclick = null;
+    }
   }
 
   if(btnRptExpediente){
@@ -9379,6 +9408,535 @@ function rptMxn(n) {
   if(!n && n!==0) return '--';
   return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(n);
 }
+
+var rptCumplimientoObraCtx = null;
+
+function rptNormalizarRFC(v){
+  return String(v || '').trim().toUpperCase();
+}
+
+function rptMismoTexto(a,b){
+  return String(a || '').trim() === String(b || '').trim();
+}
+
+function contratistasReporteCumplimientoObra(obraObj){
+  var fases = gFases().filter(function(f){
+    return rptMismoTexto(f.obra, obraObj.nombre)
+      && rptNormalizarRFC(f.rfc)
+      && String(f.perfil || '').toLowerCase().trim() !== 'propietaria';
+  });
+
+  var mapa = {};
+  var lista = [];
+
+  fases.forEach(function(f){
+    var rfc = rptNormalizarRFC(f.rfc);
+    if(!mapa[rfc]){
+      mapa[rfc] = {
+        rfc: rfc,
+        nombre: f.contratista || rfc,
+        fases: []
+      };
+      lista.push(mapa[rfc]);
+    }
+
+    mapa[rfc].fases.push(f);
+  });
+
+  return lista.sort(function(a,b){
+    return String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es');
+  });
+}
+
+function abrirSelectorReporteCumplimientoContratista(obraObj){
+  rptCumplimientoObraCtx = obraObj;
+
+  var lista = contratistasReporteCumplimientoObra(obraObj);
+  var sel = document.getElementById('rpt-contratista-select');
+
+  if(!sel) return;
+
+  if(!lista.length){
+    alert('Esta obra no tiene fases/contratos de contratistas para reportar.');
+    return;
+  }
+
+  var h = '<option value="">Selecciona contratista...</option>';
+
+  lista.forEach(function(c){
+    h += '<option value="' + escCtrlHTML(c.rfc) + '">' + escCtrlHTML(c.nombre) + ' · ' + escCtrlHTML(c.rfc) + ' · ' + c.fases.length + ' contrato' + (c.fases.length !== 1 ? 's' : '') + '</option>';
+  });
+
+  sel.innerHTML = h;
+  document.getElementById('modal-rpt-contratista').classList.add('open');
+}
+
+function generarReporteCumplimientoContratistaDesdeSelector(){
+  var sel = document.getElementById('rpt-contratista-select');
+  var rfc = sel ? sel.value : '';
+
+  if(!rptCumplimientoObraCtx || !rfc){
+    alert('Selecciona un contratista.');
+    return;
+  }
+
+  document.getElementById('modal-rpt-contratista').classList.remove('open');
+  generarReporteCumplimientoContratistaObra(rptCumplimientoObraCtx, rfc);
+}
+
+function rptEstadoMini(v){
+  v = parseInt(v) || 0;
+
+  if(v === 1) return '<span title="Presentado" style="display:inline-block;min-width:28px;text-align:center;color:#10b981;font-weight:900">P</span>';
+  if(v === 2) return '<span title="No presentado" style="display:inline-block;min-width:28px;text-align:center;color:#f87171;font-weight:900">NP</span>';
+  if(v === 3) return '<span title="Erróneo" style="display:inline-block;min-width:28px;text-align:center;color:#f59e0b;font-weight:900">E</span>';
+  if(v === 4) return '<span title="No aplica" style="display:inline-block;min-width:28px;text-align:center;color:#64748b;font-weight:900">NA</span>';
+
+  return '<span title="Sin capturar" style="display:inline-block;min-width:28px;text-align:center;color:#94a3b8;font-weight:900">SC</span>';
+}
+
+function rptEstadoTexto(v){
+  return estadoDocReporte(parseInt(v) || 0);
+}
+
+function rptCombinarEstados(vals){
+  vals = vals || [];
+  vals = vals.map(function(v){ return parseInt(v) || 0; });
+
+  if(vals.indexOf(3) >= 0) return 3;
+  if(vals.indexOf(2) >= 0) return 2;
+  if(vals.indexOf(0) >= 0) return 0;
+  if(vals.length && vals.every(function(v){ return v === 4; })) return 4;
+  if(vals.length && vals.every(function(v){ return v === 1 || v === 4; })) return 1;
+
+  return 0;
+}
+
+function rptDataFase(f){
+  var ctrl = gCtrl();
+  return ctrl['fase_' + f.id] || {};
+}
+
+function rptValContratoFase(f, campo, fallback){
+  var data = rptDataFase(f);
+
+  if(data.__contratos && data.__contratos[campo] !== undefined && data.__contratos[campo] !== null && data.__contratos[campo] !== ''){
+    return data.__contratos[campo];
+  }
+
+  if(campo === 'docPresupuesto' && data.__contratos && data.__contratos.docSirocVig !== undefined && data.__contratos.docSirocVig !== null && data.__contratos.docSirocVig !== ''){
+    return data.__contratos.docSirocVig;
+  }
+
+  return fallback || 0;
+}
+
+function rptValCierreFase(f, campo){
+  var data = rptDataFase(f);
+  return data.__cierre && data.__cierre[campo] !== undefined ? data.__cierre[campo] : 0;
+}
+
+function rptImporteContratoActualizado(f){
+  var perfil = String(f.perfil || '').toLowerCase().trim();
+
+  if(perfil === 'subcontratista' && typeof calcAcumSub === 'function'){
+    return calcAcumSub(f) || 0;
+  }
+
+  if(typeof calcAcumulado === 'function'){
+    return calcAcumulado(f) || 0;
+  }
+
+  return parseFloat(f.importe || f.sub || f.valorObra || 0) || 0;
+}
+
+function rptMoEstimadaCumplimientoFase(f){
+  var factor = factorMOIMSSFase(f);
+  var importe = rptImporteContratoActualizado(f);
+
+  if(factor > 0 && importe > 0){
+    return importe * factor;
+  }
+
+  var perfil = String(f.perfil || '').toLowerCase().trim();
+
+  if(perfil === 'subcontratista' && typeof calcMoEstSub === 'function') return calcMoEstSub(f) || 0;
+  if(perfil === 'propietaria' && typeof calcMoEstProp === 'function') return calcMoEstProp(f) || 0;
+  if(typeof calcMoEstCtr === 'function') return calcMoEstCtr(f) || 0;
+
+  return 0;
+}
+
+function rptTotalesEstimacionesCumplimiento(f){
+  var data = rptDataFase(f);
+  var estimaciones = Array.isArray(data.__estimaciones) ? data.__estimaciones : [];
+  var totalPagadoNeto = 0;
+  var fondoGarantia = 0;
+
+  estimaciones.forEach(function(e){
+    var pagada = String(e.estatus || '') === '4' || !!e.fechaPago || (e.archivos && e.archivos.comprobantePago);
+
+    if(!pagada) return;
+
+    var subtotal = numCtrl(e.subtotal || e.importe);
+    var amortizacion = numCtrl(e.amortizacion);
+    var retencion = numCtrl(e.retencion);
+
+    totalPagadoNeto += Math.max(0, subtotal - amortizacion);
+    fondoGarantia += retencion;
+  });
+
+  return {
+    pagadoNeto: totalPagadoNeto,
+    fondoGarantia: fondoGarantia
+  };
+}
+
+function rptEstadoContratoVigentePorPeriodo(f, p){
+  var ini = String(f.inicia || '').slice(0,7);
+  var fin = String(f.termina || '').slice(0,7);
+
+  if(!ini || !fin) return 0;
+  return p >= ini && p <= fin ? 1 : 2;
+}
+
+function rptEstadoConvenioPorPeriodo(f, p){
+  var fin = String(f.termina || '').slice(0,7);
+  var data = rptDataFase(f);
+  var convenios = Array.isArray(data.__convenios) ? data.__convenios : [];
+
+  if(!fin) return 0;
+  if(p <= fin) return 4;
+
+  return convenios.length ? 1 : 2;
+}
+
+function rptEstadoIncidenciaSirocPorPeriodo(f, p){
+  var data = rptDataFase(f);
+  var lic = data.__licenciaSiroc || {};
+  var incidencias = Array.isArray(lic.incidencias) ? lic.incidencias : [];
+
+  var existe = incidencias.some(function(i){
+    var fecha = String(i.fecha || i.periodo || '').slice(0,7);
+    return fecha === p;
+  });
+
+  return existe ? 1 : 4;
+}
+
+function rptPeriodosCumplimientoContratista(perfil, fases){
+  var periodos = periodosObligacionesReporte(perfil, fases);
+
+  fases.forEach(function(f){
+    mesesEntre(f.inicia || '', f.termina || '').forEach(function(p){
+      if(periodos.indexOf(p) < 0) periodos.push(p);
+    });
+  });
+
+  return periodos.filter(function(p,i,a){ return p && a.indexOf(p) === i; }).sort();
+}
+
+function rptPeriodoCelda(ctrl, key, p, campo){
+  return getCtrlVal(ctrl, key, p, campo);
+}
+
+function rptFilaMatriz(label, periodos, fnEstado){
+  var h = '<tr><td>' + escCtrlHTML(label) + '</td>';
+
+  periodos.forEach(function(p){
+    h += '<td>' + rptEstadoMini(fnEstado(p)) + '</td>';
+  });
+
+  h += '</tr>';
+  return h;
+}
+
+function rptNombreFase(f){
+  var partes = [];
+
+  if(f.siroc) partes.push(f.siroc);
+  if(f.objeto) partes.push(f.objeto);
+
+  return partes.length ? partes.join(' · ') : (f.contratista || '--');
+}
+
+function rptFaseConRP(fases, perfil){
+  return fases.find(function(f){ return String(f.rp || '').trim(); }) || {rp: perfil.rp || ''};
+}
+
+function generarReporteCumplimientoContratistaObra(obraObj, rfcContratista){
+  var rfc = rptNormalizarRFC(rfcContratista);
+  var ctrl = gCtrl();
+  var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+
+  var fases = gFases().filter(function(f){
+    return rptMismoTexto(f.obra, obraObj.nombre)
+      && rptNormalizarRFC(f.rfc) === rfc
+      && String(f.perfil || '').toLowerCase().trim() !== 'propietaria';
+  });
+
+  if(!fases.length){
+    alert('No encontré fases/SIROC de ese contratista dentro de esta obra.');
+    return;
+  }
+
+  var perfil = gPrf().find(function(p){
+    return rptNormalizarRFC(p.rfc) === rfc;
+  }) || {
+    nombre: fases[0].contratista || rfc,
+    rfc: rfc,
+    rp: fases[0].rp || ''
+  };
+
+  var faseRP = rptFaseConRP(fases, perfil);
+  var rpControl = String(faseRP.rp || perfil.rp || '').trim();
+  var keyRFC = 'rfc_' + rfc;
+  var keySUA = 'sua_' + rfc + '_' + rpControl;
+  var periodos = rptPeriodosCumplimientoContratista(perfil, fases);
+
+  var totalImporte = 0;
+  var totalEstimaciones = 0;
+  var totalMoEst = 0;
+  var totalMoPag = 0;
+  var totalCuotasEst = 0;
+  var totalCuotasPag = 0;
+  var totalFondo = 0;
+  var totalContingencia = 0;
+
+  var h = '';
+
+  h += '<div class="rpt-header">'
+    + '<div class="rpt-logo">RO</div>'
+    + '<div class="rpt-title"><h1>Reporte cumplimiento contratista</h1><p>Seguimiento ejecutivo para propietaria con copia al contratista</p></div>'
+    + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-obra">'
+    + '<h2>' + escCtrlHTML(obraObj.nombre || '--') + '</h2>'
+    + '<div class="rpt-obra-grid">'
+    + '<div class="rpt-dato"><label>Propietaria</label><span>' + escCtrlHTML(obraObj.patron || obraObj.contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Contratista</label><span>' + escCtrlHTML(perfil.nombre || fases[0].contratista || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>RFC contratista</label><span style="font-family:monospace">' + escCtrlHTML(rfc) + '</span></div>'
+    + '<div class="rpt-dato"><label>RP usado para control</label><span style="font-family:monospace">' + escCtrlHTML(rpControl || '--') + '</span></div>'
+    + '<div class="rpt-dato"><label>Contratos / SIROC</label><span>' + fases.length + '</span></div>'
+    + '<div class="rpt-dato"><label>Periodo revisado</label><span>' + (periodos.length ? periodoLabel(periodos[0]) + ' — ' + periodoLabel(periodos[periodos.length - 1]) : '--') + '</span></div>'
+    + '</div></div>';
+
+  h += '<div class="rpt-card">'
+    + '<h3>Simbología</h3>'
+    + '<p style="color:#94a3b8;font-size:12px;line-height:1.7">'
+    + rptEstadoMini(1) + ' Presentado &nbsp;&nbsp; '
+    + rptEstadoMini(2) + ' No presentado &nbsp;&nbsp; '
+    + rptEstadoMini(3) + ' Erróneo &nbsp;&nbsp; '
+    + rptEstadoMini(4) + ' No aplica &nbsp;&nbsp; '
+    + rptEstadoMini(0) + ' Sin capturar'
+    + '</p></div>';
+
+  var docsGenerales = [
+    {l:'Constancia de Situación Fiscal SAT empresa',v:perfil.acuseSAT},
+    {l:'Tarjeta patronal IMSS',v:(fases.find(function(f){ return parseInt(f.tarjetaPatronal) || 0; }) || {}).tarjetaPatronal},
+    {l:'Acuse REPSE',v:perfil.acuseREPSE},
+    {l:'Identificación del Representante Legal',v:perfil.idRL},
+    {l:'Constancia de Situación Fiscal SAT del RL',v:perfil.constSATRL}
+  ];
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Documentación general única</h3>';
+  h += '<table class="rpt-tbl"><thead><tr><th>Documento</th><th>Estatus</th></tr></thead><tbody>';
+
+  docsGenerales.forEach(function(d){
+    h += '<tr' + (esObservacionReporte(d.v) ? ' class="rpt-warn"' : '') + '>'
+      + '<td>' + escCtrlHTML(d.l) + '</td>'
+      + '<td>' + rptEstadoTexto(d.v) + '</td>'
+      + '</tr>';
+  });
+
+  h += '</tbody></table></div>';
+
+  var docsContrato = [
+    {l:'Contrato firmado',fn:function(f){ return rptValContratoFase(f,'docFirmado',f.docFirmado); }},
+    {l:'Acuse SIROC contratista',fn:function(f){ return rptValContratoFase(f,'docSiroc',f.docSiroc); }},
+    {l:'Acta de entrega',fn:function(f){ return rptValCierreFase(f,'acta'); }},
+    {l:'CORP 01',fn:function(f){ return rptValCierreFase(f,'corp1'); }},
+    {l:'CORP 02',fn:function(f){ return rptValCierreFase(f,'corp2'); }},
+    {l:'Oficio de Conclusión',fn:function(f){ return rptValCierreFase(f,'oficio'); }}
+  ];
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Documentación por contrato / SIROC</h3>';
+  h += '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>Documento</th>';
+
+  fases.forEach(function(f){
+    h += '<th>' + escCtrlHTML(rptNombreFase(f)) + '</th>';
+  });
+
+  h += '</tr></thead><tbody>';
+
+  docsContrato.forEach(function(d){
+    h += '<tr><td>' + escCtrlHTML(d.l) + '</td>';
+    fases.forEach(function(f){
+      h += '<td>' + rptEstadoMini(d.fn(f)) + '</td>';
+    });
+    h += '</tr>';
+  });
+
+  h += '</tbody></table></div></div>';
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Resumen financiero e IMSS</h3>';
+  h += '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr>'
+    + '<th>Contratos / SIROC</th>'
+    + '<th>Importe contrato</th>'
+    + '<th>Estimaciones / facturas pagadas</th>'
+    + '<th>MO estimada</th>'
+    + '<th>MO pagada</th>'
+    + '<th>COP estimadas</th>'
+    + '<th>COP pagadas</th>'
+    + '<th>Fondo de garantía</th>'
+    + '<th>Contingencia IMSS</th>'
+    + '</tr></thead><tbody>';
+
+  fases.forEach(function(f){
+    var importe = rptImporteContratoActualizado(f);
+    var est = rptTotalesEstimacionesCumplimiento(f);
+    var moEst = rptMoEstimadaCumplimientoFase(f);
+    var totCtrl = getCtrlTotales(f.id);
+    var moPag = totCtrl.mo || 0;
+    var cuotasEst = moEst * factorCuotasReporteFase(f);
+    var cuotasPag = totCtrl.cuotas || 0;
+    var contingencia = Math.max(0, cuotasEst - cuotasPag);
+
+    totalImporte += importe;
+    totalEstimaciones += est.pagadoNeto;
+    totalMoEst += moEst;
+    totalMoPag += moPag;
+    totalCuotasEst += cuotasEst;
+    totalCuotasPag += cuotasPag;
+    totalFondo += est.fondoGarantia;
+    totalContingencia += contingencia;
+
+    h += '<tr>'
+      + '<td>' + escCtrlHTML(rptNombreFase(f)) + '</td>'
+      + '<td>' + rptMxn(importe) + '</td>'
+      + '<td>' + rptMxn(est.pagadoNeto) + '</td>'
+      + '<td>' + rptMxn(moEst) + '</td>'
+      + '<td>' + rptMxn(moPag) + '</td>'
+      + '<td>' + rptMxn(cuotasEst) + '</td>'
+      + '<td>' + rptMxn(cuotasPag) + '</td>'
+      + '<td>' + rptMxn(est.fondoGarantia) + '</td>'
+      + '<td>' + rptMxn(contingencia) + '</td>'
+      + '</tr>';
+  });
+
+  h += '<tr class="rpt-tot">'
+    + '<td>Total general</td>'
+    + '<td>' + rptMxn(totalImporte) + '</td>'
+    + '<td>' + rptMxn(totalEstimaciones) + '</td>'
+    + '<td>' + rptMxn(totalMoEst) + '</td>'
+    + '<td>' + rptMxn(totalMoPag) + '</td>'
+    + '<td>' + rptMxn(totalCuotasEst) + '</td>'
+    + '<td>' + rptMxn(totalCuotasPag) + '</td>'
+    + '<td>' + rptMxn(totalFondo) + '</td>'
+    + '<td>' + rptMxn(totalContingencia) + '</td>'
+    + '</tr>';
+
+  h += '</tbody></table></div></div>';
+
+  fases.forEach(function(f){
+    var keyFase = 'fase_' + f.id;
+
+    h += '<div class="rpt-card">';
+    h += '<h3>Control mensual — ' + escCtrlHTML(rptNombreFase(f)) + '</h3>';
+    h += '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>Documentación</th>';
+
+    periodos.forEach(function(p){
+      h += '<th>' + escCtrlHTML(periodoLabel(p)) + '</th>';
+    });
+
+    h += '</tr></thead><tbody>';
+
+    h += rptFilaMatriz('Contrato vigente', periodos, function(p){ return rptEstadoContratoVigentePorPeriodo(f,p); });
+    h += rptFilaMatriz('Convenio modificatorio', periodos, function(p){ return rptEstadoConvenioPorPeriodo(f,p); });
+    h += rptFilaMatriz('Resumen SIROC', periodos, function(p){ return rptPeriodoCelda(ctrl,keyFase,p,'rep_siroc'); });
+    h += rptFilaMatriz('Siroc contratista vigente', periodos, function(p){ return rptEstadoContratoVigentePorPeriodo(f,p); });
+    h += rptFilaMatriz('Incidencia SIROC', periodos, function(p){ return rptEstadoIncidenciaSirocPorPeriodo(f,p); });
+    h += rptFilaMatriz('Reporte bimestral SIROC', periodos, function(p){ return rptPeriodoCelda(ctrl,keyFase,p,'rep_bim_siroc'); });
+    h += rptFilaMatriz('Reporte de obra SUA', periodos, function(p){ return rptPeriodoCelda(ctrl,keySUA,p,'sua_arc'); });
+    h += rptFilaMatriz('Vinculación de trabajadores', periodos, function(p){ return rptPeriodoCelda(ctrl,keyFase,p,'vinc'); });
+    h += rptFilaMatriz('Nóminas PDF y XML', periodos, function(p){ return rptCombinarEstados([rptPeriodoCelda(ctrl,keyFase,p,'nom_pdf'), rptPeriodoCelda(ctrl,keyFase,p,'nom_xml')]); });
+    h += rptFilaMatriz('Lista de trabajadores', periodos, function(p){ return rptPeriodoCelda(ctrl,keyFase,p,'lista_trab'); });
+
+    h += '</tbody></table></div></div>';
+  });
+
+  var obligaciones = [
+    {grupo:'RP',l:'Archivo de pago .SUA',key:keySUA,c:'sua_arc'},
+    {grupo:'RP',l:'Comprobante de pago de cuotas',key:keySUA,c:'sua_comp'},
+    {grupo:'RP',l:'SIPARE',key:keySUA,c:'sipare'},
+    {grupo:'RP',l:'Resumen de liquidación',key:keySUA,c:'resumen'},
+    {grupo:'RP',l:'Cédula mensual del SUA',key:keySUA,c:'ced_men'},
+    {grupo:'RP',l:'Cédula bimestral del SUA',key:keySUA,c:'ced_bim'},
+    {grupo:'RP',l:'CFDI y XML emitido por IMSS',key:keySUA,c:'cfdi_imss'},
+    {grupo:'RP',l:'CFDI emitido por Infonavit',key:keySUA,c:'cfdi_inf'},
+    {grupo:'RFC',l:'Opinión cumplimiento Infonavit',key:keyRFC,c:'op_inf'},
+    {grupo:'RFC',l:'Opinión cumplimiento SAT',key:keyRFC,c:'op_sat'},
+    {grupo:'RFC',l:'Opinión cumplimiento IMSS',key:keyRFC,c:'op_imss'},
+    {grupo:'RFC',l:'Reporte ICSOE',key:keyRFC,c:'icsoe'},
+    {grupo:'RFC',l:'Reporte SISUB',key:keyRFC,c:'sisub'},
+    {grupo:'RFC',l:'Acuse de recibo IVA',key:keyRFC,c:'iva_acu'},
+    {grupo:'RFC',l:'Formato de pago IVA',key:keyRFC,c:'iva_fmt'},
+    {grupo:'RFC',l:'Pago bancario IVA',key:keyRFC,c:'iva_pag'},
+    {grupo:'RFC',l:'Detalle mensual IVA',key:keyRFC,c:'iva_det'},
+    {grupo:'RFC',l:'Acuse de recibo ISR',key:keyRFC,c:'isr_acu'},
+    {grupo:'RFC',l:'Formato de pago ISR',key:keyRFC,c:'isr_fmt'},
+    {grupo:'RFC',l:'Pago bancario ISR',key:keyRFC,c:'isr_pag'},
+    {grupo:'RFC',l:'Detalle mensual ISR',key:keyRFC,c:'isr_det'},
+    {grupo:'RFC',l:'Acuse de recibo ret ISR a salarios',key:keyRFC,c:'isrr_acu'},
+    {grupo:'RFC',l:'Formato de pago ISR ret. a salarios',key:keyRFC,c:'isrr_fmt'},
+    {grupo:'RFC',l:'Pago bancario ISR ret. a salarios',key:keyRFC,c:'isrr_pag'},
+    {grupo:'RFC',l:'Detalle mensual ISR ret. a salarios',key:keyRFC,c:'isrr_det'},
+    {grupo:'RFC',l:'Acuse de envío DIOT',key:keyRFC,c:'diot_env'},
+    {grupo:'RFC',l:'DIOT',key:keyRFC,c:'diot_arc'}
+  ];
+
+  h += '<div class="rpt-card">';
+  h += '<h3>Control general RFC/RP del contratista</h3>';
+  h += '<div style="overflow-x:auto"><table class="rpt-tbl"><thead><tr><th>Grupo</th><th>Documentación</th>';
+
+  periodos.forEach(function(p){
+    h += '<th>' + escCtrlHTML(periodoLabel(p)) + '</th>';
+  });
+
+  h += '</tr></thead><tbody>';
+
+  obligaciones.forEach(function(o){
+    h += '<tr><td>' + escCtrlHTML(o.grupo) + '</td><td>' + escCtrlHTML(o.l) + '</td>';
+
+    periodos.forEach(function(p){
+      h += '<td>' + rptEstadoMini(rptPeriodoCelda(ctrl,o.key,p,o.c)) + '</td>';
+    });
+
+    h += '</tr>';
+  });
+
+  h += '</tbody></table></div></div>';
+
+  h += '<div class="rpt-card">'
+    + '<h3>Criterio del reporte</h3>'
+    + '<p style="color:#94a3b8;font-size:13px;line-height:1.5">'
+    + 'Este reporte consolida el cumplimiento del contratista dentro de la obra seleccionada. Incluye documentación única del perfil, documentación por contrato/SIROC, avance financiero, cuotas IMSS pagadas, fondo de garantía, contingencia IMSS y obligaciones mensuales RFC/RP. Los importes pagados se muestran sin IVA y netos de amortización de anticipo cuando la estimación está marcada como pagada o tiene fecha/comprobante de pago.'
+    + '</p>'
+    + '</div>';
+
+  document.getElementById('rpt-contenido').innerHTML = h;
+  document.getElementById('rpt-bk').onclick = function(){
+    ta = 'p';
+    irFicha(obraObj.id);
+  };
+
+  show('pg-reporte');
+}
+
 function generarReporteISN(o,t){
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
   var ctrl = JSON.parse(localStorage.getItem('control') || '{}');
@@ -10648,7 +11206,13 @@ function abrirReportesFase(faseId){
   var btnPresupuesto = document.getElementById('btn-rpt-cuotas-presupuesto');
   var btnISN = document.getElementById('btn-rpt-isn');
   var btnObligaciones = document.getElementById('btn-rpt-obligaciones');
+  var btnCumplimiento = document.getElementById('btn-rpt-cumplimiento-contratista');
   var btnExpediente = document.getElementById('btn-rpt-expediente');
+
+  if(btnCumplimiento){
+    btnCumplimiento.style.display = 'none';
+    btnCumplimiento.onclick = null;
+  }
 
   if(btnCuotas){
     btnCuotas.style.display = '';
