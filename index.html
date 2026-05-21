@@ -1084,6 +1084,7 @@ label.ctrl-action-locked{
 
   <div id="navMainLeft" class="nav-main-left">
     <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Perfiles</button>
+    <button class="nbtn btn-nav-secondary" id="btnUsuarios" onclick="irUsuarios()">Usuarios</button>
     <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
   </div>
 </div>
@@ -1268,6 +1269,83 @@ label.ctrl-action-locked{
     <span class="isn-total-val" id="isn-total"></span>
   </div>
 </div>
+<!-- USUARIOS -->
+<div class="page" id="pg-usuarios">
+  <button class="bbtn" onclick="goHome()">&#8592; Inicio</button>
+  <div class="lhdr">
+    <div>
+      <div class="ltit">Usuarios</div>
+      <div class="lsub" id="usr-sub">Usuarios internos de esta cuenta</div>
+    </div>
+    <button class="nbtn" onclick="abrirNuevoUsuarioApp()">+ Nuevo Usuario</button>
+  </div>
+  <div class="olist" id="usr-list"></div>
+</div>
+
+<div class="mov" id="modal-usuario">
+  <div class="mbox">
+    <h2 id="usr-mtit">Nuevo Usuario</h2>
+    <form id="frm-usr" onsubmit="guardarUsuarioApp(event)" autocomplete="off">
+      <div class="fgrid">
+        <div class="fg">
+          <label>Correo de acceso *</label>
+          <input id="usr-email" type="email">
+        </div>
+
+        <div class="fg">
+          <label>Nombre</label>
+          <input id="usr-nombre">
+        </div>
+
+        <div class="fg">
+          <label>Rol *</label>
+          <select id="usr-rol" class="fg-sel">
+            <option value="gerente">Gerente</option>
+            <option value="capturista">Capturista</option>
+            <option value="auditor">Auditor</option>
+            <option value="contratista">Contratista externo</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label>Estado</label>
+          <select id="usr-activo" class="fg-sel">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+
+        <div class="fg full">
+          <label>Obras asignadas *</label>
+          <div id="usr-obras-box" style="display:grid;gap:8px;background:#0f1117;border:1px solid #2d2d44;border-radius:10px;padding:12px"></div>
+        </div>
+
+        <div class="fg full">
+          <label>Permisos</label>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;background:#0f1117;border:1px solid #2d2d44;border-radius:10px;padding:12px;color:#cbd5e1;font-size:13px">
+            <label><input type="checkbox" id="usr-pcrear" checked> Crear</label>
+            <label><input type="checkbox" id="usr-peditar" checked> Editar</label>
+            <label><input type="checkbox" id="usr-pborrar"> Borrar</label>
+            <label><input type="checkbox" id="usr-preportes" checked> Reportes</label>
+          </div>
+        </div>
+
+        <div class="fg full">
+          <label>Nota</label>
+          <span style="color:#94a3b8;font-size:12px;line-height:1.5">
+            La persona debe crear su cuenta o entrar usando este mismo correo. Al iniciar sesión, quedará vinculada automáticamente a estas obras.
+          </span>
+        </div>
+      </div>
+
+      <div class="macts">
+        <button type="button" class="bcan" onclick="cerrarUsuarioApp()">Cancelar</button>
+        <button type="submit" class="bsav">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- PERFILES -->
 <div class="page" id="pg-perfiles">
   <button class="bbtn" onclick="goHome()">&#8592; Inicio</button>
@@ -1947,17 +2025,56 @@ async function cargarDatosSupabase(){
   currentOwnerUserId = user.id;
   currentObrasPermitidas = [];
 
-  const { data: appUser, error: eUserApp } = await supabaseClient
+  var appUser = null;
+
+  const rAppAuth = await supabaseClient
     .from('usuarios_app')
     .select('*')
     .eq('auth_user_id', user.id)
     .eq('activo', true)
     .maybeSingle();
 
-  if(eUserApp){
-    console.error('Error cargando usuario_app:', eUserApp);
+  if(rAppAuth.error){
+    console.error('Error cargando usuario_app:', rAppAuth.error);
     alert('No se pudo validar el rol del usuario.');
     return;
+  }
+
+  appUser = rAppAuth.data || null;
+
+  if(!appUser && user.email){
+    var emailUsuario = String(user.email || '').trim().toLowerCase();
+
+    const rAppEmail = await supabaseClient
+      .from('usuarios_app')
+      .select('*')
+      .eq('email', emailUsuario)
+      .eq('activo', true)
+      .limit(1)
+      .maybeSingle();
+
+    if(rAppEmail.error){
+      console.error('Error buscando invitación por correo:', rAppEmail.error);
+      alert('No se pudo validar la invitación del usuario.');
+      return;
+    }
+
+    appUser = rAppEmail.data || null;
+
+    if(appUser && !appUser.auth_user_id){
+      await supabaseClient
+        .from('usuarios_app')
+        .update({ auth_user_id: user.id })
+        .eq('id', appUser.id);
+
+      await supabaseClient
+        .from('usuario_obras')
+        .update({ auth_user_id: user.id })
+        .eq('owner_user_id', appUser.owner_user_id)
+        .eq('email_usuario', emailUsuario);
+
+      appUser.auth_user_id = user.id;
+    }
   }
 
   if(appUser){
@@ -1966,12 +2083,21 @@ async function cargarDatosSupabase(){
   }
 
   if(!esUsuarioDueno()){
-    const { data: permisos, error: ePermisos } = await supabaseClient
+    var emailPermiso = String(user.email || '').trim().toLowerCase();
+
+    var qPermisos = supabaseClient
       .from('usuario_obras')
       .select('*')
       .eq('owner_user_id', currentOwnerUserId)
-      .eq('auth_user_id', user.id)
       .eq('puede_ver', true);
+
+    if(emailPermiso){
+      qPermisos = qPermisos.or('auth_user_id.eq.' + user.id + ',email_usuario.eq.' + emailPermiso);
+    }else{
+      qPermisos = qPermisos.eq('auth_user_id', user.id);
+    }
+
+    const { data: permisos, error: ePermisos } = await qPermisos;
 
     if(ePermisos){
       console.error('Error cargando permisos de obras:', ePermisos);
@@ -2154,6 +2280,7 @@ async function cargarDatosSupabase(){
     localStorage.setItem('control', JSON.stringify({}));
   }
 
+  renderAuthStatus();
   counts();
   goHome();
 
@@ -2165,12 +2292,14 @@ function renderAuthStatus(){
   var pass = document.getElementById('authPassword');
   var btns = document.querySelectorAll('#authBox button');
   var mainLeft = document.getElementById('navMainLeft');
+  var btnUsuarios = document.getElementById('btnUsuarios');
   var appPages = document.querySelectorAll('.page,.pg-est,.pg-isn,.pg-con,.pg-cisn,.pg-fases,.pg-fase-ficha,.pg-ctrl,.pg-reporte');
 
   if(!status) return;
 
   if(currentUser){
     if(mainLeft) mainLeft.style.display = 'flex';
+    if(btnUsuarios) btnUsuarios.style.display = esUsuarioDueno() ? 'inline-block' : 'none';
     appPages.forEach(p => p.style.display = '');
 
     if(email) email.style.display = 'none';
@@ -2182,6 +2311,7 @@ function renderAuthStatus(){
     status.textContent = 'Sesión: ' + currentUser.email;
   } else {
     if(mainLeft) mainLeft.style.display = 'none';
+    if(btnUsuarios) btnUsuarios.style.display = 'none';
     appPages.forEach(p => p.style.display = 'none');
 
     if(email) email.style.display = '';
@@ -2215,6 +2345,11 @@ async function signUp(){
 
   currentUser = data.user || null;
   renderAuthStatus();
+
+  if(currentUser){
+    await cargarDatosSupabase();
+  }
+
   alert('Cuenta creada. Si Supabase pide confirmación, revisa tu correo.');
 }
 
@@ -3221,6 +3356,378 @@ async function hacerDel(){
   if(document.getElementById('pg-ficha').classList.contains('active')) irLista(ta);
   else if(ta) irLista(ta);
   else {counts();goHome();}
+}
+var editandoUsuarioEmail = null;
+
+function escHTML(v){
+  return String(v || '').replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);
+  });
+}
+
+function obrasAsignablesUsuario(){
+  return gP().concat(gC());
+}
+
+function nombreObraPorIdUsuario(id){
+  var obra = obrasAsignablesUsuario().find(function(o){
+    return String(o.id || '') === String(id || '');
+  });
+
+  return obra ? (obra.nombre || id) : id;
+}
+
+async function irUsuarios(){
+  if(!currentUser || !esUsuarioDueno()){
+    alert('Solo el dueño puede administrar usuarios.');
+    return;
+  }
+
+  show('pg-usuarios');
+  await renderUsuariosApp();
+}
+
+async function renderUsuariosApp(){
+  var cont = document.getElementById('usr-list');
+  var sub = document.getElementById('usr-sub');
+
+  if(!cont) return;
+
+  cont.innerHTML = '<div class="empty"><p>Cargando usuarios...</p></div>';
+
+  var ownerId = getOwnerUserId();
+
+  const { data: usuarios, error: eUsuarios } = await supabaseClient
+    .from('usuarios_app')
+    .select('*')
+    .eq('owner_user_id', ownerId)
+    .order('email', { ascending: true });
+
+  if(eUsuarios){
+    console.error('USUARIOS_APP ERROR:', eUsuarios);
+    cont.innerHTML = '<div class="empty"><p>No se pudieron cargar usuarios. Revisa si ya agregaste las columnas de usuarios en Supabase.</p></div>';
+    return;
+  }
+
+  const { data: permisos, error: ePermisos } = await supabaseClient
+    .from('usuario_obras')
+    .select('*')
+    .eq('owner_user_id', ownerId);
+
+  if(ePermisos){
+    console.error('USUARIO_OBRAS ERROR:', ePermisos);
+  }
+
+  var lista = usuarios || [];
+  var permisosLista = permisos || [];
+
+  if(sub){
+    sub.textContent = lista.length + ' usuario' + (lista.length !== 1 ? 's' : '') + ' registrado' + (lista.length !== 1 ? 's' : '');
+  }
+
+  if(!lista.length){
+    cont.innerHTML = '<div class="empty"><p>Sin usuarios registrados.</p></div>';
+    return;
+  }
+
+  var h = '';
+
+  lista.forEach(function(u){
+    var email = String(u.email || '').trim().toLowerCase();
+    var obrasUsr = permisosLista.filter(function(p){
+      return String(p.email_usuario || '').trim().toLowerCase() === email ||
+             (u.auth_user_id && String(p.auth_user_id || '') === String(u.auth_user_id || ''));
+    });
+
+    var obrasTxt = obrasUsr.map(function(p){
+      return nombreObraPorIdUsuario(p.obra_id);
+    }).filter(Boolean).join(', ');
+
+    h += '<div class="ocard">'
+      + '<div class="oacts">'
+      + '<button class="bedit" onclick="abrirEditarUsuarioApp(\'' + encodeURIComponent(email) + '\')">Editar</button>'
+      + '<button class="bdel" onclick="desactivarUsuarioApp(\'' + encodeURIComponent(email) + '\')">Desactivar</button>'
+      + '</div>'
+      + '<div class="onom">' + escHTML(u.nombre || email || 'Usuario sin correo') + '</div>'
+      + '<div class="odet">'
+      + '<div class="ofil"><span class="olab">Correo:</span><span>' + escHTML(email || '--') + '</span></div>'
+      + '<div class="ofil"><span class="olab">Rol:</span><span>' + escHTML(u.rol || '--') + '</span></div>'
+      + '<div class="ofil"><span class="olab">Estado:</span><span>' + (u.activo === false ? 'Inactivo' : 'Activo') + '</span></div>'
+      + '<div class="ofil"><span class="olab">Obras:</span><span>' + escHTML(obrasTxt || 'Sin obras asignadas') + '</span></div>'
+      + '</div>'
+      + '</div>';
+  });
+
+  cont.innerHTML = h;
+}
+
+function pintarObrasUsuarioSeleccionadas(seleccionadas){
+  var box = document.getElementById('usr-obras-box');
+  if(!box) return;
+
+  seleccionadas = seleccionadas || [];
+
+  var obras = obrasAsignablesUsuario();
+
+  if(!obras.length){
+    box.innerHTML = '<span style="color:#64748b;font-size:12px">Primero crea una obra.</span>';
+    return;
+  }
+
+  var h = '';
+
+  obras.forEach(function(o){
+    var checked = seleccionadas.indexOf(String(o.id || '')) >= 0 ? ' checked' : '';
+
+    h += '<label style="display:flex;gap:8px;align-items:center;color:#cbd5e1;font-size:13px">'
+      + '<input type="checkbox" class="usr-obra-check" value="' + escHTML(o.id || '') + '"' + checked + '>'
+      + '<span>' + escHTML(o.nombre || o.id || '') + '</span>'
+      + '</label>';
+  });
+
+  box.innerHTML = h;
+}
+
+function abrirNuevoUsuarioApp(){
+  if(!currentUser || !esUsuarioDueno()){
+    alert('Solo el dueño puede crear usuarios.');
+    return;
+  }
+
+  editandoUsuarioEmail = null;
+
+  document.getElementById('usr-mtit').textContent = 'Nuevo Usuario';
+  document.getElementById('frm-usr').reset();
+  document.getElementById('usr-email').readOnly = false;
+  document.getElementById('usr-activo').value = 'true';
+  document.getElementById('usr-pcrear').checked = true;
+  document.getElementById('usr-peditar').checked = true;
+  document.getElementById('usr-pborrar').checked = false;
+  document.getElementById('usr-preportes').checked = true;
+
+  pintarObrasUsuarioSeleccionadas([]);
+
+  document.getElementById('modal-usuario').classList.add('open');
+}
+
+async function abrirEditarUsuarioApp(emailCodificado){
+  var email = decodeURIComponent(emailCodificado || '').trim().toLowerCase();
+
+  if(!email){
+    alert('Usuario no válido.');
+    return;
+  }
+
+  editandoUsuarioEmail = email;
+
+  var ownerId = getOwnerUserId();
+
+  const { data: usuario, error: eUsuario } = await supabaseClient
+    .from('usuarios_app')
+    .select('*')
+    .eq('owner_user_id', ownerId)
+    .eq('email', email)
+    .maybeSingle();
+
+  if(eUsuario || !usuario){
+    console.error('USUARIO EDITAR ERROR:', eUsuario);
+    alert('No se pudo cargar el usuario.');
+    return;
+  }
+
+  const { data: permisos, error: ePermisos } = await supabaseClient
+    .from('usuario_obras')
+    .select('*')
+    .eq('owner_user_id', ownerId)
+    .eq('email_usuario', email);
+
+  if(ePermisos){
+    console.error('PERMISOS EDITAR ERROR:', ePermisos);
+  }
+
+  var permisosLista = permisos || [];
+  var seleccionadas = permisosLista.map(function(p){
+    return String(p.obra_id || '');
+  });
+
+  document.getElementById('usr-mtit').textContent = 'Editar Usuario';
+  document.getElementById('frm-usr').reset();
+  document.getElementById('usr-email').value = email;
+  document.getElementById('usr-email').readOnly = true;
+  document.getElementById('usr-nombre').value = usuario.nombre || '';
+  document.getElementById('usr-rol').value = usuario.rol || 'gerente';
+  document.getElementById('usr-activo').value = usuario.activo === false ? 'false' : 'true';
+
+  var primerPermiso = permisosLista[0] || {};
+  document.getElementById('usr-pcrear').checked = primerPermiso.puede_crear !== false;
+  document.getElementById('usr-peditar').checked = primerPermiso.puede_editar !== false;
+  document.getElementById('usr-pborrar').checked = primerPermiso.puede_borrar === true;
+  document.getElementById('usr-preportes').checked = primerPermiso.puede_reportes !== false;
+
+  pintarObrasUsuarioSeleccionadas(seleccionadas);
+
+  document.getElementById('modal-usuario').classList.add('open');
+}
+
+function cerrarUsuarioApp(){
+  editandoUsuarioEmail = null;
+  document.getElementById('modal-usuario').classList.remove('open');
+}
+
+async function guardarUsuarioApp(e){
+  e.preventDefault();
+
+  if(!currentUser || !esUsuarioDueno()){
+    alert('Solo el dueño puede guardar usuarios.');
+    return;
+  }
+
+  var ownerId = getOwnerUserId();
+  var email = document.getElementById('usr-email').value.trim().toLowerCase();
+  var nombre = document.getElementById('usr-nombre').value.trim();
+  var rol = document.getElementById('usr-rol').value;
+  var activo = document.getElementById('usr-activo').value === 'true';
+
+  var obrasSeleccionadas = Array.from(document.querySelectorAll('.usr-obra-check:checked')).map(function(ch){
+    return ch.value;
+  });
+
+  if(!email || !rol){
+    alert('Captura correo y rol.');
+    return;
+  }
+
+  if(!obrasSeleccionadas.length){
+    alert('Selecciona por lo menos una obra.');
+    return;
+  }
+
+  const { data: usuarioExistente, error: eBuscar } = await supabaseClient
+    .from('usuarios_app')
+    .select('*')
+    .eq('owner_user_id', ownerId)
+    .eq('email', email)
+    .maybeSingle();
+
+  if(eBuscar){
+    console.error('BUSCAR USUARIO ERROR:', eBuscar);
+    alert('No se pudo revisar si el usuario ya existe.');
+    return;
+  }
+
+  var authUserId = usuarioExistente ? (usuarioExistente.auth_user_id || null) : null;
+
+  if(usuarioExistente){
+    const { error: eUpdate } = await supabaseClient
+      .from('usuarios_app')
+      .update({
+        email: email,
+        nombre: nombre,
+        rol: rol,
+        activo: activo
+      })
+      .eq('id', usuarioExistente.id);
+
+    if(eUpdate){
+      console.error('ACTUALIZAR USUARIO ERROR:', eUpdate);
+      alert('No se pudo actualizar el usuario.');
+      return;
+    }
+  }else{
+    const { error: eInsert } = await supabaseClient
+      .from('usuarios_app')
+      .insert([{
+        owner_user_id: ownerId,
+        auth_user_id: null,
+        email: email,
+        nombre: nombre,
+        rol: rol,
+        activo: activo
+      }]);
+
+    if(eInsert){
+      console.error('CREAR USUARIO ERROR:', eInsert);
+      alert('No se pudo crear el usuario interno.');
+      return;
+    }
+  }
+
+  await supabaseClient
+    .from('usuario_obras')
+    .delete()
+    .eq('owner_user_id', ownerId)
+    .eq('email_usuario', email);
+
+  if(authUserId){
+    await supabaseClient
+      .from('usuario_obras')
+      .delete()
+      .eq('owner_user_id', ownerId)
+      .eq('auth_user_id', authUserId);
+  }
+
+  var puedeCrear = document.getElementById('usr-pcrear').checked;
+  var puedeEditar = document.getElementById('usr-peditar').checked;
+  var puedeBorrar = document.getElementById('usr-pborrar').checked;
+  var puedeReportes = document.getElementById('usr-preportes').checked;
+
+  var filasPermisos = obrasSeleccionadas.map(function(obraId){
+    return {
+      owner_user_id: ownerId,
+      auth_user_id: authUserId,
+      email_usuario: email,
+      obra_id: obraId,
+      puede_ver: true,
+      puede_crear: puedeCrear,
+      puede_editar: puedeEditar,
+      puede_borrar: puedeBorrar,
+      puede_reportes: puedeReportes
+    };
+  });
+
+  const { error: ePermisos } = await supabaseClient
+    .from('usuario_obras')
+    .insert(filasPermisos);
+
+  if(ePermisos){
+    console.error('GUARDAR PERMISOS ERROR:', ePermisos);
+    alert('Usuario guardado, pero falló la asignación de obras.');
+    return;
+  }
+
+  cerrarUsuarioApp();
+  await renderUsuariosApp();
+
+  alert('Usuario guardado. Ahora esa persona debe entrar o crear cuenta con ese mismo correo.');
+}
+
+async function desactivarUsuarioApp(emailCodificado){
+  var email = decodeURIComponent(emailCodificado || '').trim().toLowerCase();
+
+  if(!email){
+    alert('Usuario no válido.');
+    return;
+  }
+
+  if(!confirm('¿Desactivar usuario ' + email + '?')){
+    return;
+  }
+
+  var ownerId = getOwnerUserId();
+
+  const { error } = await supabaseClient
+    .from('usuarios_app')
+    .update({ activo: false })
+    .eq('owner_user_id', ownerId)
+    .eq('email', email);
+
+  if(error){
+    console.error('DESACTIVAR USUARIO ERROR:', error);
+    alert('No se pudo desactivar el usuario.');
+    return;
+  }
+
+  await renderUsuariosApp();
 }
 function irPerfiles(){
   var lista = gPrf();
