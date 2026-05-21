@@ -2711,8 +2711,10 @@ try {
 }
 
   cerrar();
-  if(ta) irLista(ta);
-  else { counts(); goHome(); }
+
+  ta = eTipo;
+  counts();
+  irFicha(o.id);
 }
 var dId=null;
 function pedirDel(id){dId=id;var o=gP().find(function(x){return x.id===id;})||gC().find(function(x){return x.id===id;});document.getElementById('cmsg').textContent='Se eliminara "'+(o?o.nombre:'esta obra')+'" permanentemente.';document.getElementById('bcdel').onclick=hacerDel;document.getElementById('cov').classList.add('open');}
@@ -4993,7 +4995,12 @@ try {
 }
 
 cerrarFase();
-if(obraFasesActual)irFases(obraFasesActual.o,obraFasesActual.t);
+
+if(f && f.id){
+  irFichaFase(f.id);
+}else if(obraFasesActual){
+  irFases(obraFasesActual.o,obraFasesActual.t);
+}
 }
 function pedirDelFase(id){
   var f=gFases().find(function(x){return x.id===id;});
