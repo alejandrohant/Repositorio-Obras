@@ -6622,24 +6622,26 @@ function buildControlLicenciaSiroc(key, fase){
   var h = '<div class="ctrl-seccion" style="margin-top:12px"><h3>Control Licencia / Incidencias SIROC</h3>';
 
   h += '<h4>Actualización licencia</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Documento</th><th>Estado</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody>';
   actualizacionesVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Actualización licencia ' + (idx + 1) + '</td>';
     h += '<td>' + selActualizacion(idx, item.estado) + '</td>';
     h += archivoCells('actualizaciones', idx, item);
+    h += '<td>' + (actualizaciones.length ? '<button type="button" class="ctrl-conv-del" onclick="eliminarItemControlLicencia(\'' + escCtrlJS(key) + '\',\'actualizaciones\',' + idx + ')">Eliminar</button>' : '<span class="doc-none">--</span>') + '</td>';
     h += '</tr>';
   });
   h += '</tbody></table></div>';
   h += '<button type="button" class="ctrl-add-btn" onclick="agregarActualizacionLicencia(\'' + escCtrlJS(key) + '\')">+ Agregar actualización</button>';
 
   h += '<h4>Incidencia SIROC</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Subir archivo</th><th>Quitar archivo</th></tr></thead><tbody>';
+   h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Subir archivo</th><th>Quitar archivo</th><th>Acción</th></tr></thead><tbody>';
   incidenciasVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Incidencia SIROC ' + (idx + 1) + '</td>';
     h += '<td>' + selIncidencia(idx, item.tipo) + '</td>';
     h += archivoCells('incidencias', idx, item);
+    h += '<td>' + (incidencias.length ? '<button type="button" class="ctrl-conv-del" onclick="eliminarItemControlLicencia(\'' + escCtrlJS(key) + '\',\'incidencias\',' + idx + ')">Eliminar</button>' : '<span class="doc-none">--</span>') + '</td>';
     h += '</tr>';
   });
   h += '</tbody></table></div>';
@@ -6697,13 +6699,14 @@ function buildControlIncidenciasSiroc(key, fase){
   }
 
   var h = '<h4>Incidencias SIROC</h4>';
-  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th></tr></thead><tbody>';
+  h += '<div style="overflow-x:auto"><table class="ctrl-tbl"><thead><tr><th>Incidencia</th><th>Tipo</th><th>Archivo</th><th>Acción</th></tr></thead><tbody>';
 
   incidenciasVista.forEach(function(item, idx){
     h += '<tr>';
     h += '<td>Incidencia SIROC ' + (idx + 1) + '</td>';
     h += '<td>' + selIncidencia(idx, item.tipo) + '</td>';
     h += archivoCells('incidencias', idx, item);
+    h += '<td>' + (incidencias.length ? '<button type="button" class="ctrl-conv-del" onclick="eliminarItemControlLicencia(\'' + escCtrlJS(key) + '\',\'incidencias\',' + idx + ')">Eliminar</button>' : '<span class="doc-none">--</span>') + '</td>';
     h += '</tr>';
   });
 
@@ -6911,6 +6914,35 @@ async function quitarArchivoControlLicencia(key, grupo, idx){
   recargarPanelLicenciaSirocControl(key);
 }
 
+async function eliminarItemControlLicencia(key, grupo, idx){
+  var nombre = grupo === 'actualizaciones' ? 'actualización de licencia' : 'incidencia SIROC';
+
+  if(!confirm('¿Eliminar esta ' + nombre + '?')) return;
+
+  var ctrl = gCtrl();
+  var data = asegurarControlLicenciaData(ctrl, key);
+
+  if(!Array.isArray(data[grupo]) || !data[grupo][idx]){
+    return;
+  }
+
+  var item = data[grupo][idx];
+  var anterior = item.archivo || '';
+
+  data[grupo].splice(idx, 1);
+
+  sCtrl(ctrl);
+
+  if(anterior){
+    await borrarRutaDocumentoFase(anterior);
+  }
+
+  if(typeof recargarPanelLicenciaSirocControl === 'function'){
+    recargarPanelLicenciaSirocControl(key);
+  }else{
+    recargarControl();
+  }
+}
 function buildControlCierreHtml(key){
   var ctrl = gCtrl();
 
