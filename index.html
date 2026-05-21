@@ -3691,7 +3691,7 @@ async function guardarUsuarioApp(e){
 
   if(ePermisos){
     console.error('GUARDAR PERMISOS ERROR:', ePermisos);
-    alert('Usuario guardado, pero falló la asignación de obras.');
+    alert('Usuario guardado, pero falló la asignación de obras: ' + (ePermisos.message || 'Error desconocido'));
     return;
   }
 
