@@ -6823,11 +6823,7 @@ function agregarAnticipoControl(faseId){
   });
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function guardarAnticipoControl(faseId, idx){
@@ -6839,11 +6835,7 @@ function guardarAnticipoControl(faseId, idx){
   ctrl[key].__anticipos[idx].editando = false;
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function editarAnticipoControl(faseId, idx){
@@ -6855,11 +6847,7 @@ function editarAnticipoControl(faseId, idx){
   ctrl[key].__anticipos[idx].editando = true;
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function eliminarAnticipoControl(faseId, idx){
@@ -6877,11 +6865,7 @@ function eliminarAnticipoControl(faseId, idx){
   });
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function setEstimacionVal(key, idx, campo, val){
@@ -6938,6 +6922,51 @@ function abrirPanelEstimacionesControl(faseId){
 
   toggleControlFasePanel(faseIdSafe, 'estimaciones', btn || null);
 }
+function recargarPanelEstimacionesControl(faseId){
+  var key = 'fase_' + faseId;
+  var faseIdSafe = faseIdSafeCtrl(faseId);
+  var card = document.getElementById('ctrlfase-card-' + faseIdSafe);
+
+  if(!card){
+    recargarControl();
+    setTimeout(function(){
+      abrirPanelEstimacionesControl(faseId);
+    }, 0);
+    return;
+  }
+
+  var fase = gFases().find(function(f){
+    return String(f.id || '') === String(faseId || '');
+  });
+
+  if(!fase && ctrlFaseCtx && String(ctrlFaseCtx.id || '') === String(faseId || '')){
+    fase = ctrlFaseCtx;
+  }
+
+  if(!fase){
+    recargarControl();
+    setTimeout(function(){
+      abrirPanelEstimacionesControl(faseId);
+    }, 0);
+    return;
+  }
+
+  var panel = card.querySelector('[data-panel="estimaciones"]');
+  if(!panel) return;
+
+  var posicionPantalla = window.scrollY || window.pageYOffset || 0;
+
+  panel.innerHTML = buildControlEstimaciones(key, fase);
+  abrirPanelEstimacionesControl(faseId);
+
+  requestAnimationFrame(function(){
+    window.scrollTo(0, posicionPantalla);
+
+    if(typeof aplicarBloqueoControl === 'function'){
+      aplicarBloqueoControl();
+    }
+  });
+}
 function agregarEstimacionControl(faseId){
   var key = 'fase_' + faseId;
   var ctrl = gCtrl();
@@ -6959,11 +6988,7 @@ function agregarEstimacionControl(faseId){
 });
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function eliminarEstimacionControl(faseId, idx){
@@ -6981,11 +7006,7 @@ function eliminarEstimacionControl(faseId, idx){
   });
 
   sCtrl(ctrl);
-  recargarControl();
-
-  setTimeout(function(){
-    abrirPanelEstimacionesControl(faseId);
-  }, 0);
+  recargarPanelEstimacionesControl(faseId);
 }
 
 function inputEstimacion(key, idx, campo, val, tipo, ancho){
@@ -7126,7 +7147,7 @@ function buildControlEstimaciones(key, fase){
   }
 
   h += '<button class="ctrl-add-btn" onclick="agregarEstimacionControl(\'' + escCtrlJS(fase.id) + '\')">+ Agregar estimación</button>';
-  h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarControl()">Actualizar resumen</button>';
+  h += '<button class="ctrl-add-btn" style="margin-left:8px;border-color:#a78bfa;color:#a78bfa" onclick="recargarPanelEstimacionesControl(\'' + escCtrlJS(fase.id) + '\')">Actualizar resumen</button>';
   h += '</div>';
 
   return h;
