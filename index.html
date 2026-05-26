@@ -1231,7 +1231,7 @@ label.ctrl-action-locked{
 
 <button class="best" id="best">Estimados</button>
 
-<button class="fase-bfases" id="bfases">Fases</button>
+<button class="fase-bfases" id="bfases">Contratos</button>
 
 <button class="fase-bfases btn-control-ui" id="bctrl-obra">Control</button>
 
@@ -1486,20 +1486,20 @@ label.ctrl-action-locked{
   <button class="bbtn" id="fases-bk">&#8592; Volver</button>
   <div class="lhdr">
     <div><div class="ltit" id="fases-tit"></div><div class="lsub" id="fases-sub"></div></div>
-    <button class="nbtn" onclick="abrirNuevaFase()">+ Nueva Fase</button>
+    <button class="nbtn" onclick="abrirNuevaFase()">+ Nuevo Contrato</button>
   </div>
   <div id="fases-list"></div>
 </div>
 <!-- FASE FICHA -->
 <div class="pg-fase-ficha" id="pg-fase-ficha">
-  <button class="bbtn" id="fase-fbk">&#8592; Fases</button>
+  <button class="bbtn" id="fase-fbk">&#8592; Contratos</button>
   <div class="fhdr">
     <div class="fhdr-t"><h2 id="fase-fnom"></h2><div class="ftipo" id="fase-ftipo"></div></div>
     <div class="facts">
       <button class="bfe" id="fase-bedit">Editar</button>
       <button class="fase-bfases btn-control-ui" id="fase-bctrl">Control</button>
       <button class="fase-bfases btn-reportes-ui" id="fase-brep">Reportes</button>
-      <button class="fase-bfases" id="fase-bsub" style="display:none">Subfases</button>
+      <button class="fase-bfases" id="fase-bsub" style="display:none">Subcontratos</button>
       <button class="bfd" id="fase-bdel">Eliminar</button>
     </div>
   </div>
@@ -4936,7 +4936,7 @@ function irFases(obraObj,tipoOrigen){
 
   var btnNueva = document.querySelector('.pg-fases .nbtn');
   if(btnNueva){
-    btnNueva.textContent = '+ Nueva Fase';
+    btnNueva.textContent = '+ Nuevo Contrato';
     btnNueva.onclick = function(){
       abrirNuevaFase();
     };
@@ -5055,7 +5055,7 @@ function irFichaFase(id){
   var esSubcontratista=(f.perfil||'').toLowerCase()==='subcontratista';
   if(f.siroc && !esSubcontratista){
     btnSub.style.display='inline-block';
-    btnSub.textContent='Subfases'+(subfasesDeEsta.length?' ('+subfasesDeEsta.length+')':'');
+    btnSub.textContent='Subcontratos'+(subfasesDeEsta.length?' ('+subfasesDeEsta.length+')':'');
     btnSub.onclick=function(){irSubfases(f);};
   } else {
     btnSub.style.display='none';
@@ -5987,7 +5987,7 @@ function irSubfases(fasePadre){
   // Botón nueva subfase en contexto de subfase
   var btnNuevaSubfase = document.querySelector('.pg-fases .nbtn');
   if(btnNuevaSubfase){
-    btnNuevaSubfase.textContent = '+ Nueva Subfase';
+    btnNuevaSubfase.textContent = '+ Nuevo Subcontrato';
     btnNuevaSubfase.onclick = function(){
       abrirNuevaFaseConPadre(fasePadre);
     };
