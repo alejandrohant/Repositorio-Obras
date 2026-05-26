@@ -1159,7 +1159,7 @@ label.ctrl-action-locked{
   <h1>Repositorio de Obras</h1>
 
   <div id="navMainLeft" class="nav-main-left">
-    <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Perfiles</button>
+    <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Participantes</button>
     <button class="nbtn btn-nav-secondary" id="btnUsuarios" onclick="irUsuarios()">Usuarios</button>
     <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva Obra</button>
   </div>
@@ -1183,7 +1183,7 @@ label.ctrl-action-locked{
     <div class="home-actions">
       <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva obra</button>
       <button class="nbtn btn-nav-secondary" onclick="irLista('p')">Ver obras</button>
-      <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Perfiles</button>
+      <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Participantes</button>
     </div>
 
     <div class="home-summary">
@@ -1206,7 +1206,7 @@ label.ctrl-action-locked{
       </div>
 
       <div class="home-stat">
-        <span>Perfiles</span>
+        <span>Participantes</span>
         <strong id="cnt-perfiles">0</strong>
         <small>registrados</small>
       </div>
@@ -1456,8 +1456,8 @@ label.ctrl-action-locked{
 <div class="page" id="pg-perfiles">
   <button class="bbtn" onclick="goHome()">&#8592; Inicio</button>
 <div class="lhdr">
-    <div><div class="ltit">Perfiles</div><div class="lsub" id="prf-sub"></div></div>
-    <button class="nbtn" onclick="abrirNuevoPerfil()">+ Nuevo Perfil</button>
+    <div><div class="ltit">Participantes</div><div class="lsub" id="prf-sub"></div></div>
+    <button class="nbtn" onclick="abrirNuevoPerfil()">+ Nuevo Participante</button>
   </div>
   <div class="prf-toolbar">
     <input id="prf-busq" class="prf-search" placeholder="Buscar RFC o nombre..." oninput="filtrarPerfiles()">
@@ -1471,7 +1471,7 @@ label.ctrl-action-locked{
   <div class="olist" id="prf-list"></div>
 </div>
 <div class="page" id="pg-prf-ficha">
-  <button class="bbtn" id="prf-fbk">&#8592; Perfiles</button>
+  <button class="bbtn" id="prf-fbk">&#8592; Participantes</button>
   <div class="fhdr">
     <div class="fhdr-t"><h2 id="prf-fnom"></h2><div class="ftipo" id="prf-ftipo"></div></div>
     <div class="facts">
@@ -1811,7 +1811,7 @@ label.ctrl-action-locked{
 <!-- MODAL PERFIL -->
 <div class="mov" id="modal-prf">
   <div class="mbox">
-    <h2 id="prf-mtit">Nuevo Perfil</h2>
+    <h2 id="prf-mtit">Nuevo Participante</h2>
     <form id="frm-prf" onsubmit="guardarPerfil(event)" autocomplete="off">
   <div class="fgrid">
     <div class="fg"><label>RFC *</label><input id="prf-rfc" oninput="togglePersonaFisicaPorRFC()"></div>
@@ -3860,7 +3860,7 @@ async function desactivarUsuarioApp(emailCodificado){
 function irPerfiles(){
   var lista = gPrf();
   document.getElementById('prf-sub').textContent =
-    lista.length + ' perfil' + (lista.length !== 1 ? 'es' : '') + ' registrado' + (lista.length !== 1 ? 's' : '');
+    lista.length + ' participante' + (lista.length !== 1 ? 's' : '') + ' registrado' + (lista.length !== 1 ? 's' : '');
 
   var busq = document.getElementById('prf-busq');
   var tipo = document.getElementById('prf-tipo-fil');
@@ -4498,7 +4498,7 @@ async function verArchivoFase(campo){
 }
 function renderPerfiles(lista){
   var h='';
-  if(!lista.length){h='<div class="empty"><p>Sin perfiles.</p></div>';}
+  if(!lista.length){h='<div class="empty"><p>Sin participantes.</p></div>';}
   else{lista.forEach(function(p){
     h+='<div class="ocard" data-id="'+p.id+'"><div class="oacts"><button class="bedit" data-id="'+p.id+'">Editar</button><button class="bdel" data-id="'+p.id+'">Eliminar</button></div>'
       +'<div class="onom">'+p.nombre+' '+tipoBadge(p.tipo)+'</div>'
@@ -4572,6 +4572,7 @@ var archivosPerfilEliminar = {};
 function abrirNuevoPerfil(){
   eIdPrf = null;
 
+  document.getElementById('prf-mtit').textContent='Nuevo Participante';
   document.getElementById('frm-prf').reset();
 
   // 🔴 fuerza limpieza real
@@ -4645,7 +4646,7 @@ function abrirEditarPerfil(id){
 
   eIdPrf=id;
 
-  document.getElementById('prf-mtit').textContent='Editar Perfil';
+  document.getElementById('prf-mtit').textContent='Editar Participante';
   document.getElementById('prf-rfc').value=p.rfc||'';
   document.getElementById('prf-idfisica').value=p.idPersonaFisica||0;
   togglePersonaFisicaPorRFC();
