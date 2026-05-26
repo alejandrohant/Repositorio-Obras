@@ -77,64 +77,6 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
   margin-top:6px;
 }
 
-.home-section-title{
-  color:#a78bfa;
-  font-size:12px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.6px;
-  margin-bottom:12px;
-}
-
-.home-main-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-}
-
-.home-card{
-  background:#1e1e2e;
-  border:2px solid #2d2d44;
-  border-radius:16px;
-  padding:20px;
-  cursor:pointer;
-  display:flex;
-  gap:16px;
-  align-items:flex-start;
-  transition:all .2s;
-}
-
-.home-card:hover{
-  border-color:#10b981;
-  transform:translateY(-1px);
-}
-
-.home-card-icon{
-  width:42px;
-  height:42px;
-  border-radius:12px;
-  background:#1e2d2a;
-  color:#10b981;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  font-weight:900;
-  flex-shrink:0;
-}
-
-.home-card h3{
-  color:#e2e8f0;
-  font-size:16px;
-  font-weight:800;
-  margin-bottom:6px;
-}
-
-.home-card p{
-  color:#94a3b8;
-  font-size:13px;
-  line-height:1.45;
-}
 .bbtn{background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0;display:block}
 .lhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .ltit{font-size:20px;font-weight:700;color:#a78bfa}
@@ -313,7 +255,7 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .cisn-total-lbl{font-size:14px;color:#e2e8f0;font-weight:600}
 .cisn-total-val{font-size:22px;font-weight:700;color:#10b981}
 @media(max-width:600px){
-  .cgrid,.secs,.fgrid,.tsel,.home-summary,.home-main-grid{
+  .cgrid,.secs,.fgrid,.tsel,.home-summary{
     grid-template-columns:1fr;
   }
 
@@ -1270,41 +1212,6 @@ label.ctrl-action-locked{
       </div>
     </div>
 
-    <div class="home-section-title">Trabajo principal</div>
-
-    <div class="home-main-grid">
-      <div class="home-card" onclick="irLista('p')">
-        <div class="home-card-icon">O</div>
-        <div>
-          <h3>Obras</h3>
-          <p>Administra la obra madre, propietaria, fases, subfases, control y reportes.</p>
-        </div>
-      </div>
-
-      <div class="home-card" onclick="irPerfiles()">
-        <div class="home-card-icon">P</div>
-        <div>
-          <h3>Perfiles</h3>
-          <p>Propietarias, contratistas y subcontratistas con su expediente documental.</p>
-        </div>
-      </div>
-
-      <div class="home-card" onclick="irLista('p')">
-        <div class="home-card-icon">C</div>
-        <div>
-          <h3>Control</h3>
-          <p>Selecciona una obra para revisar RFC/RP, IMSS, SIROC, ISN, anticipos, estimaciones y documentos.</p>
-        </div>
-      </div>
-
-      <div class="home-card" onclick="irLista('p')">
-        <div class="home-card-icon">R</div>
-        <div>
-          <h3>Reportes</h3>
-          <p>Selecciona una obra para generar expediente general y cumplimiento por fase, contratista o subcontratista.</p>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 <div class="page" id="pg-lista">
