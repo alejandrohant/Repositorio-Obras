@@ -21,6 +21,120 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .cicon{font-size:36px;font-weight:700;color:#a78bfa;margin-bottom:12px}
 .clabel{font-size:17px;font-weight:600;color:#e2e8f0}
 .ccount{font-size:12px;color:#94a3b8;margin-top:4px}
+.home-kicker{
+  color:#10b981;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+  margin-bottom:6px;
+}
+
+.home-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:18px 0 24px;
+}
+
+.home-summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:28px;
+}
+
+.home-stat{
+  background:#1e1e2e;
+  border:1.5px solid #2d2d44;
+  border-radius:14px;
+  padding:16px 18px;
+}
+
+.home-stat span{
+  display:block;
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:8px;
+}
+
+.home-stat strong{
+  display:block;
+  color:#10b981;
+  font-size:28px;
+  font-weight:900;
+  line-height:1;
+}
+
+.home-stat small{
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  font-weight:600;
+  margin-top:6px;
+}
+
+.home-section-title{
+  color:#a78bfa;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  margin-bottom:12px;
+}
+
+.home-main-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.home-card{
+  background:#1e1e2e;
+  border:2px solid #2d2d44;
+  border-radius:16px;
+  padding:20px;
+  cursor:pointer;
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  transition:all .2s;
+}
+
+.home-card:hover{
+  border-color:#10b981;
+  transform:translateY(-1px);
+}
+
+.home-card-icon{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:#1e2d2a;
+  color:#10b981;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:900;
+  flex-shrink:0;
+}
+
+.home-card h3{
+  color:#e2e8f0;
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.home-card p{
+  color:#94a3b8;
+  font-size:13px;
+  line-height:1.45;
+}
 .bbtn{background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0;display:block}
 .lhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .ltit{font-size:20px;font-weight:700;color:#a78bfa}
@@ -198,7 +312,27 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
 .cisn-total{background:#0f2d1a;border:2px solid #10b981;border-radius:10px;padding:20px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
 .cisn-total-lbl{font-size:14px;color:#e2e8f0;font-weight:600}
 .cisn-total-val{font-size:22px;font-weight:700;color:#10b981}
-@media(max-width:600px){.cgrid,.secs,.fgrid,.tsel{grid-template-columns:1fr}.page{padding:16px 14px}.mbox{padding:18px}}
+@media(max-width:600px){
+  .cgrid,.secs,.fgrid,.tsel,.home-summary,.home-main-grid{
+    grid-template-columns:1fr;
+  }
+
+  .page{
+    padding:16px 14px;
+  }
+
+  .mbox{
+    padding:18px;
+  }
+
+  .home-actions{
+    flex-direction:column;
+  }
+
+  .home-actions .nbtn{
+    width:100%;
+  }
+}
 .prf-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
 .badge-p{background:#1e1e3a;color:#a78bfa;border:1px solid #a78bfa}
 .badge-c{background:#1e2d2a;color:#10b981;border:1px solid #10b981}
@@ -1085,7 +1219,7 @@ label.ctrl-action-locked{
   <div id="navMainLeft" class="nav-main-left">
     <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Perfiles</button>
     <button class="nbtn btn-nav-secondary" id="btnUsuarios" onclick="irUsuarios()">Usuarios</button>
-    <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
+    <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva Obra</button>
   </div>
 </div>
 
@@ -1100,11 +1234,76 @@ label.ctrl-action-locked{
 </nav>
 <div class="page" id="pg-home">
   <div class="home-intro">
-    <div class="ht">Selecciona el tipo de obra</div>
-    <div class="hs">El origen de la obra es una propietaria o un contratista</div>
-    <div class="cgrid">
-      <div class="cbtn" onclick="irLista('p')"><div class="cicon">P</div><div class="clabel">Propietaria</div><div class="ccount" id="cnt-p"></div></div>
-      <div class="cbtn" onclick="irLista('c')"><div class="cicon">C</div><div class="clabel">Contratista</div><div class="ccount" id="cnt-c"></div></div>
+    <div class="home-kicker">Panel principal</div>
+    <div class="ht">Repositorio de Obras</div>
+    <div class="hs hs-tight">Controla cada obra desde su propietaria, con seguimiento por fases contratistas y subfases subcontratistas.</div>
+
+    <div class="home-actions">
+      <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva obra</button>
+      <button class="nbtn btn-nav-secondary" onclick="irLista('p')">Ver obras</button>
+      <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Perfiles</button>
+    </div>
+
+    <div class="home-summary">
+      <div class="home-stat">
+        <span>Obras</span>
+        <strong id="cnt-obras">0</strong>
+        <small>obras madre</small>
+      </div>
+
+      <div class="home-stat">
+        <span>Fases</span>
+        <strong id="cnt-fases">0</strong>
+        <small>contratistas</small>
+      </div>
+
+      <div class="home-stat">
+        <span>Subfases</span>
+        <strong id="cnt-subfases">0</strong>
+        <small>subcontratistas</small>
+      </div>
+
+      <div class="home-stat">
+        <span>Perfiles</span>
+        <strong id="cnt-perfiles">0</strong>
+        <small>registrados</small>
+      </div>
+    </div>
+
+    <div class="home-section-title">Trabajo principal</div>
+
+    <div class="home-main-grid">
+      <div class="home-card" onclick="irLista('p')">
+        <div class="home-card-icon">O</div>
+        <div>
+          <h3>Obras</h3>
+          <p>Administra la obra madre, propietaria, fases, subfases, control y reportes.</p>
+        </div>
+      </div>
+
+      <div class="home-card" onclick="irPerfiles()">
+        <div class="home-card-icon">P</div>
+        <div>
+          <h3>Perfiles</h3>
+          <p>Propietarias, contratistas y subcontratistas con su expediente documental.</p>
+        </div>
+      </div>
+
+      <div class="home-card" onclick="irLista('p')">
+        <div class="home-card-icon">C</div>
+        <div>
+          <h3>Control</h3>
+          <p>Selecciona una obra para revisar RFC/RP, IMSS, SIROC, ISN, anticipos, estimaciones y documentos.</p>
+        </div>
+      </div>
+
+      <div class="home-card" onclick="irLista('p')">
+        <div class="home-card-icon">R</div>
+        <div>
+          <h3>Reportes</h3>
+          <p>Selecciona una obra para generar expediente general y cumplimiento por fase, contratista o subcontratista.</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1112,7 +1311,7 @@ label.ctrl-action-locked{
   <button class="bbtn" onclick="goHome()">&#8592; Inicio</button>
   <div class="lhdr">
     <div><div class="ltit" id="ltit"></div><div class="lsub" id="lsub"></div></div>
-    <button class="nbtn" onclick="abrirNueva()">+ Nueva Obra</button>
+    <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva Obra</button>
   </div>
   <div class="olist" id="olist"></div>
 </div>
@@ -2394,9 +2593,27 @@ async function signOut(){
   alert('Sesión cerrada.');
 }
 function goHome(){counts();show('pg-home');}
-function counts(){var p=gP(),c=gC();document.getElementById('cnt-p').textContent=p.length+' obra'+(p.length!==1?'s':'');document.getElementById('cnt-c').textContent=c.length+' obra'+(c.length!==1?'s':'');}
+function counts(){
+  var obras = gP();
+  var fases = (typeof gFases === 'function') ? gFases() : [];
+  var perfiles = (typeof gPrf === 'function') ? gPrf() : [];
+
+  var subfases = fases.filter(function(f){
+    return String(f.perfil || '').toLowerCase().indexOf('sub') >= 0;
+  }).length;
+
+  var fasesContratistas = fases.filter(function(f){
+    var perfil = String(f.perfil || '').toLowerCase();
+    return perfil.indexOf('sub') < 0 && perfil.indexOf('prop') < 0;
+  }).length;
+
+  document.getElementById('cnt-obras').textContent = obras.length;
+  document.getElementById('cnt-fases').textContent = fasesContratistas;
+  document.getElementById('cnt-subfases').textContent = subfases;
+  document.getElementById('cnt-perfiles').textContent = perfiles.length;
+}
 var ta='';
-function irLista(t){ta=t;var lista=t==='p'?gP():gC();document.getElementById('ltit').textContent=t==='p'?'Obras Propietaria':'Obras Contratista';document.getElementById('lsub').textContent=lista.length+' obra'+(lista.length!==1?'s':'')+' registrada'+(lista.length!==1?'s':'');var h='';if(!lista.length){h='<div class="empty"><p>Sin obras registradas.</p></div>';}else{lista.forEach(function(o){var n2=t==='p'?o.patron:o.contratista;var lb=t==='p'?'Propietaria':'Contratista';h+='<div class="ocard" data-id="'+o.id+'"><div class="oacts"><button class="bedit" data-id="'+o.id+'">Editar</button><button class="bdel" data-id="'+o.id+'">Eliminar</button></div><div class="onom">'+o.nombre+'</div><div class="odet"><div class="ofil"><span class="olab">RFC:</span><span>'+o.rfc+'</span></div><div class="ofil"><span class="olab">'+lb+':</span><span>'+n2+'</span></div><div class="ofil"><span class="olab">Vigencia:</span><span>'+fdate(o.inicia)+' - '+fdate(o.termina)+'</span></div></div></div>';});}var ol=document.getElementById('olist');ol.innerHTML=h;ol.onclick=function(e){var card=e.target.closest('.ocard');if(!card)return;var id=card.getAttribute('data-id');if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditar(id);}else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDel(id);}else{irFicha(id);}};show('pg-lista');}
+function irLista(t){ta=t;var lista=t==='c'?gC():gP();document.getElementById('ltit').textContent=t==='c'?'Obras Contratista':'Obras';document.getElementById('lsub').textContent=t==='c'?lista.length+' obra'+(lista.length!==1?'s':'')+' contratista registrada'+(lista.length!==1?'s':''):lista.length+' obra'+(lista.length!==1?'s':'')+' madre registrada'+(lista.length!==1?'s':'');var h='';if(!lista.length){h='<div class="empty"><p>Sin obras registradas.</p></div>';}else{lista.forEach(function(o){var n2=t==='p'?o.patron:o.contratista;var lb=t==='p'?'Propietaria':'Contratista';h+='<div class="ocard" data-id="'+o.id+'"><div class="oacts"><button class="bedit" data-id="'+o.id+'">Editar</button><button class="bdel" data-id="'+o.id+'">Eliminar</button></div><div class="onom">'+o.nombre+'</div><div class="odet"><div class="ofil"><span class="olab">RFC:</span><span>'+o.rfc+'</span></div><div class="ofil"><span class="olab">'+lb+':</span><span>'+n2+'</span></div><div class="ofil"><span class="olab">Vigencia:</span><span>'+fdate(o.inicia)+' - '+fdate(o.termina)+'</span></div></div></div>';});}var ol=document.getElementById('olist');ol.innerHTML=h;ol.onclick=function(e){var card=e.target.closest('.ocard');if(!card)return;var id=card.getAttribute('data-id');if(e.target.classList.contains('bedit')){e.stopPropagation();abrirEditar(id);}else if(e.target.classList.contains('bdel')){e.stopPropagation();pedirDel(id);}else{irFicha(id);}};show('pg-lista');}
 function sumarISNPagadoControlFasesObra(nombreObra){
   var ctrl = (typeof gCtrl === 'function') ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
 
@@ -2765,6 +2982,12 @@ function selT(t){document.getElementById('opt-p').classList.toggle('sel',t==='p'
 function abrirNueva(){eId=null;eTipo=null;document.getElementById('mtit').textContent='Nueva Obra';document.getElementById('tsel').style.display='grid';document.getElementById('frm').reset();document.querySelectorAll('.fp,.fc').forEach(function(el){el.classList.remove('show');});document.querySelectorAll('.topt').forEach(function(el){el.classList.remove('sel');});if(document.getElementById('p-isn-pagado-por')) document.getElementById('p-isn-pagado-por').value = '';
 limpiarInputsArchivosObra();
 document.getElementById('modal').classList.add('open');}
+
+function abrirNuevaObraMadre(){
+  abrirNueva();
+  selT('p');
+  document.getElementById('tsel').style.display='none';
+}
 function abrirEditar(id){
   var p=gP(),c=gC();
   var o=p.find(function(x){return x.id===id;});
