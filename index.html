@@ -6389,6 +6389,16 @@ function cerrarFase(){
   document.getElementById('modal-fase').classList.remove('open');
 }
 async function guardarFase(){
+  if(faseGuardando) return;
+  faseGuardando = true;
+
+  var btnGuardarFase = document.querySelector('#modal-fase .bsav');
+  if(btnGuardarFase){
+    btnGuardarFase.disabled = true;
+    btnGuardarFase.textContent = 'Guardando...';
+  }
+
+  try{
    var objeto=document.getElementById('fa-objeto').value.trim();
   var rfc=normalizarRFCValor(document.getElementById('fa-rfc').value);
   var obra=document.getElementById('fa-obra').value;
@@ -6556,8 +6566,30 @@ async function guardarFase(){
   var obraObj=todas.find(function(o){return o.nombre===obra;});
   if(obraObj)f.rfcOrigen=obraObj.rfc||'';
   var arr=gFases();
-  if(eFaseId){var i=arr.findIndex(function(x){return x.id===eFaseId;});if(i>=0)arr[i]=f;else arr.push(f);}
-  else arr.push(f);
+
+  if(!eFaseId){
+    var duplicado = arr.find(function(x){
+      return String(x.obra || '').trim().toUpperCase() === String(f.obra || '').trim().toUpperCase()
+        && normalizarRFCValor(x.rfc) === normalizarRFCValor(f.rfc)
+        && String(x.objeto || '').trim().toUpperCase() === String(f.objeto || '').trim().toUpperCase()
+        && String(x.siroc || '').trim().toUpperCase() === String(f.siroc || '').trim().toUpperCase();
+    });
+
+    if(duplicado){
+      alert('Este contrato ya existe en esta obra. No se guardó duplicado.');
+      irFichaFase(duplicado.id);
+      return;
+    }
+  }
+
+  if(eFaseId){
+    var i=arr.findIndex(function(x){return x.id===eFaseId;});
+    if(i>=0)arr[i]=f;
+    else arr.push(f);
+  }else{
+    arr.push(f);
+  }
+
   sFases(arr);
 
 try {
@@ -6603,6 +6635,15 @@ if(f && f.id){
 }else if(obraFasesActual){
   irFases(obraFasesActual.o,obraFasesActual.t);
 }
+
+  } finally {
+    faseGuardando = false;
+
+    if(btnGuardarFase){
+      btnGuardarFase.disabled = false;
+      btnGuardarFase.textContent = 'Guardar';
+    }
+  }
 }
 function recolectarRutasDocumentosContrato(obj, rutas){
   rutas = rutas || [];
@@ -6723,6 +6764,7 @@ function pedirDelFase(id){
   document.getElementById('cov').classList.add('open');
 }
 // Subfases: fases cuyo sirocPrincipal === siroc de la fase padre
+var faseGuardando = false;
 var fasePadreCtx=null;
 function irSubfases(fasePadre){
   fasePadreCtx=fasePadre;
