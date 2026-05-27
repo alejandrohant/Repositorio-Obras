@@ -4393,6 +4393,11 @@ function cargarPerfilExistenteEnFormulario(perfil){
   document.getElementById('prf-dom').value=perfil.domicilio||'';
   document.getElementById('prf-cp').value=perfil.cp||'';
   document.getElementById('prf-estado').value=perfil.estado||'';
+  document.getElementById('prf-ciudad').value=perfil.ciudad||'';
+
+  if(!perfil.ciudad && perfil.cp && String(perfil.cp).trim().length === 5){
+    buscarCP();
+  }
 
   ocultarAvisoRFC('prf-rfc-aviso');
 }
@@ -5227,6 +5232,11 @@ function abrirEditarPerfil(id){
   document.getElementById('prf-dom').value=p.domicilio||'';
   document.getElementById('prf-cp').value=p.cp||'';
   document.getElementById('prf-estado').value=p.estado||'';
+  document.getElementById('prf-ciudad').value=p.ciudad||'';
+
+  if(!p.ciudad && p.cp && String(p.cp).trim().length === 5){
+    buscarCP();
+  }
 
   document.getElementById('modal-prf').classList.add('open');
 }
@@ -5319,6 +5329,7 @@ var o = {
     domicilio: document.getElementById('prf-dom').value.trim(),
     cp: document.getElementById('prf-cp').value.trim(),
     estado: document.getElementById('prf-estado').value.trim(),
+    ciudad: document.getElementById('prf-ciudad').value.trim(),
     archivos: archivosPerfil    
   };
 
