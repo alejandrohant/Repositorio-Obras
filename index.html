@@ -3473,6 +3473,156 @@ function toggleREPSEPerfil(){
   if(vigencia) vigencia.style.display = noAplica ? 'none' : 'flex';
   if(warn && noAplica) warn.style.display = 'none';
 }
+function recolectarRutasDocumentosBorrado(obj, rutas){
+  rutas = rutas || [];
+
+  if(!obj) return rutas;
+
+  if(typeof obj === 'string'){
+    var s = obj.trim();
+
+    if(
+      s &&
+      (
+        s.indexOf('/control/') >= 0 ||
+        s.indexOf('/fases/') >= 0 ||
+        s.indexOf('/obras/') >= 0 ||
+        s.indexOf('/perfiles/') >= 0
+      ) &&
+      rutas.indexOf(s) < 0
+    ){
+      rutas.push(s);
+    }
+
+    return rutas;
+  }
+
+  if(Array.isArray(obj)){
+    obj.forEach(function(item){
+      recolectarRutasDocumentosBorrado(item, rutas);
+    });
+
+    return rutas;
+  }
+
+  if(typeof obj === 'object'){
+    Object.keys(obj).forEach(function(k){
+      recolectarRutasDocumentosBorrado(obj[k], rutas);
+    });
+  }
+
+  return rutas;
+}
+
+async function eliminarRutasDocumentosBorrado(rutas){
+  rutas = rutas || [];
+
+  if(!currentUser || !rutas.length) return;
+
+  var unicas = rutas.filter(function(r, i, a){
+    return r && a.indexOf(r) === i;
+  });
+
+  for(var i = 0; i < unicas.length; i += 50){
+    var lote = unicas.slice(i, i + 50);
+
+    var borrado = await supabaseClient.storage
+      .from('documentos')
+      .remove(lote);
+
+    if(borrado.error){
+      console.error('Error borrando archivos del bucket documentos:', borrado.error);
+    }
+  }
+}
+
+function limpiarControlYArchivosContratoEliminado(fase, ctrl, rutas){
+  if(!fase || !fase.id) return;
+
+  ctrl = ctrl || gCtrl();
+  rutas = rutas || [];
+
+  recolectarRutasDocumentosBorrado(fase.archivos || {}, rutas);
+
+  var keys = [
+    'fase_' + fase.id,
+    'isn_fase_' + fase.id
+  ];
+
+  keys.forEach(function(k){
+    if(ctrl[k]){
+      recolectarRutasDocumentosBorrado(ctrl[k], rutas);
+      delete ctrl[k];
+    }
+  });
+}
+
+function limpiarControlYArchivosPerfilEliminado(perfil, ctrl, rutas){
+  if(!perfil || !perfil.rfc) return;
+
+  ctrl = ctrl || gCtrl();
+  rutas = rutas || [];
+
+  var rfc = String(perfil.rfc || '').trim().toUpperCase();
+
+  recolectarRutasDocumentosBorrado(perfil.archivos || {}, rutas);
+
+  var keys = [
+    'rfc_' + rfc,
+    'rfc_extra_' + rfc,
+    'sua_extra_' + rfc
+  ];
+
+  Object.keys(ctrl).forEach(function(k){
+    if(
+      k.indexOf('sua_' + rfc + '_') === 0 ||
+      k.indexOf('sua_extra_' + rfc) === 0
+    ){
+      keys.push(k);
+    }
+  });
+
+  keys.forEach(function(k){
+    if(ctrl[k]){
+      recolectarRutasDocumentosBorrado(ctrl[k], rutas);
+      delete ctrl[k];
+    }
+  });
+}
+
+function limpiarControlYArchivosObraEliminada(obra, ctrl, rutas){
+  if(!obra) return [];
+
+  ctrl = ctrl || gCtrl();
+  rutas = rutas || [];
+
+  recolectarRutasDocumentosBorrado(obra.archivos || {}, rutas);
+
+  var fasesDeObra = gFases().filter(function(f){
+    return String(f.obra || '').trim() === String(obra.nombre || '').trim();
+  });
+
+  fasesDeObra.forEach(function(f){
+    limpiarControlYArchivosContratoEliminado(f, ctrl, rutas);
+  });
+
+  var obraKey = obra.id || obra.nombre || 'obra';
+
+  var keysObra = [
+    'fase_prop_' + obraKey,
+    'isn_prop_' + obraKey,
+    'isn_prop_' + (obra.nombre || '')
+  ];
+
+  keysObra.forEach(function(k){
+    if(ctrl[k]){
+      recolectarRutasDocumentosBorrado(ctrl[k], rutas);
+      delete ctrl[k];
+    }
+  });
+
+  return fasesDeObra;
+}
 async function hacerDel(){
   if(!dId){cerrarC();return;}
 
@@ -3480,20 +3630,69 @@ async function hacerDel(){
   var esP = p.some(function(x){return x.id===dId;});
   var o = esP ? p.find(function(x){return x.id===dId;}) : c.find(function(x){return x.id===dId;});
 
+  var ctrl = gCtrl();
+  var rutas = [];
+  var fasesBorrar = [];
+
+  if(o){
+    fasesBorrar = limpiarControlYArchivosObraEliminada(o, ctrl, rutas);
+  }
+
   if(esP) sP(p.filter(function(x){return x.id!==dId;}));
   else sC(c.filter(function(x){return x.id!==dId;}));
 
+  if(fasesBorrar.length){
+    var idsFasesBorrar = fasesBorrar.map(function(f){ return f.id; });
+
+    sFases(gFases().filter(function(f){
+      return idsFasesBorrar.indexOf(f.id) < 0;
+    }));
+  }
+
+  sCtrl(ctrl);
+  await eliminarRutasDocumentosBorrado(rutas);
+
   try{
     const { data:{ user } } = await supabaseClient.auth.getUser();
+    var ownerId = getOwnerUserId();
 
-    await supabaseClient
-      .from('obras')
-      .delete()
-      .eq('user_id', getOwnerUserId())
-      .eq('nombre', o.nombre)
-      .eq('tipo', esP ? 'propietaria' : 'contratista');
+    if(user && o){
+      await supabaseClient
+        .from('fases')
+        .delete()
+        .eq('user_id', ownerId)
+        .eq('obra_id', o.id);
 
-    console.log('Obra eliminada en Supabase');
+      await supabaseClient
+        .from('fases')
+        .delete()
+        .eq('user_id', ownerId)
+        .contains('data', { obra: o.nombre });
+
+      await supabaseClient
+        .from('obras')
+        .delete()
+        .eq('user_id', ownerId)
+        .eq('obra_id', o.id);
+
+      await supabaseClient
+        .from('obras')
+        .delete()
+        .eq('user_id', ownerId)
+        .contains('data', { id: o.id });
+
+      await supabaseClient
+        .from('usuario_obras')
+        .delete()
+        .eq('owner_user_id', ownerId)
+        .eq('obra_id', o.id);
+
+      if(typeof sincronizarControlSupabase === 'function'){
+        await sincronizarControlSupabase();
+      }
+    }
+
+    console.log('Obra, contratos, control y archivos eliminados en Supabase');
   }catch(err){
     console.error('Error eliminando obra en Supabase:', err);
     alert('Se eliminó localmente, pero falló eliminar en Supabase');
@@ -4830,30 +5029,48 @@ var o = {
 function pedirDelPrf(id){
   dId=id;
   var p=gPrf().find(function(x){return x.id===id;});
-  document.getElementById('cmsg').textContent='Se eliminará "'+(p?p.nombre:'este perfil')+'" permanentemente.';
+  document.getElementById('cmsg').textContent='Se eliminará "'+(p?p.nombre:'este participante')+'" permanentemente. También se borrará su control RFC/RP y sus archivos cargados.';
+
   document.getElementById('bcdel').onclick=async function(){
-  var perfil = gPrf().find(function(x){return x.id===id;});
-  var arr=gPrf().filter(function(x){return x.id!==id;});
-  sPrf(arr);
+    var perfil = gPrf().find(function(x){return x.id===id;});
+    var ctrl = gCtrl();
+    var rutas = [];
 
-  try{
-    const { data:{ user } } = await supabaseClient.auth.getUser();
+    if(perfil){
+      limpiarControlYArchivosPerfilEliminado(perfil, ctrl, rutas);
+    }
 
-    await supabaseClient
-      .from('perfiles')
-      .delete()
-      .eq('user_id', getOwnerUserId())
-      .eq('rfc', perfil.rfc);
+    var arr=gPrf().filter(function(x){return x.id!==id;});
+    sPrf(arr);
+    sCtrl(ctrl);
 
-    console.log('Perfil eliminado en Supabase');
-  }catch(err){
-    console.error('Error eliminando perfil en Supabase:', err);
-    alert('Se eliminó localmente, pero falló eliminar en Supabase');
-  }
+    await eliminarRutasDocumentosBorrado(rutas);
 
-  cerrarC();
-  irPerfiles();
-};
+    try{
+      const { data:{ user } } = await supabaseClient.auth.getUser();
+
+      if(user && perfil){
+        await supabaseClient
+          .from('perfiles')
+          .delete()
+          .eq('user_id', getOwnerUserId())
+          .contains('data', { id: perfil.id });
+
+        if(typeof sincronizarControlSupabase === 'function'){
+          await sincronizarControlSupabase();
+        }
+      }
+
+      console.log('Participante eliminado en Supabase');
+    }catch(err){
+      console.error('Error eliminando participante en Supabase:', err);
+      alert('Se eliminó localmente, pero falló eliminar en Supabase');
+    }
+
+    cerrarC();
+    irPerfiles();
+  };
+
   document.getElementById('cov').classList.add('open');
 }
 // ============ FASES ============
@@ -5956,28 +6173,113 @@ if(f && f.id){
   irFases(obraFasesActual.o,obraFasesActual.t);
 }
 }
+function recolectarRutasDocumentosContrato(obj, rutas){
+  rutas = rutas || [];
+
+  if(!obj) return rutas;
+
+  if(typeof obj === 'string'){
+    if(
+      (obj.indexOf('/control/') >= 0 || obj.indexOf('/fases/') >= 0) &&
+      rutas.indexOf(obj) < 0
+    ){
+      rutas.push(obj);
+    }
+
+    return rutas;
+  }
+
+  if(Array.isArray(obj)){
+    obj.forEach(function(item){
+      recolectarRutasDocumentosContrato(item, rutas);
+    });
+
+    return rutas;
+  }
+
+  if(typeof obj === 'object'){
+    Object.keys(obj).forEach(function(k){
+      recolectarRutasDocumentosContrato(obj[k], rutas);
+    });
+  }
+
+  return rutas;
+}
+
+async function eliminarRutasDocumentosContrato(rutas){
+  rutas = rutas || [];
+
+  for(var i = 0; i < rutas.length; i++){
+    await borrarRutaDocumentoFase(rutas[i]);
+  }
+}
+
+async function limpiarControlYArchivosContratoEliminado(fase){
+  if(!fase || !fase.id) return;
+
+  var rutas = [];
+
+  recolectarRutasDocumentosContrato(fase.archivos || {}, rutas);
+
+  var ctrl = gCtrl();
+  var keyContrato = 'fase_' + fase.id;
+  var keyISN = 'isn_fase_' + fase.id;
+
+  if(ctrl[keyContrato]){
+    recolectarRutasDocumentosContrato(ctrl[keyContrato], rutas);
+    delete ctrl[keyContrato];
+  }
+
+  if(ctrl[keyISN]){
+    recolectarRutasDocumentosContrato(ctrl[keyISN], rutas);
+    delete ctrl[keyISN];
+  }
+
+  sCtrl(ctrl);
+
+  await eliminarRutasDocumentosContrato(rutas);
+
+  if(currentUser && typeof sincronizarControlSupabase === 'function'){
+    await sincronizarControlSupabase();
+  }
+}
 function pedirDelFase(id){
   var f=gFases().find(function(x){return x.id===id;});
   dId=id;
 
-  document.getElementById('cmsg').textContent='Se eliminará "'+(f?f.objeto:'esta fase')+'" permanentemente.';
+  document.getElementById('cmsg').textContent='Se eliminará "'+(f?f.objeto:'este contrato')+'" permanentemente. También se borrará su control y sus archivos cargados.';
 
   document.getElementById('bcdel').onclick=async function(){
+    var ctrl = gCtrl();
+    var rutas = [];
+
+    if(f){
+      limpiarControlYArchivosContratoEliminado(f, ctrl, rutas);
+    }
+
     sFases(gFases().filter(function(x){return x.id!==id;}));
+    sCtrl(ctrl);
+
+    await eliminarRutasDocumentosBorrado(rutas);
 
     try{
       const { data:{ user } } = await supabaseClient.auth.getUser();
 
-      await supabaseClient
-        .from('fases')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('nombre', f.objeto)
-        .eq('rfc_contratista', f.rfc);
+      if(user && f){
+        await supabaseClient
+          .from('fases')
+          .delete()
+          .eq('user_id', getOwnerUserId())
+          .contains('data', { id: f.id });
 
-      console.log('Fase eliminada en Supabase');
+        if(typeof sincronizarControlSupabase === 'function'){
+          await sincronizarControlSupabase();
+        }
+      }
+
+      console.log('Contrato eliminado en Supabase');
     }catch(err){
-      console.error('Error eliminando fase en Supabase:', err);
+      console.error('Error eliminando contrato en Supabase:', err);
       alert('Se eliminó localmente, pero falló eliminar en Supabase');
     }
 
