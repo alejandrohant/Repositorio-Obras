@@ -5349,28 +5349,60 @@ var o = {
   sPrf(arr);
 
   try {
+    try {
   const { data: { user } } = await supabaseClient.auth.getUser();
   var ownerId = getOwnerUserId();
 
-  await supabaseClient
-    .from('perfiles')
-    .delete()
-    .eq('user_id', ownerId)
-    .contains('data', { id: o.id });
+  var payloadPerfil = {
+    rfc: o.rfc || null,
+    nombre: o.nombre || null,
+    tipo: o.tipo || null,
+    data: o
+  };
 
-  const { error } = await supabaseClient
-    .from('perfiles')
-    .insert([{
-      user_id: ownerId,
-      created_by: user.id,
-      rfc: o.rfc || null,
-      nombre: o.nombre || null,
-      tipo: o.tipo || null,
-      data: o
-    }]);
+  var errorSync = null;
 
-  if(error){
-    console.error('SUPABASE PERFIL ERROR:', error);
+  if(eIdPrf){
+    const { data: filaPerfil, error: errorBuscarFila } = await supabaseClient
+      .from('perfiles')
+      .select('id')
+      .eq('user_id', ownerId)
+      .contains('data', { id: o.id })
+      .limit(1)
+      .maybeSingle();
+
+    if(errorBuscarFila){
+      errorSync = errorBuscarFila;
+    }else if(filaPerfil && filaPerfil.id){
+      const { error } = await supabaseClient
+        .from('perfiles')
+        .update(payloadPerfil)
+        .eq('id', filaPerfil.id);
+
+      errorSync = error || null;
+    }else{
+      const { error } = await supabaseClient
+        .from('perfiles')
+        .insert([Object.assign({
+          user_id: ownerId,
+          created_by: user ? user.id : ownerId
+        }, payloadPerfil)]);
+
+      errorSync = error || null;
+    }
+  }else{
+    const { error } = await supabaseClient
+      .from('perfiles')
+      .insert([Object.assign({
+        user_id: ownerId,
+        created_by: user ? user.id : ownerId
+      }, payloadPerfil)]);
+
+    errorSync = error || null;
+  }
+
+  if(errorSync){
+    console.error('SUPABASE PERFIL ERROR:', errorSync);
     alert('Perfil guardado localmente, pero falló Supabase');
   } else {
     console.log('Perfil sincronizado en Supabase');
