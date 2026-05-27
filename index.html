@@ -77,7 +77,9 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
   margin-top:6px;
 }
 
-.bbtn{background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0;display:block}
+.bbtn{background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0;display:inline-block}
+.btn-inicio-contextual{margin-left:16px}
+.nav-main-left.oculto{display:none}
 .lhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .ltit{font-size:20px;font-weight:700;color:#a78bfa}
 .lsub{color:#94a3b8;font-size:13px;margin-top:2px}
@@ -2123,6 +2125,28 @@ function show(id){
   });
 
   document.getElementById(id).classList.add('active');
+
+  var navMainLeft = document.getElementById('navMainLeft');
+  if(navMainLeft){
+    navMainLeft.classList.toggle('oculto', id !== 'pg-home');
+  }
+
+  document.querySelectorAll('.btn-inicio-contextual').forEach(function(btn){
+    btn.remove();
+  });
+
+  if(id !== 'pg-home' && id !== 'pg-lista' && id !== 'pg-perfiles'){
+    var paginaActiva = document.getElementById(id);
+    var btnVolver = paginaActiva ? paginaActiva.querySelector('.bbtn') : null;
+
+    if(btnVolver && btnVolver.textContent.indexOf('Inicio') === -1){
+      var btnInicio = document.createElement('button');
+      btnInicio.className = 'bbtn btn-inicio-contextual';
+      btnInicio.textContent = 'Inicio';
+      btnInicio.onclick = goHome;
+      btnVolver.insertAdjacentElement('afterend', btnInicio);
+    }
+  }
 
   if(id === 'pg-ctrl' && typeof aplicarBloqueoControl === 'function'){
     setTimeout(function(){
