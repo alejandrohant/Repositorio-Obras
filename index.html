@@ -1204,10 +1204,7 @@ label.ctrl-action-locked{
   <div class="nav-brand-row">
   <h1>Repositorio de Obras</h1>
 
-  <div id="navMainLeft" class="nav-main-left">
-    <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Participantes</button>
-    <button class="nbtn btn-nav-secondary" id="btnUsuarios" onclick="irUsuarios()">Usuarios</button>
-    <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva Obra</button>
+  <div id="navMainLeft" class="nav-main-left" style="display:none">
   </div>
 </div>
 
@@ -1230,6 +1227,7 @@ label.ctrl-action-locked{
       <button class="nbtn" onclick="abrirNuevaObraMadre()">+ Nueva obra</button>
       <button class="nbtn btn-nav-secondary" onclick="irLista('p')">Ver obras</button>
       <button class="nbtn btn-nav-secondary" onclick="irPerfiles()">Participantes</button>
+      <button class="nbtn btn-nav-secondary" id="btnUsuarios" onclick="irUsuarios()" style="display:none">Usuarios</button>
     </div>
 
     <div class="home-summary">
@@ -2471,7 +2469,7 @@ function renderAuthStatus(){
   if(!status) return;
 
   if(currentUser){
-    if(mainLeft) mainLeft.style.display = 'flex';
+    if(mainLeft) mainLeft.style.display = 'none';
     if(btnUsuarios) btnUsuarios.style.display = esUsuarioDueno() ? 'inline-block' : 'none';
     appPages.forEach(p => p.style.display = '');
 
