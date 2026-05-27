@@ -4840,17 +4840,22 @@ async function verRutaDocumentoPerfil(ruta){
     return;
   }
 
-  var firmado = await supabaseClient.storage
+  var descarga = await supabaseClient.storage
     .from('documentos')
-    .createSignedUrl(ruta, 600);
+    .download(ruta);
 
-  if(firmado.error){
-    console.error('Error abriendo archivo:', firmado.error);
-    alert('No se pudo abrir el archivo.');
+  if(descarga.error){
+    console.error('Error abriendo archivo:', ruta, descarga.error);
+    alert('No se pudo abrir el archivo. Revisa permisos de lectura del bucket documentos.');
     return;
   }
 
-  window.open(firmado.data.signedUrl, '_blank');
+  var url = URL.createObjectURL(descarga.data);
+  window.open(url, '_blank');
+
+  setTimeout(function(){
+    URL.revokeObjectURL(url);
+  }, 60000);
 }
 
 async function verArchivoPerfil(campo){
