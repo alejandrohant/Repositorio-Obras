@@ -3117,6 +3117,34 @@ async function guardar(e){
     return;
   }
 
+  var rfcCampoObra = eTipo === 'p' ? 'p-rfc' : 'c-rfc';
+  var nombreCampoObra = eTipo === 'p' ? 'p-pat' : 'c-con';
+  var avisoCampoObra = eTipo === 'p' ? 'p-rfc-aviso' : 'c-rfc-aviso';
+  var rfcGuardarObra = normalizarRFCValor(document.getElementById(rfcCampoObra).value);
+
+  if(!rfcCompletoValido(rfcGuardarObra)){
+    perfilCatalogoObra[eTipo] = null;
+    document.getElementById(nombreCampoObra).value = '';
+    mostrarAvisoRFC(avisoCampoObra, avisoRFCObraHTML(eTipo, rfcGuardarObra));
+    alert('Primero registra este RFC como participante.');
+    return;
+  }
+
+  var perfilGuardarObra = await buscarPerfilCatalogoPorRFC(rfcGuardarObra);
+
+  if(!perfilGuardarObra){
+    perfilCatalogoObra[eTipo] = null;
+    document.getElementById(nombreCampoObra).value = '';
+    mostrarAvisoRFC(avisoCampoObra, avisoRFCObraHTML(eTipo, rfcGuardarObra));
+    alert('Primero registra este RFC como participante.');
+    return;
+  }
+
+  perfilCatalogoObra[eTipo] = perfilGuardarObra;
+  agregarPerfilCatalogoLocal(perfilGuardarObra);
+  document.getElementById(nombreCampoObra).value = perfilGuardarObra.nombre || '';
+  ocultarAvisoRFC(avisoCampoObra);
+
   function numSafe(v){
     if(v == null) return 0;
     if(typeof v === 'string') v = v.replace(/,/g,'').trim();
@@ -3482,12 +3510,13 @@ async function autollenarPerfilObra(tipo){
 
   if(perfil){
     perfilCatalogoObra[tipo] = perfil;
+    agregarPerfilCatalogoLocal(perfil);
     document.getElementById(nombreInputId).value = perfil.nombre || '';
-    mostrarAvisoRFC(avisoId, avisoRFCObraHTML(tipo, perfil));
+    ocultarAvisoRFC(avisoId);
   } else {
     perfilCatalogoObra[tipo] = null;
-    ocultarAvisoRFC(avisoId);
     document.getElementById(nombreInputId).value = '';
+    mostrarAvisoRFC(avisoId, avisoRFCObraHTML(tipo, rfc));
   }
 }
 function calcVigenciaREPSE(){
@@ -4234,25 +4263,24 @@ function mostrarAvisoRFC(id, html){
   box.style.display = 'block';
 }
 
-function avisoRFCObraHTML(tipo, perfil){
-  var nombre = escHTML(perfil && perfil.nombre ? perfil.nombre : 'participante registrado');
-  return '<strong>RFC ya registrado</strong>'
-    + '<div>Este RFC ya existe en el catálogo de participantes de esta cuenta como <b>' + nombre + '</b>. Puedes reutilizar sus datos para esta obra o capturar la información manualmente.</div>'
-    + '<div>Reutilizarlo no modifica el participante original; solo lo vincula a esta obra.</div>'
+function avisoRFCObraHTML(tipo, rfc){
+  var tipoTxt = tipo === 'p' ? 'propietaria' : 'contratista';
+  var campoRFC = tipo === 'p' ? 'p-rfc' : 'c-rfc';
+
+  return '<strong>Participante no registrado</strong>'
+    + '<div>El RFC <b>' + escHTML(rfc) + '</b> no existe en el catálogo de participantes.</div>'
+    + '<div>Para crear esta obra, primero debes registrar a la ' + tipoTxt + ' como participante.</div>'
     + '<div class="rfc-alert-actions">'
-      + '<button type="button" class="rfc-alert-btn" onclick="usarPerfilExistenteObra(&quot;' + tipo + '&quot;)">Usar datos existentes</button>'
-      + '<button type="button" class="rfc-alert-btn" onclick="capturarManualObra(&quot;' + tipo + '&quot;)">Capturar manualmente</button>'
+      + '<button type="button" class="rfc-alert-btn" onclick="abrirParticipanteDesdeRFC(document.getElementById(&quot;' + campoRFC + '&quot;).value, &quot;' + tipoTxt + '&quot;)">Crear participante</button>'
     + '</div>';
 }
 
-function avisoRFCFaseHTML(perfil){
-  var nombre = escHTML(perfil && perfil.nombre ? perfil.nombre : 'participante registrado');
-  return '<strong>RFC ya registrado</strong>'
-    + '<div>Este RFC ya existe en el catálogo de participantes de esta cuenta como <b>' + nombre + '</b>. Puedes reutilizar sus datos para este contrato o capturar la información manualmente.</div>'
-    + '<div>Reutilizarlo no modifica el participante original; solo lo vincula a este contrato.</div>'
+function avisoRFCFaseHTML(rfc){
+  return '<strong>Participante no registrado</strong>'
+    + '<div>El RFC <b>' + escHTML(rfc) + '</b> no existe en el catálogo de participantes.</div>'
+    + '<div>Para crear este contrato o subcontrato, primero debes registrar al participante.</div>'
     + '<div class="rfc-alert-actions">'
-      + '<button type="button" class="rfc-alert-btn" onclick="usarPerfilExistenteFase()">Usar datos existentes</button>'
-      + '<button type="button" class="rfc-alert-btn" onclick="capturarManualFase()">Capturar manualmente</button>'
+      + '<button type="button" class="rfc-alert-btn" onclick="abrirParticipanteDesdeRFC(document.getElementById(&quot;fa-rfc&quot;).value, tipoParticipanteSugeridoFase())">Crear participante</button>'
     + '</div>';
 }
 
@@ -4276,12 +4304,10 @@ function usarPerfilExistenteObra(tipo){
   if(tipo === 'p'){
     document.getElementById('p-rfc').value = normalizarRFCValor(perfil.rfc);
     document.getElementById('p-pat').value = perfil.nombre || '';
-    if(document.getElementById('p-rp') && perfil.rp) document.getElementById('p-rp').value = perfil.rp;
     ocultarAvisoRFC('p-rfc-aviso');
   }else{
     document.getElementById('c-rfc').value = normalizarRFCValor(perfil.rfc);
     document.getElementById('c-con').value = perfil.nombre || '';
-    if(document.getElementById('c-rp') && perfil.rp) document.getElementById('c-rp').value = perfil.rp;
     ocultarAvisoRFC('c-rfc-aviso');
   }
 }
@@ -4300,13 +4326,37 @@ function usarPerfilExistenteFase(){
   document.getElementById('fa-rfc').value = normalizarRFCValor(perfil.rfc);
   document.getElementById('fa-contratista').value = perfil.nombre || '';
   document.getElementById('fa-perfil').value = perfil.tipo || '';
-  if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = perfil.rp || '';
   ocultarAvisoRFC('fa-rfc-aviso');
 }
 
 function capturarManualFase(){
   perfilCatalogoFase = null;
   ocultarAvisoRFC('fa-rfc-aviso');
+}
+
+function tipoParticipanteSugeridoFase(){
+  var lbl = document.getElementById('fa-lbl-rfc');
+  var txt = lbl ? String(lbl.textContent || '').toLowerCase() : '';
+
+  if(txt.indexOf('sub') >= 0){
+    return 'subcontratista';
+  }
+
+  return 'contratista';
+}
+
+function abrirParticipanteDesdeRFC(rfc, tipoSugerido){
+  rfc = normalizarRFCValor(rfc);
+
+  if(document.getElementById('modal')) document.getElementById('modal').classList.remove('open');
+  if(document.getElementById('modal-fase')) document.getElementById('modal-fase').classList.remove('open');
+
+  abrirNuevoPerfil();
+
+  document.getElementById('prf-rfc').value = rfc;
+  document.getElementById('prf-tipo').value = tipoSugerido || '';
+  ocultarAvisoRFC('prf-rfc-aviso');
+  togglePersonaFisicaPorRFC();
 }
 
 function cargarPerfilExistenteEnFormulario(perfil){
@@ -6258,7 +6308,6 @@ async function onFaseRFCChange(){
     ocultarAvisoRFC('fa-rfc-aviso');
     document.getElementById('fa-contratista').value = '';
     document.getElementById('fa-perfil').value = '';
-    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
     return;
   }
 
@@ -6268,16 +6317,15 @@ async function onFaseRFCChange(){
 
   if(p){
     perfilCatalogoFase = p;
+    agregarPerfilCatalogoLocal(p);
     document.getElementById('fa-contratista').value = p.nombre || '';
     document.getElementById('fa-perfil').value = p.tipo || '';
-    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = p.rp || '';
-    mostrarAvisoRFC('fa-rfc-aviso', avisoRFCFaseHTML(p));
+    ocultarAvisoRFC('fa-rfc-aviso');
   } else {
     perfilCatalogoFase = null;
-    ocultarAvisoRFC('fa-rfc-aviso');
     document.getElementById('fa-contratista').value = '';
     document.getElementById('fa-perfil').value = '';
-    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
+    mostrarAvisoRFC('fa-rfc-aviso', avisoRFCFaseHTML(rfc));
   }
 }
 function toggleConvenios(){
@@ -6298,10 +6346,39 @@ function cerrarFase(){
   document.getElementById('modal-fase').classList.remove('open');
 }
 async function guardarFase(){
-  var objeto=document.getElementById('fa-objeto').value.trim();
-  var rfc=document.getElementById('fa-rfc').value;
+   var objeto=document.getElementById('fa-objeto').value.trim();
+  var rfc=normalizarRFCValor(document.getElementById('fa-rfc').value);
   var obra=document.getElementById('fa-obra').value;
+  document.getElementById('fa-rfc').value = rfc;
+
   if(!objeto||!rfc||!obra){alert('Objeto, Obra y Contratista son obligatorios.');return;}
+
+  if(!rfcCompletoValido(rfc)){
+    perfilCatalogoFase = null;
+    document.getElementById('fa-contratista').value = '';
+    document.getElementById('fa-perfil').value = '';
+    mostrarAvisoRFC('fa-rfc-aviso', avisoRFCFaseHTML(rfc));
+    alert('Primero registra este RFC como participante.');
+    return;
+  }
+
+  var perfilGuardarFase = await buscarPerfilCatalogoPorRFC(rfc);
+
+  if(!perfilGuardarFase){
+    perfilCatalogoFase = null;
+    document.getElementById('fa-contratista').value = '';
+    document.getElementById('fa-perfil').value = '';
+    mostrarAvisoRFC('fa-rfc-aviso', avisoRFCFaseHTML(rfc));
+    alert('Primero registra este RFC como participante.');
+    return;
+  }
+
+  perfilCatalogoFase = perfilGuardarFase;
+  agregarPerfilCatalogoLocal(perfilGuardarFase);
+  document.getElementById('fa-contratista').value = perfilGuardarFase.nombre || '';
+  document.getElementById('fa-perfil').value = perfilGuardarFase.tipo || '';
+  ocultarAvisoRFC('fa-rfc-aviso');
+
     var faseAnterior = eFaseId ? (gFases().find(function(x){return x.id===eFaseId;}) || {}) : {};
 
   function valFase(idCampo, fallback){
