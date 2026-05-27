@@ -7578,7 +7578,7 @@ function buildRFCHtml(perfil, fasesBase) {
 
     h += '</tr></thead><tbody>';
   periodos.forEach(function(p) {
-    h += '<tr><td>' + periodoLabel(p) + '</td>';
+    h += '<tr><td>' + periodoLabel(p) + '<br>' + botonDescargaZipPeriodo(key, p, 'rfc') + '</td>';
     cols.forEach(function(c){
       var claseFiltro = filtroRFC !== 'todos' && filtroRFC !== c.g ? 'ctrl-rfc-hidden' : '';
       h += '<td data-rfc-grupo="' + c.g + '" class="' + claseFiltro + '">' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
@@ -7650,7 +7650,7 @@ function buildSUAHtml(perfil, fasesBase) {
   colsDoc.forEach(function(c){ h += '<th>' + c.l + '</th>'; });
   h += '</tr></thead><tbody>';
   periodos.forEach(function(p){
-    h += '<tr><td>' + periodoLabel(p) + '</td>';
+    h += '<tr><td>' + periodoLabel(p) + '<br>' + botonDescargaZipPeriodo(key, p, 'rp') + '</td>';
     colsDoc.forEach(function(c){
       h += '<td>' + docCeldaRFC(key, p, c.k, c.l, getCtrlVal(ctrl, key, p, c.k)) + '</td>';
     });
@@ -8651,6 +8651,107 @@ async function verArchivoModalDocRFC(){
   var ruta = getCtrlArchivoVal(ctrl, docRFCCtx.key, docRFCCtx.periodo, docRFCCtx.campo);
 
   await verRutaDocumentoPerfil(ruta || '');
+}
+
+function columnasDescargaPeriodo(tipo){
+  if(tipo === 'rfc'){
+    return [
+      {k:'iva_fmt',l:'IVA Formato'},{k:'iva_acu',l:'IVA Acuse'},{k:'iva_det',l:'IVA Detalle'},{k:'iva_pag',l:'IVA Pago'},
+      {k:'isr_fmt',l:'ISR Formato'},{k:'isr_acu',l:'ISR Acuse'},{k:'isr_det',l:'ISR Detalle'},{k:'isr_pag',l:'ISR Pago'},
+      {k:'isrr_fmt',l:'ISR-Ret Formato'},{k:'isrr_acu',l:'ISR-Ret Acuse'},{k:'isrr_det',l:'ISR-Ret Detalle'},{k:'isrr_pag',l:'ISR-Ret Pago'},
+      {k:'diot_env',l:'DIOT Envío'},{k:'diot_ace',l:'DIOT Acep.'},{k:'diot_arc',l:'DIOT Archivo'},
+      {k:'op_imss',l:'Op. IMSS'},{k:'op_inf',l:'Op. Infonavit'},{k:'op_sat',l:'Op. SAT'},
+      {k:'icsoe',l:'ICSOE'},{k:'sisub',l:'SISUB'}
+    ];
+  }
+
+  return [
+    {k:'sua_arc',l:'Archivo SUA'},{k:'sua_comp',l:'Comprobante pago'},{k:'sipare',l:'SIPARE'},
+    {k:'resumen',l:'Resumen liquidación'},{k:'ced_men',l:'Cédula mensual'},{k:'ced_bim',l:'Cédula bimestral'},
+    {k:'cfdi_imss',l:'CFDI IMSS'},{k:'cfdi_inf',l:'CFDI Infonavit'}
+  ];
+}
+
+function limpiarNombreZip(txt){
+  return String(txt || '')
+    .trim()
+    .replace(/[áàäâ]/gi,'a')
+    .replace(/[éèëê]/gi,'e')
+    .replace(/[íìïî]/gi,'i')
+    .replace(/[óòöô]/gi,'o')
+    .replace(/[úùüû]/gi,'u')
+    .replace(/[ñ]/gi,'n')
+    .replace(/[^a-zA-Z0-9._-]+/g,'_')
+    .replace(/^_+|_+$/g,'');
+}
+
+async function descargarZipPeriodoControl(key, periodo, tipo){
+  if(!currentUser){
+    alert('Inicia sesión para descargar archivos.');
+    return;
+  }
+
+  if(!window.JSZip){
+    alert('No se cargó la herramienta ZIP. Recarga la página e intenta de nuevo.');
+    return;
+  }
+
+  var ctrl = gCtrl();
+  var datosPeriodo = ctrl[key] && ctrl[key][periodo] ? ctrl[key][periodo] : {};
+  var cols = columnasDescargaPeriodo(tipo);
+  var zip = new JSZip();
+  var encontrados = 0;
+
+  for(var i = 0; i < cols.length; i++){
+    var c = cols[i];
+    var ruta = datosPeriodo[c.k + '_archivo'];
+
+    if(!ruta) continue;
+
+    var descarga = await supabaseClient.storage
+      .from('documentos')
+      .download(ruta);
+
+    if(descarga.error){
+      console.error('No se pudo descargar:', ruta, descarga.error);
+      continue;
+    }
+
+    var nombreOriginal = nombreArchivoRuta(ruta);
+    var extension = '';
+    var punto = nombreOriginal.lastIndexOf('.');
+
+    if(punto >= 0){
+      extension = nombreOriginal.slice(punto);
+    }
+
+    var nombreFinal = String(encontrados + 1).padStart(2,'0') + '_' + limpiarNombreZip(c.l) + extension;
+    zip.file(nombreFinal, descarga.data);
+    encontrados++;
+  }
+
+  if(encontrados === 0){
+    alert('Este periodo no tiene archivos cargados para descargar.');
+    return;
+  }
+
+  var blob = await zip.generateAsync({type:'blob'});
+  var a = document.createElement('a');
+  var nombreZip = limpiarNombreZip((tipo === 'rfc' ? 'Obligaciones_RFC' : 'Obligaciones_RP') + '_' + key + '_' + periodo) + '.zip';
+
+  a.href = URL.createObjectURL(blob);
+  a.download = nombreZip;
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(function(){
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1000);
+}
+
+function botonDescargaZipPeriodo(key, periodo, tipo){
+  return '<button type="button" class="ctrl-add-btn" style="margin:6px 0 0 0;padding:5px 8px;font-size:10px" onclick="descargarZipPeriodoControl(\'' + escCtrlJS(key) + '\',\'' + escCtrlJS(periodo) + '\',\'' + escCtrlJS(tipo) + '\')">Descargar ZIP</button>';
 }
 
 function docSelectCtrl(key, periodo, campo, val) {
@@ -13176,6 +13277,7 @@ prepararLoginManual();
 counts();
 setTimeout(initAuth, 500);
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
