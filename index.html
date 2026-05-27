@@ -318,6 +318,49 @@ nav h1{font-size:18px;font-weight:600;color:#e2e8f0}
   flex:0 0 auto;
   white-space:nowrap;
 }
+
+.rfc-alert{
+  display:none;
+  grid-column:1/-1;
+  background:#2d1a00;
+  border:1.5px solid #f59e0b;
+  border-radius:10px;
+  padding:10px 12px;
+  color:#fbbf24;
+  font-size:12px;
+  line-height:1.45;
+  margin-top:6px;
+}
+
+.rfc-alert strong{
+  display:block;
+  color:#fde68a;
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:3px;
+}
+
+.rfc-alert .rfc-alert-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.rfc-alert-btn{
+  background:#1e1e2e;
+  border:1px solid #f59e0b;
+  border-radius:7px;
+  padding:6px 10px;
+  color:#fde68a;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.rfc-alert-btn:hover{
+  background:#3b2a08;
+}
 /* FASES */
 .pg-fases{display:none;padding:32px 24px;max-width:1100px;margin:0 auto}
 .pg-fases.active{display:block}
@@ -1531,6 +1574,7 @@ label.ctrl-action-locked{
           </div>
           <div class="fg"><label id="fa-lbl-rfc">RFC Contratista *</label>
   <input id="fa-rfc" oninput="onFaseRFCChange()" style="text-transform:uppercase">
+  <div class="rfc-alert" id="fa-rfc-aviso"></div>
 </div>
           <div class="fg">
   <label>RP</label>
@@ -1814,7 +1858,7 @@ label.ctrl-action-locked{
     <h2 id="prf-mtit">Nuevo Participante</h2>
     <form id="frm-prf" onsubmit="guardarPerfil(event)" autocomplete="off">
   <div class="fgrid">
-    <div class="fg"><label>RFC *</label><input id="prf-rfc" oninput="togglePersonaFisicaPorRFC()"></div>
+    <div class="fg"><label>RFC *</label><input id="prf-rfc" oninput="onRFCParticipanteChange()"><div class="rfc-alert" id="prf-rfc-aviso"></div></div>
     <div class="fg"><label>Nombre *</label><input id="prf-nom"></div>
     <div class="fg"><label>Tipo *</label>
       <select id="prf-tipo" onchange="" style="background:#0f1117;border:1.5px solid #2d2d44;border-radius:8px;padding:8px 11px;color:#e2e8f0;font-size:13px;outline:none">
@@ -1886,7 +1930,7 @@ label.ctrl-action-locked{
     <form id="frm" onsubmit="guardar(event); return false;">
       <div class="fgrid">
         <div class="fg full fp"><label>Nombre Obra *</label><input id="p-nom"></div>
-        <div class="fg fp"><label>RFC *</label><input id="p-rfc" oninput="autollenarPerfilObra('p')"></div>
+        <div class="fg fp"><label>RFC *</label><input id="p-rfc" oninput="autollenarPerfilObra('p')"><div class="rfc-alert" id="p-rfc-aviso"></div></div>
         <div class="fg fp"><label>Nombre Propietaria *</label><input id="p-pat"></div>
         <div class="fg fp">
   <label>¿La propietaria construye?</label>
@@ -1959,7 +2003,7 @@ label.ctrl-action-locked{
         <div class="fg fp"><label>Municipio</label><input id="p-municipio" readonly></div>
         <div class="fg fp"><label>Estado</label><input id="p-estado" readonly></div>
         <div class="fg full fc"><label>Nombre Obra *</label><input id="c-nom"></div>
-        <div class="fg fc"><label>RFC *</label><input id="c-rfc" oninput="autollenarPerfilObra('c')"></div>
+        <div class="fg fc"><label>RFC *</label><input id="c-rfc" oninput="autollenarPerfilObra('c')"><div class="rfc-alert" id="c-rfc-aviso"></div></div>
         <div class="fg fc"><label>Nombre Contratista *</label><input id="c-con"></div>
         <div class="fg fc"><label>RP</label><input id="c-rp"></div>
         <div class="fg fc"><label>No. Contrato</label><input id="c-ctr"></div>
@@ -2907,6 +2951,9 @@ var eId=null,eTipo=null;
 var archivosObraEliminar = {};
 function selT(t){document.getElementById('opt-p').classList.toggle('sel',t==='p');document.getElementById('opt-c').classList.toggle('sel',t==='c');document.querySelectorAll('.fp').forEach(function(el){el.classList.toggle('show',t==='p');});document.querySelectorAll('.fc').forEach(function(el){el.classList.toggle('show',t==='c');});eTipo=t;}
 function abrirNueva(){eId=null;eTipo=null;document.getElementById('mtit').textContent='Nueva Obra';document.getElementById('tsel').style.display='grid';document.getElementById('frm').reset();document.querySelectorAll('.fp,.fc').forEach(function(el){el.classList.remove('show');});document.querySelectorAll('.topt').forEach(function(el){el.classList.remove('sel');});if(document.getElementById('p-isn-pagado-por')) document.getElementById('p-isn-pagado-por').value = '';
+perfilCatalogoObra = { p:null, c:null };
+ocultarAvisoRFC('p-rfc-aviso');
+ocultarAvisoRFC('c-rfc-aviso');
 limpiarInputsArchivosObra();
 document.getElementById('modal').classList.add('open');}
 
@@ -3414,19 +3461,32 @@ function toggleISNSectionFase(){
 function calcISNPropietaria(){
   return;
 }
-function autollenarPerfilObra(tipo){
+async function autollenarPerfilObra(tipo){
   const rfcInputId = tipo === 'p' ? 'p-rfc' : 'c-rfc';
   const nombreInputId = tipo === 'p' ? 'p-pat' : 'c-con';
+  const avisoId = tipo === 'p' ? 'p-rfc-aviso' : 'c-rfc-aviso';
 
-  const rfc = document.getElementById(rfcInputId).value.trim().toUpperCase();
-  const perfiles = gPrf();
-  const perfil = perfiles.find(function(p){
-    return (p.rfc || '').toUpperCase() === rfc;
-  });
+  const rfc = normalizarRFCValor(document.getElementById(rfcInputId).value);
+  document.getElementById(rfcInputId).value = rfc;
+
+  if(!rfcCompletoValido(rfc)){
+    perfilCatalogoObra[tipo] = null;
+    ocultarAvisoRFC(avisoId);
+    document.getElementById(nombreInputId).value = '';
+    return;
+  }
+
+  const perfil = await buscarPerfilCatalogoPorRFC(rfc);
+
+  if(rfc !== normalizarRFCValor(document.getElementById(rfcInputId).value)) return;
 
   if(perfil){
+    perfilCatalogoObra[tipo] = perfil;
     document.getElementById(nombreInputId).value = perfil.nombre || '';
+    mostrarAvisoRFC(avisoId, avisoRFCObraHTML(tipo, perfil));
   } else {
+    perfilCatalogoObra[tipo] = null;
+    ocultarAvisoRFC(avisoId);
     document.getElementById(nombreInputId).value = '';
   }
 }
@@ -4097,6 +4157,228 @@ function gPrf(){
 
 function sPrf(a){
   localStorage.setItem('perfiles', JSON.stringify(a));
+}
+
+var perfilCatalogoObra = { p:null, c:null };
+var perfilCatalogoFase = null;
+var perfilCatalogoParticipante = null;
+
+function normalizarRFCValor(v){
+  return String(v || '').trim().toUpperCase();
+}
+
+function rfcCompletoValido(rfc){
+  rfc = normalizarRFCValor(rfc);
+  return rfc.length === 12 || rfc.length === 13;
+}
+
+function agregarPerfilCatalogoLocal(perfil){
+  if(!perfil || !perfil.rfc) return;
+
+  var arr = gPrf();
+  var rfc = normalizarRFCValor(perfil.rfc);
+  var idx = arr.findIndex(function(x){
+    return String(x.id || '') === String(perfil.id || '') || normalizarRFCValor(x.rfc) === rfc;
+  });
+
+  if(idx >= 0){
+    arr[idx] = Object.assign({}, arr[idx], perfil);
+  }else{
+    arr.push(perfil);
+  }
+
+  sPrf(arr);
+}
+
+async function buscarPerfilCatalogoPorRFC(rfc){
+  rfc = normalizarRFCValor(rfc);
+
+  if(!rfcCompletoValido(rfc)) return null;
+
+  var local = gPrf().find(function(p){
+    return normalizarRFCValor(p.rfc) === rfc;
+  });
+
+  if(local) return local;
+
+  if(!currentUser || !supabaseClient || !getOwnerUserId()) return null;
+
+  const { data, error } = await supabaseClient
+    .from('perfiles')
+    .select('*')
+    .eq('user_id', getOwnerUserId())
+    .eq('rfc', rfc)
+    .limit(1);
+
+  if(error){
+    console.error('Error buscando RFC en catálogo:', error);
+    return null;
+  }
+
+  if(!data || !data.length) return null;
+
+  return data[0].data || data[0];
+}
+
+function ocultarAvisoRFC(id){
+  var box = document.getElementById(id);
+  if(!box) return;
+  box.style.display = 'none';
+  box.innerHTML = '';
+}
+
+function mostrarAvisoRFC(id, html){
+  var box = document.getElementById(id);
+  if(!box) return;
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+function avisoRFCObraHTML(tipo, perfil){
+  var nombre = escHTML(perfil && perfil.nombre ? perfil.nombre : 'participante registrado');
+  return '<strong>RFC ya registrado</strong>'
+    + '<div>Este RFC ya existe en el catálogo de participantes de esta cuenta como <b>' + nombre + '</b>. Puedes reutilizar sus datos para esta obra o capturar la información manualmente.</div>'
+    + '<div>Reutilizarlo no modifica el participante original; solo lo vincula a esta obra.</div>'
+    + '<div class="rfc-alert-actions">'
+      + '<button type="button" class="rfc-alert-btn" onclick="usarPerfilExistenteObra(&quot;' + tipo + '&quot;)">Usar datos existentes</button>'
+      + '<button type="button" class="rfc-alert-btn" onclick="capturarManualObra(&quot;' + tipo + '&quot;)">Capturar manualmente</button>'
+    + '</div>';
+}
+
+function avisoRFCFaseHTML(perfil){
+  var nombre = escHTML(perfil && perfil.nombre ? perfil.nombre : 'participante registrado');
+  return '<strong>RFC ya registrado</strong>'
+    + '<div>Este RFC ya existe en el catálogo de participantes de esta cuenta como <b>' + nombre + '</b>. Puedes reutilizar sus datos para este contrato o capturar la información manualmente.</div>'
+    + '<div>Reutilizarlo no modifica el participante original; solo lo vincula a este contrato.</div>'
+    + '<div class="rfc-alert-actions">'
+      + '<button type="button" class="rfc-alert-btn" onclick="usarPerfilExistenteFase()">Usar datos existentes</button>'
+      + '<button type="button" class="rfc-alert-btn" onclick="capturarManualFase()">Capturar manualmente</button>'
+    + '</div>';
+}
+
+function avisoRFCParticipanteHTML(perfil){
+  var nombre = escHTML(perfil && perfil.nombre ? perfil.nombre : 'participante registrado');
+  return '<strong>Participante ya registrado</strong>'
+    + '<div>Ya existe un participante con este RFC en el catálogo de esta cuenta: <b>' + nombre + '</b>.</div>'
+    + '<div>Para evitar duplicar expedientes, usa el registro existente. Si los datos están desactualizados, edita ese participante.</div>'
+    + '<div class="rfc-alert-actions">'
+      + '<button type="button" class="rfc-alert-btn" onclick="usarPerfilExistenteParticipante()">Usar participante existente</button>'
+      + '<button type="button" class="rfc-alert-btn" onclick="cerrarPrf()">Cancelar creación</button>'
+    + '</div>';
+}
+
+function usarPerfilExistenteObra(tipo){
+  var perfil = perfilCatalogoObra[tipo];
+  if(!perfil) return;
+
+  agregarPerfilCatalogoLocal(perfil);
+
+  if(tipo === 'p'){
+    document.getElementById('p-rfc').value = normalizarRFCValor(perfil.rfc);
+    document.getElementById('p-pat').value = perfil.nombre || '';
+    if(document.getElementById('p-rp') && perfil.rp) document.getElementById('p-rp').value = perfil.rp;
+    ocultarAvisoRFC('p-rfc-aviso');
+  }else{
+    document.getElementById('c-rfc').value = normalizarRFCValor(perfil.rfc);
+    document.getElementById('c-con').value = perfil.nombre || '';
+    if(document.getElementById('c-rp') && perfil.rp) document.getElementById('c-rp').value = perfil.rp;
+    ocultarAvisoRFC('c-rfc-aviso');
+  }
+}
+
+function capturarManualObra(tipo){
+  perfilCatalogoObra[tipo] = null;
+  ocultarAvisoRFC(tipo === 'p' ? 'p-rfc-aviso' : 'c-rfc-aviso');
+}
+
+function usarPerfilExistenteFase(){
+  var perfil = perfilCatalogoFase;
+  if(!perfil) return;
+
+  agregarPerfilCatalogoLocal(perfil);
+
+  document.getElementById('fa-rfc').value = normalizarRFCValor(perfil.rfc);
+  document.getElementById('fa-contratista').value = perfil.nombre || '';
+  document.getElementById('fa-perfil').value = perfil.tipo || '';
+  if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = perfil.rp || '';
+  ocultarAvisoRFC('fa-rfc-aviso');
+}
+
+function capturarManualFase(){
+  perfilCatalogoFase = null;
+  ocultarAvisoRFC('fa-rfc-aviso');
+}
+
+function cargarPerfilExistenteEnFormulario(perfil){
+  if(!perfil) return;
+
+  agregarPerfilCatalogoLocal(perfil);
+
+  eIdPrf = perfil.id;
+  document.getElementById('prf-mtit').textContent='Editar Participante';
+  document.getElementById('prf-rfc').value=perfil.rfc||'';
+  document.getElementById('prf-idfisica').value=perfil.idPersonaFisica||0;
+  togglePersonaFisicaPorRFC();
+
+  document.getElementById('prf-nom').value=perfil.nombre||'';
+  document.getElementById('prf-tipo').value=perfil.tipo||'';
+  document.getElementById('prf-correo').value=perfil.correo||'';
+  document.getElementById('prf-tel').value=perfil.telefono||'';
+  document.getElementById('prf-folio').value=perfil.folioREPSE||'';
+  document.getElementById('prf-frepse').value=perfil.fechaREPSE||'';
+  document.getElementById('prf-vrepse').value=perfil.vigenciaREPSE||'';
+  calcVigenciaREPSE();
+
+  document.getElementById('prf-sat').value=perfil.acuseSAT||0;
+  document.getElementById('prf-arep').value=perfil.acuseREPSE||0;
+  toggleREPSEPerfil();
+  document.getElementById('prf-acta').value=perfil.actaConst||0;
+  document.getElementById('prf-poder').value=perfil.poderRL||0;
+  document.getElementById('prf-idrl').value=perfil.idRL||0;
+  document.getElementById('prf-csatrl').value=perfil.constSATRL||0;
+  archivosPerfilEliminar = {};
+  limpiarInputsArchivosPerfil();
+  pintarArchivosPerfil(perfil.archivos || {});
+  document.getElementById('prf-dom').value=perfil.domicilio||'';
+  document.getElementById('prf-cp').value=perfil.cp||'';
+  document.getElementById('prf-estado').value=perfil.estado||'';
+
+  ocultarAvisoRFC('prf-rfc-aviso');
+}
+
+function usarPerfilExistenteParticipante(){
+  if(!perfilCatalogoParticipante) return;
+  cargarPerfilExistenteEnFormulario(perfilCatalogoParticipante);
+}
+
+async function onRFCParticipanteChange(){
+  togglePersonaFisicaPorRFC();
+
+  if(eIdPrf){
+    ocultarAvisoRFC('prf-rfc-aviso');
+    return;
+  }
+
+  var rfc = normalizarRFCValor(document.getElementById('prf-rfc').value);
+  document.getElementById('prf-rfc').value = rfc;
+
+  if(!rfcCompletoValido(rfc)){
+    perfilCatalogoParticipante = null;
+    ocultarAvisoRFC('prf-rfc-aviso');
+    return;
+  }
+
+  var perfil = await buscarPerfilCatalogoPorRFC(rfc);
+
+  if(rfc !== normalizarRFCValor(document.getElementById('prf-rfc').value)) return;
+
+  if(perfil){
+    perfilCatalogoParticipante = perfil;
+    mostrarAvisoRFC('prf-rfc-aviso', avisoRFCParticipanteHTML(perfil));
+  }else{
+    perfilCatalogoParticipante = null;
+    ocultarAvisoRFC('prf-rfc-aviso');
+  }
 }
 function filtrarPerfiles(){
   var q=document.getElementById('prf-busq').value.toLowerCase();
@@ -4790,6 +5072,7 @@ var eIdPrf=null;
 var archivosPerfilEliminar = {};
 function abrirNuevoPerfil(){
   eIdPrf = null;
+  perfilCatalogoParticipante = null;
 
   document.getElementById('prf-mtit').textContent='Nuevo Participante';
   document.getElementById('frm-prf').reset();
@@ -4804,6 +5087,7 @@ function abrirNuevoPerfil(){
   document.getElementById('prf-repse-warn').style.display = 'none';
   document.getElementById('prf-idfisica').value = '0';
   limpiarInputsArchivosPerfil();
+  ocultarAvisoRFC('prf-rfc-aviso');
   togglePersonaFisicaPorRFC();
   toggleREPSEPerfil();
   document.getElementById('modal-prf').classList.add('open');
@@ -4905,6 +5189,18 @@ var archivosPrevios = previo && previo.archivos ? previo.archivos : {};
 var archivosPerfil = Object.assign({}, archivosPrevios);
 
 var rfcPerfilActual = document.getElementById('prf-rfc').value.trim().toUpperCase();
+
+if(!eIdPrf && rfcCompletoValido(rfcPerfilActual)){
+  var participanteDuplicado = await buscarPerfilCatalogoPorRFC(rfcPerfilActual);
+
+  if(participanteDuplicado){
+    perfilCatalogoParticipante = participanteDuplicado;
+    mostrarAvisoRFC('prf-rfc-aviso', avisoRFCParticipanteHTML(participanteDuplicado));
+    alert('Este RFC ya existe en el catálogo. Usa el participante existente para evitar duplicar expedientes.');
+    return;
+  }
+}
+
 var esPersonaFisicaPerfil = rfcPerfilActual.length === 13;
 
 var estadoDocsPerfil = {
@@ -5898,6 +6194,9 @@ function resetFaseForm(){
   if(lblRp)lblRp.textContent='RP Contratista';
   if(lblSiroc)lblSiroc.textContent='SIROC Contratista';
 
+  perfilCatalogoFase = null;
+  ocultarAvisoRFC('fa-rfc-aviso');
+
   if(typeof limpiarInputsArchivosFase === 'function'){
     limpiarInputsArchivosFase();
   }
@@ -5950,23 +6249,35 @@ if(obra){
   if(sub) sub.value = obra.subdelegacion || '';
 }
 }
-function onFaseRFCChange(){
-  var rfc = (document.getElementById('fa-rfc').value || '').trim().toUpperCase();
-  var perfiles = gPrf();
-  var p = perfiles.find(function(x){
-    return (x.rfc || '').trim().toUpperCase() === rfc;
-  });
-
+async function onFaseRFCChange(){
+  var rfc = normalizarRFCValor(document.getElementById('fa-rfc').value);
   document.getElementById('fa-rfc').value = rfc;
 
+  if(!rfcCompletoValido(rfc)){
+    perfilCatalogoFase = null;
+    ocultarAvisoRFC('fa-rfc-aviso');
+    document.getElementById('fa-contratista').value = '';
+    document.getElementById('fa-perfil').value = '';
+    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
+    return;
+  }
+
+  var p = await buscarPerfilCatalogoPorRFC(rfc);
+
+  if(rfc !== normalizarRFCValor(document.getElementById('fa-rfc').value)) return;
+
   if(p){
+    perfilCatalogoFase = p;
     document.getElementById('fa-contratista').value = p.nombre || '';
     document.getElementById('fa-perfil').value = p.tipo || '';
     if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = p.rp || '';
+    mostrarAvisoRFC('fa-rfc-aviso', avisoRFCFaseHTML(p));
   } else {
+    perfilCatalogoFase = null;
+    ocultarAvisoRFC('fa-rfc-aviso');
     document.getElementById('fa-contratista').value = '';
     document.getElementById('fa-perfil').value = '';
-    if(document.getElementById('fa-rp')) if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
+    if(document.getElementById('fa-rp')) document.getElementById('fa-rp').value = '';
   }
 }
 function toggleConvenios(){
