@@ -1281,6 +1281,8 @@ label.ctrl-action-locked{
 
 <button class="fase-bfases btn-reportes-ui" id="breporte-obra">Reportes</button>
 
+<button class="fase-bfases" id="bzip-obra">Descargar archivos</button>
+
 <button class="bfd" id="bfd">Eliminar</button>
     </div>
   </div>
@@ -1520,6 +1522,7 @@ label.ctrl-action-locked{
     <div class="fhdr-t"><h2 id="prf-fnom"></h2><div class="ftipo" id="prf-ftipo"></div></div>
     <div class="facts">
       <button class="bfe" id="prf-bfe">Editar</button>
+      <button class="fase-bfases" id="prf-bzip">Descargar archivos</button>
       <button class="bfd" id="prf-bfd">Eliminar</button>
     </div>
   </div>
@@ -1543,6 +1546,7 @@ label.ctrl-action-locked{
       <button class="bfe" id="fase-bedit">Editar</button>
       <button class="fase-bfases btn-control-ui" id="fase-bctrl">Control</button>
       <button class="fase-bfases btn-reportes-ui" id="fase-brep">Reportes</button>
+      <button class="fase-bfases" id="fase-bzip">Descargar archivos</button>
       <button class="fase-bfases" id="fase-bsub" style="display:none">Subcontratos</button>
       <button class="bfd" id="fase-bdel">Eliminar</button>
     </div>
@@ -2698,6 +2702,7 @@ function irFicha(id){
   document.getElementById('bfe').onclick=function(){abrirEditar(id);};
   document.getElementById('bfases').onclick=function(){irFases(o,t);};
   document.getElementById('bctrl-obra').onclick=function(){irControlObra(o);};
+  document.getElementById('bzip-obra').onclick=function(){descargarZipArchivosEntidad('obra', id);};
   document.getElementById('breporte-obra').onclick=function(){
   document.getElementById('modal-reportes').classList.add('open');
 
@@ -4568,6 +4573,140 @@ function nombreArchivoRuta(ruta){
   return partes[partes.length - 1] || ruta;
 }
 
+function etiquetaArchivoEntidad(tipo, campo){
+  var mapas = {
+    participante:{
+      acuseSAT:'Acuse constancia SAT',
+      acuseREPSE:'Acuse REPSE',
+      actaConst:'Acta constitutiva',
+      poderRL:'Poder notarial del RL',
+      idRL:'ID representante legal',
+      constSATRL:'Constancia SAT del RL',
+      idPersonaFisica:'Identificación persona física'
+    },
+    obra:{
+      licenciaConstruccion:'Licencia de construcción',
+      presupuesto:'Presupuesto',
+      explosionInsumos:'Explosión de insumos',
+      acuseSiroc:'Acuse SIROC',
+      arp:'Formato de Alta Patronal ARP',
+      tarjetaPatronal:'Tarjeta patronal',
+      croquisObra:'Croquis domicilio obra',
+      croquisRP:'Croquis domicilio RP',
+      compDomObra:'Comprobante domicilio obra',
+      compDomRP:'Comprobante domicilio RP'
+    },
+    fase:{
+      arp:'Formato de Alta Patronal ARP',
+      tarjetaPatronal:'Tarjeta patronal',
+      croquisRP:'Croquis domicilio RP',
+      compDomRP:'Comprobante domicilio RP',
+      contrato:'Contrato',
+      contratoFirmado:'Contrato firmado',
+      acuseSiroc:'Acuse SIROC',
+      presupuesto:'Presupuesto',
+      explosionInsumos:'Explosión de insumos',
+      planosConstruccion:'Planos de construcción'
+    }
+  };
+
+  return mapas[tipo] && mapas[tipo][campo] ? mapas[tipo][campo] : campo;
+}
+
+function camposArchivosEntidad(tipo){
+  if(tipo === 'participante') return perfilDocCampos();
+  if(tipo === 'obra') return obraDocCamposPropietaria();
+  if(tipo === 'fase') return faseDocCampos();
+  return [];
+}
+
+async function descargarZipArchivosEntidad(tipo, id){
+  if(!currentUser){
+    alert('Inicia sesión para descargar archivos.');
+    return;
+  }
+
+  if(!window.JSZip){
+    alert('No se cargó la herramienta ZIP. Recarga la página e intenta de nuevo.');
+    return;
+  }
+
+  var obj = null;
+
+  if(tipo === 'participante'){
+    obj = gPrf().find(function(x){ return x.id === id; });
+  }
+
+  if(tipo === 'obra'){
+    obj = gP().find(function(x){ return x.id === id; }) || gC().find(function(x){ return x.id === id; });
+  }
+
+  if(tipo === 'fase'){
+    obj = gFases().find(function(x){ return x.id === id; });
+  }
+
+  if(!obj){
+    alert('No se encontró el registro.');
+    return;
+  }
+
+  var archivos = obj.archivos || {};
+  var campos = camposArchivosEntidad(tipo);
+  var zip = new JSZip();
+  var encontrados = 0;
+
+  for(var i = 0; i < campos.length; i++){
+    var campo = campos[i];
+    var ruta = archivos[campo];
+
+    if(!ruta) continue;
+
+    var descarga = await supabaseClient.storage
+      .from('documentos')
+      .download(ruta);
+
+    if(descarga.error){
+      console.error('No se pudo descargar:', ruta, descarga.error);
+      continue;
+    }
+
+    var nombreOriginal = nombreArchivoRuta(ruta);
+    var extension = '';
+    var punto = nombreOriginal.lastIndexOf('.');
+
+    if(punto >= 0){
+      extension = nombreOriginal.slice(punto);
+    }
+
+    var nombreFinal = String(encontrados + 1).padStart(2,'0') + '_' + limpiarNombreZip(etiquetaArchivoEntidad(tipo, campo)) + extension;
+
+    zip.file(nombreFinal, descarga.data);
+    encontrados++;
+  }
+
+  if(encontrados === 0){
+    alert('Este registro no tiene archivos cargados para descargar.');
+    return;
+  }
+
+  var blob = await zip.generateAsync({type:'blob'});
+  var a = document.createElement('a');
+
+  var base = obj.nombre || obj.objeto || obj.contratista || obj.rfc || 'expediente';
+  var prefijo = tipo === 'participante' ? 'Participante' : (tipo === 'obra' ? 'Obra' : 'Contrato');
+  var nombreZip = limpiarNombreZip(prefijo + '_' + base) + '.zip';
+
+  a.href = URL.createObjectURL(blob);
+  a.download = nombreZip;
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(function(){
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1000);
+}
+
 function limpiarInputsArchivosPerfil(){
   archivosPerfilEliminar = {};
 
@@ -5103,6 +5242,7 @@ function irFichaPerfil(id){
   document.getElementById('prf-ftipo').innerHTML=tipoBadge(p.tipo);
   document.getElementById('prf-fbk').onclick=function(){irPerfiles();};
   document.getElementById('prf-bfe').onclick=function(){abrirEditarPerfil(id);};
+  document.getElementById('prf-bzip').onclick=function(){descargarZipArchivosEntidad('participante', id);};
   document.getElementById('prf-bfd').onclick=function(){pedirDelPrf(id);};
   var docs=[
     {lbl:'Acuse constancia SAT',v:p.acuseSAT},
@@ -5696,6 +5836,7 @@ function irFichaFase(id){
   document.getElementById('fase-brep').onclick=function(){
     abrirReportesFase(id);
   };
+  document.getElementById('fase-bzip').onclick=function(){descargarZipArchivosEntidad('fase', id);};
   // Subfases button — show only if this fase has a siroc that other fases use as sirocPrincipal
   var todasFases=gFases();
   var subfasesDeEsta=todasFases.filter(function(x){return x.id!==f.id && x.sirocPrincipal===f.siroc && f.siroc;});
