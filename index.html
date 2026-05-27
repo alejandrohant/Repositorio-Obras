@@ -2484,8 +2484,13 @@ async function signIn(){
 }
 
 async function signOut(){
-  await supabaseClient.auth.signOut();
+  var email = document.getElementById('authEmail');
+  var pass = document.getElementById('authPassword');
+
   currentUser = null;
+  currentAppUser = null;
+  currentOwnerUserId = null;
+  currentObrasPermitidas = [];
 
   localStorage.removeItem('op');
   localStorage.removeItem('oc');
@@ -2493,11 +2498,26 @@ async function signOut(){
   localStorage.removeItem('fases');
   localStorage.removeItem('control');
 
+  if(email){
+    email.value = '';
+    email.disabled = false;
+    email.readOnly = false;
+  }
+
+  if(pass){
+    pass.value = '';
+    pass.disabled = false;
+    pass.readOnly = false;
+  }
+
   renderAuthStatus();
   counts();
-  goHome();
 
-  alert('Sesión cerrada.');
+  try{
+    await supabaseClient.auth.signOut();
+  }catch(err){
+    console.error('Error cerrando sesión en Supabase:', err);
+  }
 }
 function goHome(){counts();show('pg-home');}
 function counts(){
