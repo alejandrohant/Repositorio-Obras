@@ -7588,6 +7588,50 @@ function buildReporteContratista(prf, fasesCtrl, corteManual){
   return h;
 }
 
+function opcionesCorteIMSSReporte(fasesCtrl, corteActual, corteManualVal){
+  var auto = fechaCorteIMSS();
+  var h = '<option value=""' + (corteManualVal ? '' : ' selected') + '>Automático (' + fdate(fechaYMD(auto)) + ')</option>';
+  var mapa = {};
+  var hoy = new Date();
+  hoy.setHours(12,0,0,0);
+
+  for(var i = 0; i < 24; i++){
+    var d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1, 12, 0, 0);
+    var fin = new Date(d.getFullYear(), d.getMonth() + 1, 0, 12, 0, 0);
+    mapa[fechaYMD(fin)] = fin;
+  }
+
+  var ctrl = (typeof gCtrl === 'function') ? gCtrl() : JSON.parse(localStorage.getItem('control') || '{}');
+
+  (fasesCtrl || []).forEach(function(f){
+    var key = 'fase_' + (f.id || '');
+    var data = ctrl[key] || {};
+
+    Object.keys(data).forEach(function(p){
+      var fechaPeriodo = fechaCtrlDesdeValor(p);
+      if(fechaPeriodo){
+        var finPeriodo = new Date(fechaPeriodo.getFullYear(), fechaPeriodo.getMonth() + 1, 0, 12, 0, 0);
+        mapa[fechaYMD(finPeriodo)] = finPeriodo;
+      }
+    });
+
+    var estimaciones = Array.isArray(data.__estimaciones) ? data.__estimaciones : [];
+    estimaciones.forEach(function(e){
+      var fechaEst = fechaCtrlDesdeValor(e.periodo || e.fechaPago);
+      if(fechaEst){
+        var finEst = new Date(fechaEst.getFullYear(), fechaEst.getMonth() + 1, 0, 12, 0, 0);
+        mapa[fechaYMD(finEst)] = finEst;
+      }
+    });
+  });
+
+  Object.keys(mapa).sort().reverse().forEach(function(k){
+    h += '<option value="' + k + '"' + (k === corteManualVal ? ' selected' : '') + '>' + fdate(k) + '</option>';
+  });
+
+  return h;
+}
+
 function actualizarReporteContratistaControlActual(){
   var box = document.querySelector('.ctrl-reporte-contratista');
   if(!box || !ctrlFaseCtx) return;
