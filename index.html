@@ -9499,9 +9499,9 @@ async function verArchivoControlCierre(key, campo){
 }
 function montoInputCtrl(key, periodo, campo, val) {
   var esc = function(s){return s.replace(/'/g,"\'");};
-  return '<input class="ctrl-inp" type="number" step="0.01" value="' + (val||'') + '" '
+  return '<input class="ctrl-inp" type="text" inputmode="decimal" value="' + (val||'') + '" '
     + 'data-campo="' + campo + '" '
-    + 'oninput="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',parseFloat(this.value)||null);actualizarFilaControl(this)" '
+    + 'oninput="setCtrlVal(\'' + esc(key) + '\',\'' + esc(periodo) + '\',\'' + esc(campo) + '\',numCtrl(this.value)||null);actualizarFilaControl(this)" '
     + 'placeholder="0.00">';
 }
 
@@ -9527,7 +9527,19 @@ function escCtrlHTML(s){
 }
 function numCtrl(v){
   if(v === null || v === undefined || v === '') return 0;
-  return parseFloat(String(v).replace(/,/g,'')) || 0;
+
+  var s = String(v).trim();
+
+  if(!s) return 0;
+
+  s = s.replace(/\s/g, '');
+  s = s.replace(/\$/g, '');
+  s = s.replace(/,/g, '');
+  s = s.replace(/[^0-9.\-]/g, '');
+
+  var n = parseFloat(s);
+
+  return isNaN(n) ? 0 : n;
 }
 
 function normalizarAnticiposControl(key){
@@ -9958,11 +9970,12 @@ function inputEstimacion(key, idx, campo, val, tipo, ancho){
     cls += ' ctrl-inp-w' + String(ancho).replace(/[^0-9]/g, '');
   }
 
-  var step = tipo === 'number' ? ' step="0.01"' : '';
+  var inputType = tipo === 'number' ? 'text' : tipo;
+  var attrs = tipo === 'number' ? ' inputmode="decimal"' : '';
   var valor = escCtrlHTML(val || '');
   var parser = tipo === 'number' ? 'numCtrl(this.value)' : 'this.value';
 
-  return '<input class="' + cls + '" type="' + tipo + '"' + step + ' value="' + valor + '" '
+  return '<input class="' + cls + '" type="' + inputType + '"' + attrs + ' value="' + valor + '" '
     + 'oninput="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')" '
     + 'onchange="setEstimacionVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'' + escCtrlJS(campo) + '\',' + parser + ')">';
 }
@@ -10036,9 +10049,9 @@ function buildControlEstimaciones(key, fase){
         + '<button type="button" class="ctrl-conv-del" onclick="eliminarAnticipoControl(\'' + escCtrlJS(fase.id) + '\',' + idx + ')">Eliminar</button>'
         + '</td>';
 
-      h += '<td><input class="ctrl-inp ctrl-anticipo-num" type="number" step="0.01" value="' + escCtrlHTML(a.porcentaje || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'porcentaje\',this.value,' + importeContrato + ')" placeholder="30"></td>';
+      h += '<td><input class="ctrl-inp ctrl-anticipo-num" type="text" inputmode="decimal" value="' + escCtrlHTML(a.porcentaje || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'porcentaje\',this.value,' + importeContrato + ')" placeholder="30"></td>';
 
-      h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="number" step="0.01" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
+      h += '<td><input class="ctrl-inp ctrl-anticipo-num" id="anticipo-importe-' + escCtrlHTML(key) + '-' + idx + '" type="text" inputmode="decimal" value="' + escCtrlHTML(a.importe || '') + '" oninput="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'importe\',numCtrl(this.value),' + importeContrato + ')" placeholder="0.00"></td>';
 
       h += '<td><input class="ctrl-inp-wide ctrl-anticipo-val" type="date" value="' + escCtrlHTML(a.fechaPago || '') + '" onchange="setAnticipoControlVal(\'' + escCtrlJS(key) + '\',' + idx + ',\'fechaPago\',this.value,' + importeContrato + ')"></td>';
 
@@ -10586,10 +10599,10 @@ function actualizarFilaControl(inputEl) {
   
   // Handle ISN Pagado field
   if(campo === 'isn_pagado') {
-    var isnPagado = parseFloat(inputEl.value) || 0;
+    var isnPagado = numCtrl(inputEl.value);
     var contingenciaDiv = inputEl.closest('.ctrl-seccion').querySelector('.isn-contingencia');
     if(contingenciaDiv) {
-      var isnEstimado = parseFloat(contingenciaDiv.getAttribute('data-isn-est')) || 0;
+      var isnEstimado = numCtrl(contingenciaDiv.getAttribute('data-isn-est'));
       var contingencia = isnEstimado - isnPagado;
       contingenciaDiv.textContent = contingencia > 0 ? mxn(contingencia) : '--';
     }
@@ -10603,10 +10616,10 @@ function actualizarFilaControl(inputEl) {
   var copInput = row.querySelector('input[data-campo="cop"]');
   var rcvInput = row.querySelector('input[data-campo="rcv"]');
   var infInput = row.querySelector('input[data-campo="inf"]');
-  var gps = parseFloat((gpsInput && gpsInput.value) || '') || 0;
-  var cop = parseFloat((copInput && copInput.value) || '') || 0;
-  var rcv = parseFloat((rcvInput && rcvInput.value) || '') || 0;
-  var inf = parseFloat((infInput && infInput.value) || '') || 0;
+  var gps = numCtrl((gpsInput && gpsInput.value) || '');
+  var cop = numCtrl((copInput && copInput.value) || '');
+  var rcv = numCtrl((rcvInput && rcvInput.value) || '');
+  var inf = numCtrl((infInput && infInput.value) || '');
   var moCell = row.querySelector('.mo-impl');
   if(moCell) {
     moCell.textContent = gps > 0 ? mxn(gps / 0.01) : '--';
@@ -11146,7 +11159,7 @@ function updateSummaryBar(tbl) {
   tbl.querySelectorAll('tbody tr').forEach(function(row){
     row.querySelectorAll('.ctrl-inp').forEach(function(inp){
       var c=inp.getAttribute('data-campo');
-      var v=parseFloat(inp.value)||0;
+      var v=numCtrl(inp.value);
       if(c==='gps') totalGPS+=v;
       else if(c==='cop') totalCOP+=v;
       else if(c==='rcv') totalRCV+=v;
