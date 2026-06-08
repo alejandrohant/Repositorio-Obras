@@ -11105,6 +11105,10 @@ function toggleControlFasePanel(cardId, panelName, btn){
   var panel = card.querySelector('[data-panel="' + panelName + '"]');
   if(panel) panel.classList.add('active');
   if(btn) btn.classList.add('sel');
+
+  if(typeof aplicarBloqueoControl === 'function'){
+    aplicarBloqueoControl();
+  }
 }
 
 function toggleCtrlFaseCard(cardId){
