@@ -7217,6 +7217,7 @@ function irControlContratistaDesdeFase(faseObj){
   return (o.nombre || '') === (faseObj.obra || '');
 });
 var controlISNHtml = debeMostrarControlISN(obraBaseISN, 'contratista') ? buildControlISN('isn_ctr_' + ((prf && prf.rfc) || faseObj.rfc || 'rfc') + '_' + (faseObj.obra || 'obra'), faseObj) : '';
+ctrlReporteCorteIMSS = '';
 panel.innerHTML = rfcHtml + suaHtml + fasesHtml + buildReporteContratista(prf, obraFases);
 
   show('pg-ctrl');
@@ -7475,10 +7476,15 @@ function togglePagoISN(sel){
   if(unico) unico.style.display = sel.value === 'unico' ? 'block' : 'none';
   if(mensual) mensual.style.display = sel.value === 'mensual' ? 'block' : 'none';
 }
-function buildReporteContratista(prf, fasesCtrl){
+var ctrlReporteCorteIMSS = '';
 
-  var corteIMSS = fechaCorteIMSS();
+function buildReporteContratista(prf, fasesCtrl, corteManual){
+
+  var corteManualVal = corteManual || ctrlReporteCorteIMSS || '';
+  var corteManualFecha = corteManualVal ? fechaCtrlDesdeValor(corteManualVal) : null;
+  var corteIMSS = corteManualFecha || fechaCorteIMSS();
   var corteIMSSLabel = fdate(fechaYMD(corteIMSS));
+  var corteModo = corteManualFecha ? 'manual' : 'automático';
 
   var totalEstimadoCorte = 0;
   var totalMoEst = 0;
@@ -7535,7 +7541,13 @@ function buildReporteContratista(prf, fasesCtrl){
 
   h += '<div class="ctrl-blk ctrl-reporte-contratista" style="margin-top:22px;background:#1e1e2e;border-radius:12px;padding:20px 24px;border:0">';
   h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:6px">REPORTE DEL CONTRATISTA</div>';
-  h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:14px">Corte IMSS: <strong style="color:#e2e8f0">' + corteIMSSLabel + '</strong></div>';
+  h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:10px">Corte IMSS: <strong style="color:#e2e8f0">' + corteIMSSLabel + '</strong> <span style="color:#64748b">— ' + corteModo + '</span></div>';
+  h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
+    + '<label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;letter-spacing:.04em">Corte del reporte</label>'
+    + '<select class="ctrl-sel" style="width:auto;min-width:220px" onchange="ctrlReporteCorteIMSS=this.value;actualizarReporteContratistaControlActual()">'
+    + opcionesCorteIMSSReporte(fasesCtrl, corteIMSS, corteManualVal)
+    + '</select>'
+    + '</div>';
 
   h += '<table class="rpt-tbl">';
   h += '<thead><tr>'
@@ -9543,6 +9555,10 @@ function setCtrlVal(key, periodo, campo, val) {
   if(!ctrl[key][periodo]) ctrl[key][periodo] = {};
   ctrl[key][periodo][campo] = val;
   sCtrl(ctrl);
+
+  if(typeof actualizarReporteContratistaControlActual === 'function'){
+    actualizarReporteContratistaControlActual();
+  }
 }
 
 function escCtrlJS(s){
