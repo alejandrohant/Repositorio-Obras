@@ -13230,10 +13230,22 @@ function abrirReportesFase(faseId){
     };
   }
 }
-function generarReporteCuotasFase(f){
+var rptCuotasFaseCtx = null;
+
+function actualizarReporteCuotasFaseConCorte(val){
+  if(!rptCuotasFaseCtx || !rptCuotasFaseCtx.f) return;
+  generarReporteCuotasFase(rptCuotasFaseCtx.f, val || '');
+}
+
+function generarReporteCuotasFase(f, corteManual){
+  rptCuotasFaseCtx = { f: f };
+
   var hoy = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
-  var corteIMSS = fechaCorteIMSS();
+  var corteManualVal = corteManual || '';
+  var corteManualFecha = corteManualVal ? fechaCtrlDesdeValor(corteManualVal) : null;
+  var corteIMSS = corteManualFecha || fechaCorteIMSS();
   var corteIMSSLabel = fdate(fechaYMD(corteIMSS));
+  var corteModo = corteManualFecha ? 'manual' : 'automático';
   var fases = fasesReporteDesdeFase(f);
 
   var h = '';
@@ -13242,6 +13254,14 @@ function generarReporteCuotasFase(f){
     + '<div class="rpt-logo">RO</div>'
     + '<div class="rpt-title"><h1>Reporte de Cuotas IMSS</h1><p>Control IMSS-RCV-Infonavit por fase al corte IMSS</p></div>'
     + '<div class="rpt-fecha">Generado el<br><strong>' + hoy + '</strong></div>'
+    + '</div>';
+
+  h += '<div class="rpt-card no-print" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+    + '<label style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;letter-spacing:.04em">Corte del reporte</label>'
+    + '<select class="fg-sel" style="width:auto;min-width:240px" onchange="actualizarReporteCuotasFaseConCorte(this.value)">'
+    + opcionesCorteIMSSReporte(fases, corteIMSS, corteManualVal)
+    + '</select>'
+    + '<span style="color:#64748b;font-size:12px">Corte actual: <strong style="color:#e2e8f0">' + corteIMSSLabel + '</strong> — ' + corteModo + '</span>'
     + '</div>';
 
   h += '<div class="rpt-obra">'
