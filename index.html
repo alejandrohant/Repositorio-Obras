@@ -11033,6 +11033,10 @@ function esBloqueEditableControl(id){
 function elementoEditablePorBloque(el){
   if(!controlBloqueadoGeneral()) return true;
 
+  if(el && el.closest && el.closest('.ctrl-reporte-contratista')){
+    return true;
+  }
+
   var bloque = el.closest('.ctrl-bloque-control');
   if(!bloque) return false;
 
