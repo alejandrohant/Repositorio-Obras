@@ -7533,7 +7533,7 @@ function buildReporteContratista(prf, fasesCtrl){
 
   var h = '';
 
-  h += '<div class="ctrl-blk" style="margin-top:22px;background:#1e1e2e;border-radius:12px;padding:20px 24px;border:0">';
+  h += '<div class="ctrl-blk ctrl-reporte-contratista" style="margin-top:22px;background:#1e1e2e;border-radius:12px;padding:20px 24px;border:0">';
   h += '<div class="ctrl-hd" style="color:#4ade80;font-size:13px;font-weight:800;letter-spacing:.08em;margin-bottom:6px">REPORTE DEL CONTRATISTA</div>';
   h += '<div style="color:#94a3b8;font-size:12px;margin-bottom:14px">Corte IMSS: <strong style="color:#e2e8f0">' + corteIMSSLabel + '</strong></div>';
 
@@ -7574,6 +7574,38 @@ function buildReporteContratista(prf, fasesCtrl){
   h += '</div>';
 
   return h;
+}
+
+function actualizarReporteContratistaControlActual(){
+  var box = document.querySelector('.ctrl-reporte-contratista');
+  if(!box || !ctrlFaseCtx) return;
+
+  var faseObj = ctrlFaseCtx;
+  var obraNombre = faseObj.obra || '';
+  var rfc = String(faseObj.rfc || '').trim().toUpperCase();
+
+  if(!obraNombre || !rfc) return;
+
+  var obraFases = gFases().filter(function(f){
+    return String(f.obra || '') === String(obraNombre || '') &&
+           String(f.rfc || '').trim().toUpperCase() === rfc;
+  });
+
+  if(!obraFases.length) return;
+
+  var prf = gPrf().find(function(p){
+    return String(p.rfc || '').trim().toUpperCase() === rfc;
+  });
+
+  if(!prf){
+    prf = {
+      rfc: faseObj.rfc || '',
+      nombre: faseObj.contratista || 'Contratista',
+      tipo: faseObj.perfil || 'Contratista'
+    };
+  }
+
+  box.outerHTML = buildReporteContratista(prf, obraFases);
 }
   
 function abrirBloqueControlPorTexto(textoBuscar){
@@ -9705,29 +9737,33 @@ function setEstimacionVal(key, idx, campo, val){
   ctrl[key].__estimaciones[idx][campo] = val;
 
   if(campo === 'subtotal'){
-  var pctAnt = porcentajeAnticipoControl(ctrl[key]);
+    var pctAnt = porcentajeAnticipoControl(ctrl[key]);
 
-  if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
-    ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
+    if(pctAnt > 0 && !numCtrl(ctrl[key].__estimaciones[idx].amortizacion)){
+      ctrl[key].__estimaciones[idx].amortizacion = numCtrl(val) * pctAnt;
+    }
+
+    var subtotal = numCtrl(val);
+    var ivaActual = numCtrl(ctrl[key].__estimaciones[idx].iva);
+
+    if(subtotal > 0 && !ivaActual){
+      ctrl[key].__estimaciones[idx].iva = subtotal * 0.16;
+      ctrl[key].__estimaciones[idx].total = subtotal + (subtotal * 0.16);
+    }else{
+      ctrl[key].__estimaciones[idx].total = subtotal + ivaActual;
+    }
   }
 
-  var subtotal = numCtrl(val);
-  var ivaActual = numCtrl(ctrl[key].__estimaciones[idx].iva);
-
-  if(subtotal > 0 && !ivaActual){
-    ctrl[key].__estimaciones[idx].iva = subtotal * 0.16;
-    ctrl[key].__estimaciones[idx].total = subtotal + (subtotal * 0.16);
-  }else{
-    ctrl[key].__estimaciones[idx].total = subtotal + ivaActual;
+  if(campo === 'iva'){
+    ctrl[key].__estimaciones[idx].total =
+      numCtrl(ctrl[key].__estimaciones[idx].subtotal) + numCtrl(val);
   }
-}
-
-if(campo === 'iva'){
-  ctrl[key].__estimaciones[idx].total =
-    numCtrl(ctrl[key].__estimaciones[idx].subtotal) + numCtrl(val);
-}
 
   sCtrl(ctrl);
+
+  if(typeof actualizarReporteContratistaControlActual === 'function'){
+    actualizarReporteContratistaControlActual();
+  }
 }
 function faseIdSafeCtrl(faseId){
   return String(faseId || 'fase').replace(/[^a-zA-Z0-9_-]/g,'_');
@@ -9759,6 +9795,10 @@ function recargarPanelEstimacionesControl(faseId){
     recargarControl();
     setTimeout(function(){
       abrirPanelEstimacionesControl(faseId);
+
+      if(typeof actualizarReporteContratistaControlActual === 'function'){
+        actualizarReporteContratistaControlActual();
+      }
     }, 0);
     return;
   }
@@ -9775,6 +9815,10 @@ function recargarPanelEstimacionesControl(faseId){
     recargarControl();
     setTimeout(function(){
       abrirPanelEstimacionesControl(faseId);
+
+      if(typeof actualizarReporteContratistaControlActual === 'function'){
+        actualizarReporteContratistaControlActual();
+      }
     }, 0);
     return;
   }
@@ -9792,6 +9836,10 @@ function recargarPanelEstimacionesControl(faseId){
 
     if(typeof aplicarBloqueoControl === 'function'){
       aplicarBloqueoControl();
+    }
+
+    if(typeof actualizarReporteContratistaControlActual === 'function'){
+      actualizarReporteContratistaControlActual();
     }
   });
 }
