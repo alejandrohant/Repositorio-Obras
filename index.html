@@ -12481,23 +12481,13 @@ function actualizarReportePropietariaConCorte(val){
     grandTotalMoEst += totalMoEst;
     grandTotalMoPag += totalMoPag;
 
-    if(String(obraObj.construye || '') === '1'){
-      if((ctr.perfil || '').toLowerCase() === 'propietaria'){
-        grandTotalCuotEst = totalCuotEst;
-      }
-    }else{
-      grandTotalCuotEst += totalCuotEst;
-    }
-
+    grandTotalCuotEst += totalCuotEst;
     grandTotalCuotPag += totalCuotPag;
 
     h += '</div>';
   });
 
-  // Gran total de la obra
-  if(tipo === 'p' && baseCuotasObra !== null){
-    grandTotalCuotEst = baseCuotasObra;
-  }
+  // Gran total de la obra: se conserva la suma real de las tarjetas del reporte.
 
   var contMoObra = grandTotalMoEst - grandTotalMoPag;
   var contCuotObra = grandTotalCuotEst - grandTotalCuotPag;
